@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "./node_modules/.bin/tsc -p tsconfig.build.json",
-    "start": "./node_modules/.bin/ts-node src/main.ts",
+    "start": "node dist/main.js",
+    "start:prod": "node dist/main.js",
     "start:dev": "./node_modules/.bin/ts-node-dev --respawn src/main.ts",
     "seed": "./node_modules/.bin/ts-node src/seed/seed.ts",
     "test:e2e": "./node_modules/.bin/jest --config test/jest-e2e.json --forceExit --runInBand"
