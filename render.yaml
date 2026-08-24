@@ -14,3 +14,5 @@ services:
         value: api
       - key: APP_DOMAIN
         value: educare.prohitcoretech.com
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=450
