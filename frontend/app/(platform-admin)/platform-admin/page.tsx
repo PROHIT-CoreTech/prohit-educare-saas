@@ -422,20 +422,20 @@ export default function PlatformAdminPage() {
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider">
+                <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
                   <tr>
-                    <th className="p-4">Academy Name</th>
-                    <th className="p-4">Subdomain</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4">Subscription Start</th>
-                    <th className="p-4">Subscription Expiry</th>
-                    <th className="p-4 text-right">Master Admin Tools</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Academy Name</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Subdomain</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Status</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Subscription Start</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Subscription Expiry</th>
+                    <th className="px-6 py-4 text-right whitespace-nowrap">Master Admin Tools</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
                   {filteredAcademies.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                         No academy tenants found matching your filter criteria.
                       </td>
                     </tr>
@@ -449,15 +449,19 @@ export default function PlatformAdminPage() {
                       );
 
                       return (
-                        <tr key={ac._id} className="hover:bg-slate-800/40">
-                          <td className="p-4 font-semibold text-white">
-                            <div>{ac.name}</div>
-                            <span className="text-[10px] text-slate-500 font-mono">ID: {ac._id}</span>
+                        <tr key={ac._id} className="hover:bg-slate-800/40 transition">
+                          <td className="px-6 py-4 font-semibold text-white whitespace-nowrap">
+                            <div className="text-sm">{ac.name}</div>
+                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">ID: {ac._id}</span>
                           </td>
-                          <td className="p-4 text-indigo-400 font-mono">{ac.slug}.educare.prohitcoretech.com</td>
-                          <td className="p-4">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-xl text-xs font-mono inline-flex items-center space-x-1">
+                              <span>{ac.slug}.educare.prohitcoretech.com</span>
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
                                 ac.subscriptionStatus === 'ACTIVE'
                                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                   : ac.subscriptionStatus === 'TRIAL'
@@ -468,50 +472,52 @@ export default function PlatformAdminPage() {
                               {ac.subscriptionStatus}
                             </span>
                           </td>
-                          <td className="p-4 text-xs font-mono text-slate-300">
-                            <div className="flex items-center space-x-1">
+                          <td className="px-6 py-4 text-xs font-mono text-slate-300 whitespace-nowrap">
+                            <div className="flex items-center space-x-1.5">
                               <Calendar className="w-3.5 h-3.5 text-indigo-400" />
                               <span>{startDate}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-xs font-mono text-emerald-400 font-semibold">
-                            <div className="flex items-center space-x-1">
+                          <td className="px-6 py-4 text-xs font-mono text-emerald-400 font-semibold whitespace-nowrap">
+                            <div className="flex items-center space-x-1.5">
                               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                               <span>{expiryDate}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-right space-x-2">
-                            <button
-                              onClick={() => handleInspectRecords(ac._id)}
-                              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 inline-flex items-center space-x-1"
-                            >
-                              <Eye className="w-3.5 h-3.5 mr-1" />
-                              <span>Inspect Records</span>
-                            </button>
-
-                            {ac.subscriptionStatus === 'ACTIVE' ? (
+                          <td className="px-6 py-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end space-x-2">
                               <button
-                                onClick={() => handleStatusChange(ac._id, 'CANCELLED')}
-                                className="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-xl border border-rose-500/20"
+                                onClick={() => handleInspectRecords(ac._id)}
+                                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 inline-flex items-center space-x-1 transition"
                               >
-                                Cancel Sub
+                                <Eye className="w-3.5 h-3.5 mr-1" />
+                                <span>Inspect Records</span>
                               </button>
-                            ) : (
-                              <button
-                                onClick={() => handleStatusChange(ac._id, 'ACTIVE')}
-                                className="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-xl border border-emerald-500/20"
-                              >
-                                Activate Sub
-                              </button>
-                            )}
 
-                            <button
-                              onClick={() => handleImpersonate(ac._id, ac.slug)}
-                              className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-1.5 rounded-xl inline-flex items-center space-x-1 shadow-lg shadow-indigo-600/20"
-                            >
-                              <span>Impersonate</span>
-                              <ExternalLink className="w-3 h-3 ml-1" />
-                            </button>
+                              {ac.subscriptionStatus === 'ACTIVE' ? (
+                                <button
+                                  onClick={() => handleStatusChange(ac._id, 'CANCELLED')}
+                                  className="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-xl border border-rose-500/20 transition font-semibold"
+                                >
+                                  Cancel Sub
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleStatusChange(ac._id, 'ACTIVE')}
+                                  className="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-xl border border-emerald-500/20 transition font-semibold"
+                                >
+                                  Activate Sub
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => handleImpersonate(ac._id, ac.slug)}
+                                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3.5 py-1.5 rounded-xl inline-flex items-center space-x-1 shadow-lg shadow-indigo-600/20 transition"
+                              >
+                                <span>Impersonate</span>
+                                <ExternalLink className="w-3 h-3 ml-0.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
