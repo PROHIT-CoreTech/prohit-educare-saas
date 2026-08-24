@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Main Root / Landing Page (e.g. localhost, 127.0.0.1, educare.prohitcoretech.com, www.educare.prohitcoretech.com)
+  // 2. Main Root / Landing Page (e.g. localhost, 127.0.0.1, educare.prohitcoretech.com, *.vercel.app)
   if (
     hostname === 'localhost' ||
     hostname === '127.0.0.1' ||
@@ -27,6 +27,7 @@ export function middleware(request: NextRequest) {
     hostname === 'www.educare.prohitcoretech.com' ||
     hostname === 'prohiteducare.com' ||
     hostname === 'www.prohiteducare.com' ||
+    hostname.endsWith('.vercel.app') ||
     hostname === ''
   ) {
     // If requesting platform-admin directly on root host, allow it
