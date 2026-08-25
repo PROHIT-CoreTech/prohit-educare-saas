@@ -139,9 +139,9 @@ export class FeeEngineService {
     const student = await this.studentModel.findOne({ _id: params.studentId, academyId }).exec();
     if (!student) throw new NotFoundException('Student not found');
 
+    let feeStructure;
     let baseFee = params.customTotalFee;
     if (!baseFee || baseFee <= 0) {
-      let feeStructure;
       if (params.standard >= 11 && student.stream && student.stream !== 'none') {
         feeStructure = await this.feeStructureModel.findOne({ academyId, standard: params.standard, stream: student.stream }).exec();
       } else if (params.standard <= 10 && student.medium) {
@@ -163,7 +163,7 @@ export class FeeEngineService {
 
     const schedules = [];
     for (const inst of breakdown) {
-      const schedule = await this.feeScheduleModel.create({
+      const scheduleData: any = {
         academyId,
         studentId: student._id,
         installmentNo: inst.installmentNo,
@@ -171,7 +171,11 @@ export class FeeEngineService {
         amount: inst.amount,
         paidAmount: 0,
         status: 'PENDING',
-      });
+      };
+      if (feeStructure) {
+        scheduleData.feeStructureId = feeStructure._id;
+      }
+      const schedule = await this.feeScheduleModel.create(scheduleData);
       schedules.push(schedule);
     }
 

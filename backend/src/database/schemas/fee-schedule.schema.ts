@@ -11,8 +11,8 @@ export class FeeSchedule {
   @Prop({ type: Types.ObjectId, ref: 'Student', required: true, index: true })
   studentId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'FeeStructure', required: true })
-  feeStructureId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'FeeStructure', required: false })
+  feeStructureId?: Types.ObjectId;
 
   @Prop({ required: true })
   installmentNo: number;
