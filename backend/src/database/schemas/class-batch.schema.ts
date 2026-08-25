@@ -9,7 +9,7 @@ export class ClassBatch {
   @Prop({ type: Types.ObjectId, ref: 'Academy', required: true, index: true })
   academyId: Types.ObjectId;
 
-  @Prop({ required: true, min: 1, max: 12 })
+  @Prop({ required: true, min: 1, max: 15 })
   standard: number;
 
   @Prop({ required: true, enum: ['english', 'marathi', 'semi_english', 'hindi'] })

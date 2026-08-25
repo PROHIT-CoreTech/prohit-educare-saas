@@ -10,6 +10,7 @@ import { ClassesModule } from './modules/classes/classes.module';
 import { ExamMarksModule } from './modules/exam-marks/exam-marks.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { FacultyModule } from './modules/faculty/faculty.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AuthModule } from './modules/auth/auth.module';
     ClassesModule,
     ExamMarksModule,
     ReportsModule,
+    FacultyModule,
   ],
 })
 export class AppModule {}

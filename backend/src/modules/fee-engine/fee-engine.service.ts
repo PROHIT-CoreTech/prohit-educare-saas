@@ -127,6 +127,49 @@ export class FeeEngineService {
     return schedules;
   }
 
+  async assignCustomFeeToStudent(params: {
+    studentId: string;
+    standard: number;
+    discountAmount?: number;
+    paymentType?: 'FULL' | 'INSTALLMENT';
+    installmentCount?: number;
+    customTotalFee?: number;
+  }) {
+    const academyId = this.tenantContextService.academyId;
+    const student = await this.studentModel.findOne({ _id: params.studentId, academyId }).exec();
+    if (!student) throw new NotFoundException('Student not found');
+
+    let baseFee = params.customTotalFee;
+    if (!baseFee || baseFee <= 0) {
+      const feeStructure = await this.feeStructureModel.findOne({ academyId, standard: params.standard }).exec();
+      baseFee = feeStructure ? feeStructure.totalAmount : (params.standard >= 11 ? 50000 : 30000);
+    }
+
+    const discount = Math.max(0, params.discountAmount || 0);
+    const netFee = Math.max(0, baseFee - discount);
+    const count = params.paymentType === 'INSTALLMENT' ? Math.max(1, params.installmentCount || 3) : 1;
+
+    const breakdown = this.generateInstallmentBreakdown(netFee, count, new Date());
+
+    await this.feeScheduleModel.deleteMany({ academyId, studentId: student._id, paidAmount: 0 });
+
+    const schedules = [];
+    for (const inst of breakdown) {
+      const schedule = await this.feeScheduleModel.create({
+        academyId,
+        studentId: student._id,
+        installmentNo: inst.installmentNo,
+        dueDate: inst.dueDate,
+        amount: inst.amount,
+        paidAmount: 0,
+        status: 'PENDING',
+      });
+      schedules.push(schedule);
+    }
+
+    return schedules;
+  }
+
   async recordPayment(dto: {
     studentId: string;
     amountPaid: number;

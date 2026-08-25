@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, CreditCard, BookOpen, BarChart3, LogOut, ShieldAlert, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, BookOpen, BarChart3, LogOut, ShieldAlert, ShieldCheck, Sparkles, AlertCircle, Settings } from 'lucide-react';
 import { apiClient } from '../../../lib/api';
 
 export default function AcademyLayout({
@@ -144,6 +144,16 @@ export default function AcademyLayout({
             >
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Reports</span>
+            </Link>
+
+            <Link
+              href={`/settings`}
+              className={`px-3 py-2 rounded-xl flex items-center space-x-2 transition ${
+                pathname.includes('/settings') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Settings className="w-4 h-4 text-indigo-400" />
+              <span className="hidden sm:inline">Settings</span>
             </Link>
 
             <Link

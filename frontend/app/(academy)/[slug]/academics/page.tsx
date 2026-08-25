@@ -387,11 +387,11 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
             <form onSubmit={handleCreateClass} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Standard (1 - 12)</label>
+                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Standard (1 - 15)</label>
                 <input
                   type="number"
                   min={1}
-                  max={12}
+                  max={15}
                   value={classForm.standard}
                   onChange={(e) => {
                     const std = Number(e.target.value);

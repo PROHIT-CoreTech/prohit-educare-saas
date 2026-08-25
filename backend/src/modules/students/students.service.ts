@@ -3,12 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Student, StudentDocument } from '../../database/schemas/student.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
+import { FeeEngineService } from '../fee-engine/fee-engine.service';
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectModel(Student.name) private studentModel: Model<StudentDocument>,
     private tenantContextService: TenantContextService,
+    private feeEngineService: FeeEngineService,
   ) {}
 
   async create(dto: {
@@ -19,6 +21,10 @@ export class StudentsService {
     classBatchId: string;
     standard: number;
     dateOfBirth?: Date;
+    discountAmount?: number;
+    paymentType?: 'FULL' | 'INSTALLMENT';
+    installmentCount?: number;
+    customTotalFee?: number;
   }) {
     const academyId = this.tenantContextService.academyId;
     const count = await this.studentModel.countDocuments({ academyId });
@@ -37,6 +43,19 @@ export class StudentsService {
       status: 'ACTIVE',
       advanceBalance: 0,
     });
+
+    try {
+      await this.feeEngineService.assignCustomFeeToStudent({
+        studentId: student._id.toString(),
+        standard: dto.standard,
+        discountAmount: dto.discountAmount || 0,
+        paymentType: dto.paymentType || 'FULL',
+        installmentCount: dto.paymentType === 'INSTALLMENT' ? (dto.installmentCount || 3) : 1,
+        customTotalFee: dto.customTotalFee,
+      });
+    } catch (e) {
+      // Non-fatal fee assignment fallback
+    }
 
     return student;
   }
