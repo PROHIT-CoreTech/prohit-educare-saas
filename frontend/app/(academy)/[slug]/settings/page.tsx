@@ -20,7 +20,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     stream: 'science',
     name: 'Annual Tuition Fee',
     totalAmount: 35000,
-    installmentsCount: 3,
+    installmentsCount: 1,
   });
 
   const [facultyList, setFacultyList] = useState<any[]>([]);
@@ -68,7 +68,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const handleCreateFeeStructure = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.post('/fee-engine/structures', feeForm);
+      await apiClient.post('/fee-engine/structures', {
+        ...feeForm,
+        installmentsCount: 1,
+      });
       setShowFeeModal(false);
       fetchFeeStructures();
       setFeeForm({
@@ -77,7 +80,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         stream: 'science',
         name: 'Annual Tuition Fee',
         totalAmount: 35000,
-        installmentsCount: 3,
+        installmentsCount: 1,
       });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to save fee structure');
@@ -207,7 +210,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900">Standard Fee Structures</h2>
-              <p className="text-xs text-slate-500 font-medium">Configure base total fees and default installment counts for Standards 1st through 15th</p>
+              <p className="text-xs text-slate-500 font-medium">Configure base total fees standard-wise for Standards 1st through 15th</p>
             </div>
             <button
               onClick={() => setShowFeeModal(true)}
@@ -225,7 +228,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               </div>
             ) : (
               feeStructures.map((fs) => (
-                <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
+                <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-1.5">
                       <span className="bg-orange-50 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-xl border border-orange-200">
@@ -237,7 +240,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                           : fs.stream !== 'none' ? fs.stream : 'General'}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-500 font-mono font-semibold">{fs.installmentsCount} Installments</span>
                   </div>
 
                   <div>
@@ -245,15 +247,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                     <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">
                       ₹{fs.totalAmount?.toLocaleString('en-IN')}
                     </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-3 space-y-1.5 text-xs text-slate-600 font-mono">
-                    {fs.installmentBreakdown?.map((inst: any) => (
-                      <div key={inst.installmentNo} className="flex justify-between">
-                        <span className="font-sans font-medium text-slate-500">Installment {inst.installmentNo}:</span>
-                        <span className="text-slate-900 font-bold">₹{inst.amount?.toLocaleString('en-IN')}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               ))
@@ -555,20 +548,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   onChange={(e) => setFeeForm({ ...feeForm, totalAmount: Number(e.target.value) })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-mono font-bold"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Default Installments Split</label>
-                <select
-                  value={feeForm.installmentsCount}
-                  onChange={(e) => setFeeForm({ ...feeForm, installmentsCount: Number(e.target.value) })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
-                >
-                  <option value={1}>1 Full Payment (Single Schedule)</option>
-                  <option value={3}>3 Installments (Quarterly)</option>
-                  <option value={6}>6 Installments (Bi-Monthly)</option>
-                  <option value={9}>9 Installments (Monthly)</option>
-                </select>
               </div>
 
               <button
