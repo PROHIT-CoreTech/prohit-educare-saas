@@ -15,10 +15,8 @@ export default function PlatformAdminPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Tab State: 'tenants' | 'transactions' | 'overview'
   const [activeTab, setActiveTab] = useState<'tenants' | 'transactions' | 'overview'>('tenants');
 
-  // Search & Filter state
   const [tenantSearch, setTenantSearch] = useState('');
   const [tenantStatusFilter, setTenantStatusFilter] = useState('ALL');
   const [auditSearch, setAuditSearch] = useState('');
@@ -26,7 +24,6 @@ export default function PlatformAdminPage() {
   const [selectedTenantRecords, setSelectedTenantRecords] = useState<any>(null);
   const [inspecting, setInspecting] = useState(false);
 
-  // Offline Registration Modal State
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [showOfflinePassword, setShowOfflinePassword] = useState(false);
   const [offlineForm, setOfflineForm] = useState({
@@ -180,7 +177,6 @@ export default function PlatformAdminPage() {
     });
   };
 
-  // Filtered Academies
   const filteredAcademies = academies.filter((ac) => {
     const matchesSearch =
       ac.name.toLowerCase().includes(tenantSearch.toLowerCase()) ||
@@ -189,7 +185,6 @@ export default function PlatformAdminPage() {
     return matchesSearch && matchesStatus;
   });
 
-  // Filtered Audit Logs
   const filteredAuditLogs = auditLogs.filter((log) => {
     const details = log.details || {};
     const academyName = details.academyName || log.academyId?.name || '';
@@ -205,55 +200,55 @@ export default function PlatformAdminPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-900">
+        <div className="bg-white border border-slate-200 p-8 rounded-3xl max-w-md w-full shadow-xl space-y-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold shadow-md">
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-bold text-xl text-white">Master Admin Console</h1>
-              <p className="text-xs text-slate-400">PROHIT CoreTech Master System Access</p>
+              <h1 className="font-extrabold text-xl text-slate-900">Master Admin Console</h1>
+              <p className="text-xs text-slate-500 font-medium">PROHIT CoreTech Master System Access</p>
             </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Master Admin Email</label>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Master Admin Email</label>
               <input
                 type="email"
                 required
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Master Password</label>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Master Password</label>
               <div className="relative">
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
                   required
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 pr-10"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 pr-10 font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-200 transition"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 transition"
                 >
-                  {showLoginPassword ? <EyeOff className="w-4 h-4 text-rose-400" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                  {showLoginPassword ? <EyeOff className="w-4 h-4 text-orange-600" /> : <Eye className="w-4 h-4 text-slate-400" />}
                 </button>
               </div>
             </div>
 
-            {loginError && <div className="text-xs text-rose-400 bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">{loginError}</div>}
+            {loginError && <div className="text-xs text-rose-700 bg-rose-50 p-3 rounded-xl border border-rose-200 font-semibold">{loginError}</div>}
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg transition"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition"
             >
               Sign In as Master Admin
             </button>
@@ -264,25 +259,24 @@ export default function PlatformAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Top Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-6">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 font-extrabold text-lg">
               MA
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-white">Master Admin Console</h1>
-              <p className="text-sm text-slate-400">PROHIT CoreTech System Control Room (Tabbed Multi-Tenant Manager)</p>
+              <h1 className="text-2xl font-extrabold text-slate-900">Master Admin Console</h1>
+              <p className="text-sm text-slate-500 font-medium">PROHIT CoreTech System Control Room (Tabbed Multi-Tenant Manager)</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            {/* Offline Tenant Registration Button */}
             <button
               onClick={() => setShowOfflineModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center space-x-2"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center space-x-2"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Register Offline Academy</span>
@@ -293,7 +287,7 @@ export default function PlatformAdminPage() {
                 localStorage.removeItem('prohit_platform_token');
                 setToken(null);
               }}
-              className="text-xs font-semibold text-slate-400 hover:text-white bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl"
+              className="text-xs font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-xs"
             >
               Logout
             </button>
@@ -303,53 +297,53 @@ export default function PlatformAdminPage() {
         {/* Metrics Overview Cards */}
         {metrics && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase text-slate-400">Monthly Recurring Revenue</span>
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+                <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Monthly Recurring Revenue</span>
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
               </div>
-              <p className="text-3xl font-extrabold text-white mt-2">₹{metrics.mrr?.toLocaleString('en-IN')}</p>
-              <span className="text-xs text-emerald-400 mt-1 block">Active Subscriptions</span>
+              <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹{metrics.mrr?.toLocaleString('en-IN')}</p>
+              <span className="text-xs text-emerald-700 font-bold mt-1 block">Active Subscriptions</span>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase text-slate-400">Total Academies</span>
-                <Building2 className="w-5 h-5 text-indigo-400" />
+                <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Academies</span>
+                <Building2 className="w-5 h-5 text-orange-500" />
               </div>
-              <p className="text-3xl font-extrabold text-white mt-2">{metrics.totalAcademies}</p>
-              <span className="text-xs text-slate-400 mt-1 block">{metrics.activeAcademies} Active | {metrics.trialAcademies} Trial</span>
+              <p className="text-3xl font-black text-slate-900 mt-2 font-mono">{metrics.totalAcademies}</p>
+              <span className="text-xs text-slate-500 font-medium mt-1 block">{metrics.activeAcademies} Active | {metrics.trialAcademies} Trial</span>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase text-slate-400">Total System Students</span>
-                <Users className="w-5 h-5 text-violet-400" />
+                <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Total System Students</span>
+                <Users className="w-5 h-5 text-indigo-500" />
               </div>
-              <p className="text-3xl font-extrabold text-white mt-2">{metrics.totalStudents}</p>
-              <span className="text-xs text-slate-400 mt-1 block">Across all tenants</span>
+              <p className="text-3xl font-black text-slate-900 mt-2 font-mono">{metrics.totalStudents}</p>
+              <span className="text-xs text-slate-500 font-medium mt-1 block">Across all tenants</span>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase text-slate-400">Master Access Level</span>
-                <Database className="w-5 h-5 text-rose-400" />
+                <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Master Access Level</span>
+                <Database className="w-5 h-5 text-rose-500" />
               </div>
-              <p className="text-xl font-bold text-emerald-400 mt-2">Full Cross-Tenant Inspector</p>
-              <span className="text-xs text-slate-400 mt-1 block">Global Data Control Active</span>
+              <p className="text-xl font-black text-emerald-700 mt-2">Full Cross-Tenant Inspector</p>
+              <span className="text-xs text-slate-500 font-medium mt-1 block">Global Data Control Active</span>
             </div>
           </div>
         )}
 
         {/* Master Admin Interactive Tabs Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setActiveTab('tenants')}
-              className={`px-5 py-3 rounded-2xl text-sm font-bold transition flex items-center space-x-2 ${
+              className={`px-5 py-3 rounded-2xl text-sm font-extrabold transition flex items-center space-x-2 ${
                 activeTab === 'tenants'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -358,10 +352,10 @@ export default function PlatformAdminPage() {
 
             <button
               onClick={() => setActiveTab('transactions')}
-              className={`px-5 py-3 rounded-2xl text-sm font-bold transition flex items-center space-x-2 ${
+              className={`px-5 py-3 rounded-2xl text-sm font-extrabold transition flex items-center space-x-2 ${
                 activeTab === 'transactions'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <History className="w-4 h-4" />
@@ -370,10 +364,10 @@ export default function PlatformAdminPage() {
 
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-5 py-3 rounded-2xl text-sm font-bold transition flex items-center space-x-2 ${
+              className={`px-5 py-3 rounded-2xl text-sm font-extrabold transition flex items-center space-x-2 ${
                 activeTab === 'overview'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               <Layers className="w-4 h-4" />
@@ -383,7 +377,7 @@ export default function PlatformAdminPage() {
 
           <button
             onClick={() => fetchAdminData(token)}
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl border border-slate-700 transition"
+            className="text-xs bg-white hover:bg-slate-100 text-slate-800 font-bold px-4 py-2.5 rounded-xl border border-slate-200 transition shadow-xs"
           >
             Refresh All Data
           </button>
@@ -391,31 +385,30 @@ export default function PlatformAdminPage() {
 
         {/* TAB 1: ACADEMY TENANTS ROSTER */}
         {activeTab === 'tenants' && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl space-y-4">
-            {/* Search & Filter Bar */}
-            <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm space-y-4">
+            <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   placeholder="Search academy or slug..."
                   value={tenantSearch}
                   onChange={(e) => setTenantSearch(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                 />
               </div>
 
               <div className="flex items-center space-x-2 text-xs">
-                <Filter className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-400 font-semibold uppercase">Status:</span>
+                <Filter className="w-4 h-4 text-slate-500" />
+                <span className="text-slate-600 font-bold uppercase">Status:</span>
                 {['ALL', 'ACTIVE', 'TRIAL', 'CANCELLED'].map((st) => (
                   <button
                     key={st}
                     onClick={() => setTenantStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-xl font-bold transition ${
                       tenantStatusFilter === st
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >
                     {st}
@@ -425,8 +418,8 @@ export default function PlatformAdminPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
+              <table className="w-full text-left text-sm text-slate-700">
+                <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
                   <tr>
                     <th className="px-6 py-4 whitespace-nowrap">Academy Name</th>
                     <th className="px-6 py-4 whitespace-nowrap">Subdomain</th>
@@ -436,10 +429,10 @@ export default function PlatformAdminPage() {
                     <th className="px-6 py-4 text-right whitespace-nowrap">Master Admin Tools</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200">
                   {filteredAcademies.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">
                         No academy tenants found matching your filter criteria.
                       </td>
                     </tr>
@@ -453,38 +446,38 @@ export default function PlatformAdminPage() {
                       );
 
                       return (
-                        <tr key={ac._id} className="hover:bg-slate-800/40 transition">
-                          <td className="px-6 py-4 font-semibold text-white whitespace-nowrap">
+                        <tr key={ac._id} className="hover:bg-slate-50 transition">
+                          <td className="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">
                             <div className="text-sm">{ac.name}</div>
-                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">ID: {ac._id}</span>
+                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5 font-normal">ID: {ac._id}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-xl text-xs font-mono inline-flex items-center space-x-1">
+                            <span className="bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-xl text-xs font-mono font-bold inline-flex items-center space-x-1">
                               <span>{ac.slug}.educare.prohitcoretech.com</span>
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
                                 ac.subscriptionStatus === 'ACTIVE'
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : ac.subscriptionStatus === 'TRIAL'
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-rose-50 text-rose-700 border border-rose-200'
                               }`}
                             >
                               {ac.subscriptionStatus}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono text-slate-300 whitespace-nowrap">
+                          <td className="px-6 py-4 text-xs font-mono text-slate-700 font-semibold whitespace-nowrap">
                             <div className="flex items-center space-x-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                              <Calendar className="w-3.5 h-3.5 text-orange-500" />
                               <span>{startDate}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono text-emerald-400 font-semibold whitespace-nowrap">
+                          <td className="px-6 py-4 text-xs font-mono text-emerald-700 font-bold whitespace-nowrap">
                             <div className="flex items-center space-x-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
                               <span>{expiryDate}</span>
                             </div>
                           </td>
@@ -492,23 +485,23 @@ export default function PlatformAdminPage() {
                             <div className="flex items-center justify-end space-x-2">
                               <button
                                 onClick={() => handleInspectRecords(ac._id)}
-                                className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 inline-flex items-center space-x-1 transition"
+                                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-slate-200 inline-flex items-center space-x-1 transition"
                               >
-                                <Eye className="w-3.5 h-3.5 mr-1" />
+                                <Eye className="w-3.5 h-3.5 mr-1 text-slate-600" />
                                 <span>Inspect Records</span>
                               </button>
 
                               {ac.subscriptionStatus === 'ACTIVE' ? (
                                 <button
                                   onClick={() => handleStatusChange(ac._id, 'CANCELLED')}
-                                  className="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-xl border border-rose-500/20 transition font-semibold"
+                                  className="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl border border-rose-200 transition font-bold"
                                 >
                                   Cancel Sub
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleStatusChange(ac._id, 'ACTIVE')}
-                                  className="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-xl border border-emerald-500/20 transition font-semibold"
+                                  className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200 transition font-bold"
                                 >
                                   Activate Sub
                                 </button>
@@ -516,7 +509,7 @@ export default function PlatformAdminPage() {
 
                               <button
                                 onClick={() => handleImpersonate(ac._id, ac.slug)}
-                                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3.5 py-1.5 rounded-xl inline-flex items-center space-x-1 shadow-lg shadow-indigo-600/20 transition"
+                                className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3.5 py-1.5 rounded-xl inline-flex items-center space-x-1 shadow-md shadow-orange-500/20 transition"
                               >
                                 <span>Impersonate</span>
                                 <ExternalLink className="w-3 h-3 ml-0.5" />
@@ -535,28 +528,27 @@ export default function PlatformAdminPage() {
 
         {/* TAB 2: TRANSACTIONS & AUDIT HISTORY */}
         {activeTab === 'transactions' && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl space-y-4">
-            {/* Search Bar */}
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm space-y-4">
+            <div className="p-6 border-b border-slate-200 flex items-center justify-between">
               <div className="relative w-full sm:w-96">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   placeholder="Search transaction by tenant name or action..."
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                 />
               </div>
 
-              <span className="text-xs bg-slate-800 text-slate-400 px-3 py-1.5 rounded-xl font-mono">
+              <span className="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl font-mono font-bold border border-slate-200">
                 Showing {filteredAuditLogs.length} of {auditLogs.length} Records
               </span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider">
+              <table className="w-full text-left text-sm text-slate-700">
+                <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
                   <tr>
                     <th className="p-4 whitespace-nowrap">Date & Time</th>
                     <th className="p-4 whitespace-nowrap">Academy / Subdomain</th>
@@ -568,10 +560,10 @@ export default function PlatformAdminPage() {
                     <th className="p-4 whitespace-nowrap">Performed By</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs">
+                <tbody className="divide-y divide-slate-200 text-xs">
                   {filteredAuditLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-slate-500">
+                      <td colSpan={8} className="p-8 text-center text-slate-500 font-medium">
                         No subscription transaction logs found matching your search.
                       </td>
                     </tr>
@@ -592,8 +584,8 @@ export default function PlatformAdminPage() {
                       );
 
                       return (
-                        <tr key={log._id} className="hover:bg-slate-800/40">
-                          <td className="p-4 font-mono text-slate-300 whitespace-nowrap">
+                        <tr key={log._id} className="hover:bg-slate-50 transition">
+                          <td className="p-4 font-mono text-slate-700 whitespace-nowrap font-medium">
                             {new Date(log.createdAt).toLocaleString('en-IN', {
                               day: '2-digit',
                               month: '2-digit',
@@ -602,18 +594,18 @@ export default function PlatformAdminPage() {
                               minute: '2-digit',
                             })}
                           </td>
-                          <td className="p-4 font-semibold text-white whitespace-nowrap">
+                          <td className="p-4 font-bold text-slate-900 whitespace-nowrap">
                             <div>{academyName}</div>
-                            <span className="text-indigo-400 font-mono text-[10px]">{academySlug}.educare.prohitcoretech.com</span>
+                            <span className="text-orange-600 font-mono text-[10px] font-bold">{academySlug}.educare.prohitcoretech.com</span>
                           </td>
                           <td className="p-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase ${
                                 log.action === 'OFFLINE_TENANT_REGISTERED'
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : log.action === 'IMPERSONATE_START'
-                                  ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                                  : 'bg-slate-800 text-slate-300'
+                                  ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  : 'bg-slate-100 text-slate-800'
                               }`}
                             >
                               {log.action === 'OFFLINE_TENANT_REGISTERED'
@@ -623,31 +615,31 @@ export default function PlatformAdminPage() {
                                 : log.action}
                             </span>
                           </td>
-                          <td className="p-4 text-xs font-mono text-slate-300 whitespace-nowrap">
+                          <td className="p-4 text-xs font-mono text-slate-700 whitespace-nowrap font-semibold">
                             <div className="flex items-center space-x-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                              <Calendar className="w-3.5 h-3.5 text-orange-500" />
                               <span>{subStart}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-xs font-mono text-emerald-400 font-semibold whitespace-nowrap">
+                          <td className="p-4 text-xs font-mono text-emerald-700 font-bold whitespace-nowrap">
                             <div className="flex items-center space-x-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
                               <span>{subExpiry}</span>
                             </div>
                           </td>
-                          <td className="p-4 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="p-4 font-mono text-slate-800 whitespace-nowrap font-semibold">
                             <div className="flex items-center space-x-1.5">
-                              <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                              <CreditCard className="w-3.5 h-3.5 text-slate-500" />
                               <span>{paymentMode}</span>
                             </div>
                             {details.paymentReference && (
-                              <span className="text-[10px] text-slate-500 block">Ref: {details.paymentReference}</span>
+                              <span className="text-[10px] text-slate-500 block font-normal">Ref: {details.paymentReference}</span>
                             )}
                           </td>
-                          <td className="p-4 font-bold text-emerald-400 font-mono whitespace-nowrap">
+                          <td className="p-4 font-black text-emerald-700 font-mono whitespace-nowrap">
                             {log.action === 'OFFLINE_TENANT_REGISTERED' || log.action?.includes('Provision') ? amount : 'N/A'}
                           </td>
-                          <td className="p-4 text-slate-400 whitespace-nowrap">
+                          <td className="p-4 text-slate-600 whitespace-nowrap font-medium">
                             {log.platformUserId?.name || 'Master Admin'} ({log.platformUserId?.email || 'admin@prohiteducare.com'})
                           </td>
                         </tr>
@@ -662,35 +654,35 @@ export default function PlatformAdminPage() {
 
         {/* TAB 3: FINANCIAL OVERVIEW */}
         {activeTab === 'overview' && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
-            <h2 className="text-xl font-bold text-white">System Financial Breakdown & Tier Revenue</h2>
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
+            <h2 className="text-xl font-extrabold text-slate-900">System Financial Breakdown & Tier Revenue</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Starter Tier (₹999/mo)</span>
-                <p className="text-3xl font-extrabold text-white mt-2">₹11,988 / yr</p>
-                <span className="text-xs text-slate-400 mt-1 block">Up to 200 Students per tenant</span>
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter Tier (₹999/mo)</span>
+                <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹11,988 / yr</p>
+                <span className="text-xs text-slate-500 font-medium mt-1 block">Up to 200 Students per tenant</span>
               </div>
 
-              <div className="bg-slate-950 p-6 rounded-2xl border border-indigo-500/40">
-                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Professional Tier (₹2,999/mo)</span>
-                <p className="text-3xl font-extrabold text-white mt-2">₹35,988 / yr</p>
-                <span className="text-xs text-indigo-300 mt-1 block">Most Popular (Up to 1,000 Students)</span>
+              <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-200">
+                <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Professional Tier (₹2,999/mo)</span>
+                <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹35,988 / yr</p>
+                <span className="text-xs text-orange-700 font-bold mt-1 block">Most Popular (Up to 1,000 Students)</span>
               </div>
 
-              <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Enterprise Tier (₹7,999/mo)</span>
-                <p className="text-3xl font-extrabold text-white mt-2">₹95,988 / yr</p>
-                <span className="text-xs text-slate-400 mt-1 block">Unlimited Multi-Branch Chains</span>
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Tier (₹7,999/mo)</span>
+                <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹95,988 / yr</p>
+                <span className="text-xs text-slate-500 font-medium mt-1 block">Unlimited Multi-Branch Chains</span>
               </div>
             </div>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
-              <h3 className="text-sm font-bold text-white">Platform Health & Scalability Architecture</h3>
-              <ul className="text-xs text-slate-400 space-y-2">
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-400 mr-2" /> Multi-Tenant Request-Scoped Isolation (TenantContextService)</li>
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-400 mr-2" /> Atomic FIFO Fee Engine with Remainder Absorption</li>
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-400 mr-2" /> Cashfree Payments HMAC-SHA256 Webhook Verification</li>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-3">
+              <h3 className="text-sm font-extrabold text-slate-900">Platform Health & Scalability Architecture</h3>
+              <ul className="text-xs text-slate-700 space-y-2 font-medium">
+                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Multi-Tenant Request-Scoped Isolation (TenantContextService)</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Atomic FIFO Fee Engine with Remainder Absorption</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Cashfree Payments HMAC-SHA256 Webhook Verification</li>
               </ul>
             </div>
           </div>
@@ -699,41 +691,41 @@ export default function PlatformAdminPage() {
 
       {/* Master Admin Offline Academy Registration Modal */}
       {showOfflineModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-xl w-full relative shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-xl w-full relative shadow-2xl space-y-6">
             <button
               onClick={() => setShowOfflineModal(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white"
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold"
             >
               ✕
             </button>
 
             <div>
-              <div className="flex items-center space-x-2 text-emerald-400 text-sm font-semibold mb-1">
-                <PlusCircle className="w-4 h-4" />
+              <div className="flex items-center space-x-2 text-emerald-700 text-sm font-bold mb-1">
+                <PlusCircle className="w-4 h-4 text-emerald-600" />
                 <span>Master Admin Offline Provisioning</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">Register Offline Academy Tenant</h2>
-              <p className="text-xs text-slate-400 mt-1">Manually provision an academy tenant when payment is collected offline via Cash, Cheque, or Bank Transfer.</p>
+              <h2 className="text-2xl font-black text-slate-900">Register Offline Academy Tenant</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">Manually provision an academy tenant when payment is collected offline via Cash, Cheque, or Bank Transfer.</p>
             </div>
 
             <form onSubmit={handleOfflineRegister} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Academy Name *</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Academy Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="Patel Science Classes"
                     value={offlineForm.name}
                     onChange={(e) => setOfflineForm({ ...offlineForm, name: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Subdomain Slug *</label>
-                  <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Subdomain Slug *</label>
+                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
                     <input
                       type="text"
                       required
@@ -745,7 +737,7 @@ export default function PlatformAdminPage() {
                           slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
                         })
                       }
-                      className="w-full bg-transparent text-white focus:outline-none"
+                      className="w-full bg-transparent text-slate-900 focus:outline-none font-bold"
                     />
                     <span className="text-slate-500 font-mono">.educare.prohitcoretech.com</span>
                   </div>
@@ -754,70 +746,70 @@ export default function PlatformAdminPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Director Name *</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Director Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="Prof. Rajesh Patel"
                     value={offlineForm.adminName}
                     onChange={(e) => setOfflineForm({ ...offlineForm, adminName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Director Email *</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Director Email *</label>
                   <input
                     type="email"
                     required
                     placeholder="rajesh@patelclasses.com"
                     value={offlineForm.adminEmail}
                     onChange={(e) => setOfflineForm({ ...offlineForm, adminEmail: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Default Password</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Default Password</label>
                   <div className="relative">
                     <input
                       type={showOfflinePassword ? 'text' : 'password'}
                       placeholder="Academy123! (Default)"
                       value={offlineForm.adminPassword}
                       onChange={(e) => setOfflineForm({ ...offlineForm, adminPassword: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 pr-10"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 pr-10 font-medium"
                     />
                     <button
                       type="button"
                       onClick={() => setShowOfflinePassword(!showOfflinePassword)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 transition"
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition"
                     >
-                      {showOfflinePassword ? <EyeOff className="w-4 h-4 text-emerald-400" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                      {showOfflinePassword ? <EyeOff className="w-4 h-4 text-orange-600" /> : <Eye className="w-4 h-4 text-slate-400" />}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Phone Number</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Phone Number</label>
                   <input
                     type="text"
                     placeholder="+91 9876543210"
                     value={offlineForm.phone}
                     onChange={(e) => setOfflineForm({ ...offlineForm, phone: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Plan</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Plan</label>
                   <select
                     value={offlineForm.plan}
                     onChange={(e) => setOfflineForm({ ...offlineForm, plan: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none font-semibold"
                   >
                     <option value="STARTER">Starter (₹999/mo)</option>
                     <option value="PROFESSIONAL">Professional (₹2,999/mo)</option>
@@ -826,11 +818,11 @@ export default function PlatformAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Initial Status</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Initial Status</label>
                   <select
                     value={offlineForm.subscriptionStatus}
                     onChange={(e) => setOfflineForm({ ...offlineForm, subscriptionStatus: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none font-semibold"
                   >
                     <option value="ACTIVE">ACTIVE (Paid)</option>
                     <option value="TRIAL">TRIAL (14 Days)</option>
@@ -838,11 +830,11 @@ export default function PlatformAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 uppercase mb-1">Offline Payment Mode</label>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Offline Payment Mode</label>
                   <select
                     value={offlineForm.paymentMode}
                     onChange={(e) => setOfflineForm({ ...offlineForm, paymentMode: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none font-semibold"
                   >
                     <option value="CASH">Cash Payment</option>
                     <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
@@ -853,22 +845,22 @@ export default function PlatformAdminPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 uppercase mb-1">Payment Receipt Ref / Notes</label>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Payment Receipt Ref / Notes</label>
                 <input
                   type="text"
                   placeholder="e.g. Bank Ref #TXN998234 or Receipt #OFF-102"
                   value={offlineForm.paymentReference}
                   onChange={(e) => setOfflineForm({ ...offlineForm, paymentReference: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                 />
               </div>
 
               {offlineMessage && (
                 <div
-                  className={`text-xs p-3 rounded-xl ${
+                  className={`text-xs p-3 rounded-xl font-bold ${
                     offlineMessage.startsWith('Success')
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
                   }`}
                 >
                   {offlineMessage}
@@ -878,7 +870,7 @@ export default function PlatformAdminPage() {
               <button
                 type="submit"
                 disabled={offlineSubmitting}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-600/30 transition text-sm"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-emerald-600/20 transition text-sm"
               >
                 {offlineSubmitting ? 'Provisioning Academy...' : 'Provision & Activate Academy'}
               </button>
@@ -889,66 +881,63 @@ export default function PlatformAdminPage() {
 
       {/* Master Admin Cross-Tenant Records Inspector Modal */}
       {selectedTenantRecords && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl space-y-6">
             <button
               onClick={() => setSelectedTenantRecords(null)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white"
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold"
             >
               ✕
             </button>
             <div>
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-black text-slate-900">
                 Master Record Inspector: {selectedTenantRecords.academy?.name}
               </h2>
-              <p className="text-xs text-indigo-400 font-mono">
+              <p className="text-xs text-orange-600 font-mono font-bold">
                 {selectedTenantRecords.academy?.slug}.educare.prohitcoretech.com (Tenant ID: {selectedTenantRecords.academy?._id})
               </p>
             </div>
 
-            {/* Tenant Record Summary Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs text-slate-400 font-semibold uppercase">Total Students</span>
-                <p className="text-2xl font-bold text-white mt-1">{selectedTenantRecords.summary?.totalStudents}</p>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-xs text-slate-500 font-bold uppercase">Total Students</span>
+                <p className="text-2xl font-black text-slate-900 font-mono mt-1">{selectedTenantRecords.summary?.totalStudents}</p>
               </div>
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs text-slate-400 font-semibold uppercase">Total Staff Users</span>
-                <p className="text-2xl font-bold text-white mt-1">{selectedTenantRecords.summary?.totalStaff}</p>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-xs text-slate-500 font-bold uppercase">Total Staff Users</span>
+                <p className="text-2xl font-black text-slate-900 font-mono mt-1">{selectedTenantRecords.summary?.totalStaff}</p>
               </div>
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs text-slate-400 font-semibold uppercase">Total Collected</span>
-                <p className="text-2xl font-bold text-emerald-400 mt-1">₹{selectedTenantRecords.summary?.totalCollected?.toLocaleString('en-IN')}</p>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-xs text-slate-500 font-bold uppercase">Total Collected</span>
+                <p className="text-2xl font-black text-emerald-700 font-mono mt-1">₹{selectedTenantRecords.summary?.totalCollected?.toLocaleString('en-IN')}</p>
               </div>
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <span className="text-xs text-slate-400 font-semibold uppercase">Pending Fees</span>
-                <p className="text-2xl font-bold text-rose-400 mt-1">₹{selectedTenantRecords.summary?.pendingBalance?.toLocaleString('en-IN')}</p>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-xs text-slate-500 font-bold uppercase">Pending Fees</span>
+                <p className="text-2xl font-black text-orange-600 font-mono mt-1">₹{selectedTenantRecords.summary?.pendingBalance?.toLocaleString('en-IN')}</p>
               </div>
             </div>
 
-            {/* Students List preview */}
             <div>
-              <h3 className="text-sm font-bold text-white mb-2">Enrolled Student Records ({selectedTenantRecords.students?.length})</h3>
-              <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 max-h-48 overflow-y-auto text-xs space-y-2">
+              <h3 className="text-sm font-extrabold text-slate-900 mb-2">Enrolled Student Records ({selectedTenantRecords.students?.length})</h3>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 max-h-48 overflow-y-auto text-xs space-y-2">
                 {selectedTenantRecords.students?.map((s: any) => (
-                  <div key={s._id} className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="font-semibold text-white">{s.name} ({s.studentCode})</span>
-                    <span className="text-slate-400">Parent: {s.parentName} ({s.parentPhone})</span>
-                    <span className="text-indigo-400 font-semibold">Advance: ₹{s.advanceBalance || 0}</span>
+                  <div key={s._id} className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="font-bold text-slate-900">{s.name} ({s.studentCode})</span>
+                    <span className="text-slate-600 font-medium">Parent: {s.parentName} ({s.parentPhone})</span>
+                    <span className="text-orange-600 font-bold font-mono">Advance: ₹{s.advanceBalance || 0}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Payments List preview */}
             <div>
-              <h3 className="text-sm font-bold text-white mb-2">Recorded Payment Ledger ({selectedTenantRecords.payments?.length})</h3>
-              <div className="bg-slate-950 rounded-xl p-3 border border-slate-800 max-h-48 overflow-y-auto text-xs space-y-2">
+              <h3 className="text-sm font-extrabold text-slate-900 mb-2">Recorded Payment Ledger ({selectedTenantRecords.payments?.length})</h3>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 max-h-48 overflow-y-auto text-xs space-y-2">
                 {selectedTenantRecords.payments?.map((p: any) => (
-                  <div key={p._id} className="flex justify-between items-center py-1 border-b border-slate-900">
-                    <span className="font-mono text-indigo-400">{p.receiptNumber}</span>
-                    <span className="text-emerald-400 font-semibold">₹{p.totalAmountPaid} ({p.paymentMode})</span>
-                    <span className="text-slate-400">{new Date(p.paymentDate).toLocaleDateString()}</span>
+                  <div key={p._id} className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="font-mono text-orange-600 font-bold">{p.receiptNumber}</span>
+                    <span className="text-emerald-700 font-black font-mono">₹{p.totalAmountPaid} ({p.paymentMode})</span>
+                    <span className="text-slate-500 font-medium">{new Date(p.paymentDate).toLocaleDateString()}</span>
                   </div>
                 ))}
               </div>

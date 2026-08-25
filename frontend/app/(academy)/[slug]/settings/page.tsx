@@ -7,13 +7,11 @@ import { apiClient } from '../../../../lib/api';
 export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<'subscription' | 'fee-structure' | 'faculty'>('fee-structure');
   
-  // Subscription state
   const [subscription, setSubscription] = useState<any>(null);
   const [loadingSub, setLoadingSub] = useState(true);
   const [renewingPlan, setRenewingPlan] = useState<string | null>(null);
   const [renewalError, setRenewalError] = useState('');
 
-  // Fee Structure state
   const [feeStructures, setFeeStructures] = useState<any[]>([]);
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [feeForm, setFeeForm] = useState({
@@ -23,7 +21,6 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     installmentsCount: 3,
   });
 
-  // Faculty state
   const [facultyList, setFacultyList] = useState<any[]>([]);
   const [showFacultyModal, setShowFacultyModal] = useState(false);
   const [facultySearch, setFacultySearch] = useState('');
@@ -147,28 +144,28 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans text-slate-900">
       {/* Header */}
-      <div className="border-b border-slate-800 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="border-b border-slate-200 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white flex items-center space-x-2">
-            <Settings className="w-6 h-6 text-indigo-400" />
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center space-x-2">
+            <Settings className="w-6 h-6 text-orange-500" />
             <span>Academy Administration & Settings</span>
           </h1>
-          <p className="text-sm text-slate-400 font-medium mt-1">
+          <p className="text-sm text-slate-500 font-medium mt-0.5">
             Manage your subscription license, standard-wise fee structures (Std 1st – 15th), and faculty directory
           </p>
         </div>
       </div>
 
       {/* Sub-Tabs Selector */}
-      <div className="flex items-center space-x-2 border-b border-slate-800 pb-3 overflow-x-auto">
+      <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 overflow-x-auto">
         <button
           onClick={() => setActiveTab('fee-structure')}
           className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
             activeTab === 'fee-structure'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
           <CreditCard className="w-4 h-4" />
@@ -179,8 +176,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           onClick={() => setActiveTab('faculty')}
           className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
             activeTab === 'faculty'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
           <UserCheck className="w-4 h-4" />
@@ -191,11 +188,11 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           onClick={() => setActiveTab('subscription')}
           className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
             activeTab === 'subscription'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
           }`}
         >
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
           <span>Subscription & Billing</span>
         </button>
       </div>
@@ -205,12 +202,12 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white">Standard Fee Structures</h2>
-              <p className="text-xs text-slate-400">Configure base total fees and default installment counts for Standards 1st through 15th</p>
+              <h2 className="text-lg font-extrabold text-slate-900">Standard Fee Structures</h2>
+              <p className="text-xs text-slate-500 font-medium">Configure base total fees and default installment counts for Standards 1st through 15th</p>
             </div>
             <button
               onClick={() => setShowFeeModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 flex items-center space-x-1.5 transition"
+              className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-1.5 transition"
             >
               <Plus className="w-4 h-4" />
               <span>Configure Fee Structure</span>
@@ -219,31 +216,31 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {feeStructures.length === 0 ? (
-              <div className="col-span-3 bg-slate-900/60 border border-slate-800 p-8 rounded-3xl text-center text-slate-500 text-sm">
+              <div className="col-span-3 bg-white border border-slate-200 p-8 rounded-3xl text-center text-slate-500 text-sm font-medium shadow-sm">
                 No standard fee structures configured yet. Click &quot;Configure Fee Structure&quot; to set up base tuition fees for Std 1st - 15th.
               </div>
             ) : (
               feeStructures.map((fs) => (
-                <div key={fs._id} className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
+                <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="bg-indigo-500/10 text-indigo-400 text-xs font-bold px-3 py-1 rounded-xl border border-indigo-500/20">
+                    <span className="bg-orange-50 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-xl border border-orange-200">
                       Standard {fs.standard}th
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">{fs.installmentsCount} Installments</span>
+                    <span className="text-xs text-slate-500 font-mono font-semibold">{fs.installmentsCount} Installments</span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white">{fs.name}</h3>
-                    <div className="text-2xl font-black text-emerald-400 mt-1 font-mono">
+                    <h3 className="text-base font-bold text-slate-900">{fs.name}</h3>
+                    <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">
                       ₹{fs.totalAmount?.toLocaleString('en-IN')}
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-800 pt-3 space-y-1 text-xs text-slate-400 font-mono">
+                  <div className="border-t border-slate-200 pt-3 space-y-1.5 text-xs text-slate-600 font-mono">
                     {fs.installmentBreakdown?.map((inst: any) => (
                       <div key={inst.installmentNo} className="flex justify-between">
-                        <span>Installment {inst.installmentNo}:</span>
-                        <span className="text-white font-semibold">₹{inst.amount?.toLocaleString('en-IN')}</span>
+                        <span className="font-sans font-medium text-slate-500">Installment {inst.installmentNo}:</span>
+                        <span className="text-slate-900 font-bold">₹{inst.amount?.toLocaleString('en-IN')}</span>
                       </div>
                     ))}
                   </div>
@@ -259,28 +256,28 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
                 placeholder="Search faculty by name, subject, or phone..."
                 value={facultySearch}
                 onChange={(e) => setFacultySearch(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium shadow-sm"
               />
             </div>
 
             <button
               onClick={() => setShowFacultyModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 flex items-center space-x-1.5 transition self-start sm:self-auto"
+              className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-1.5 transition self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
               <span>Add Faculty Profile</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800">
+          <div className="overflow-x-auto bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
                 <tr>
                   <th className="p-4">Faculty Name</th>
                   <th className="p-4">Subject Specialization</th>
@@ -290,31 +287,31 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-xs">
+              <tbody className="divide-y divide-slate-200 text-xs">
                 {filteredFaculty.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-500">
+                    <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">
                       No faculty members found matching your search.
                     </td>
                   </tr>
                 ) : (
                   filteredFaculty.map((f) => (
-                    <tr key={f._id} className="hover:bg-slate-800/40">
-                      <td className="p-4 font-bold text-white">{f.name}</td>
+                    <tr key={f._id} className="hover:bg-slate-50 transition">
+                      <td className="p-4 font-bold text-slate-900">{f.name}</td>
                       <td className="p-4">
-                        <span className="bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-full text-[11px] font-bold border border-indigo-500/20">
+                        <span className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full text-[11px] font-extrabold border border-orange-200">
                           {f.subject}
                         </span>
                       </td>
-                      <td className="p-4 font-mono text-slate-300">
+                      <td className="p-4 font-mono text-slate-800">
                         <div>{f.phone}</div>
-                        <span className="text-[10px] text-slate-500 block">{f.email || 'N/A'}</span>
+                        <span className="text-[10px] text-slate-500 block font-sans">{f.email || 'N/A'}</span>
                       </td>
-                      <td className="p-4 text-slate-300">{f.qualification || 'M.Sc / B.Ed'}</td>
+                      <td className="p-4 text-slate-700 font-medium">{f.qualification || 'M.Sc / B.Ed'}</td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
                           {f.assignedStandards?.map((std: number) => (
-                            <span key={std} className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] font-mono">
+                            <span key={std} className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-slate-200">
                               Std {std}
                             </span>
                           )) || <span className="text-slate-500 text-[10px]">All Standards</span>}
@@ -323,7 +320,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                       <td className="p-4 text-right">
                         <button
                           onClick={() => handleDeleteFaculty(f._id)}
-                          className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg transition"
+                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition"
                           title="Delete Faculty Profile"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -341,119 +338,119 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       {/* TAB 3: SUBSCRIPTION & BILLING */}
       {activeTab === 'subscription' && (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <div className="flex items-center space-x-3 mb-2">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${
                     subscription?.subscriptionStatus === 'ACTIVE'
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}
                 >
                   Status: {subscription?.subscriptionStatus || 'TRIAL'}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">Tenant License</span>
+                <span className="text-xs text-slate-500 font-mono font-semibold">Tenant License</span>
               </div>
-              <h2 className="text-2xl font-black text-white">{subscription?.name || params.slug} Academy</h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <h2 className="text-2xl font-black text-slate-900">{subscription?.name || params.slug} Academy</h2>
+              <p className="text-xs text-slate-500 mt-1 font-medium">
                 Trial/License Expiry Date:{' '}
-                <span className="font-mono text-emerald-400">
+                <span className="font-mono text-emerald-700 font-bold">
                   {subscription?.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString('en-IN') : 'Active'}
                 </span>
               </p>
             </div>
 
-            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center">
-              <div className="text-2xl font-black text-indigo-400 font-mono">{subscription?.daysRemaining || 14} Days</div>
-              <span className="text-[11px] text-slate-400 font-medium">Subscription Remaining</span>
+            <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-center">
+              <div className="text-2xl font-black text-orange-600 font-mono">{subscription?.daysRemaining || 14} Days</div>
+              <span className="text-[11px] text-slate-600 font-bold">Subscription Remaining</span>
             </div>
           </div>
 
           {/* Pricing Tiers */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Starter */}
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-              <h3 className="text-lg font-bold text-white">Starter Plan</h3>
-              <div className="text-3xl font-black text-white font-mono">
-                ₹11,988 <span className="text-xs text-slate-400 font-normal">/ year</span>
+            <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900">Starter Plan</h3>
+              <div className="text-3xl font-black text-slate-900 font-mono">
+                ₹11,988 <span className="text-xs text-slate-500 font-normal">/ year</span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-300">
+              <ul className="space-y-2 text-xs text-slate-700">
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Up to 250 Active Students</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Standards 1st to 15th Supported</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Fee Engine & Receipts</span>
                 </li>
               </ul>
               <button
                 onClick={() => handleRenewSubscription('STARTER', 11988)}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-2.5 rounded-xl text-xs transition border border-slate-200"
               >
                 Renew Starter (₹11,988)
               </button>
             </div>
 
             {/* Professional */}
-            <div className="bg-gradient-to-b from-indigo-900/40 to-slate-900 border-2 border-indigo-500 p-6 rounded-3xl space-y-4 relative">
-              <span className="absolute -top-3 right-6 bg-indigo-600 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+            <div className="bg-orange-50/40 border-2 border-orange-500 p-6 rounded-3xl space-y-4 relative shadow-md">
+              <span className="absolute -top-3 right-6 bg-orange-500 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
                 POPULAR
               </span>
-              <h3 className="text-lg font-bold text-white">Professional Plan</h3>
-              <div className="text-3xl font-black text-white font-mono">
-                ₹35,988 <span className="text-xs text-slate-400 font-normal">/ year</span>
+              <h3 className="text-lg font-extrabold text-slate-900">Professional Plan</h3>
+              <div className="text-3xl font-black text-slate-900 font-mono">
+                ₹35,988 <span className="text-xs text-slate-500 font-normal">/ year</span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-300">
+              <ul className="space-y-2 text-xs text-slate-700">
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Up to 1,000 Active Students</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Standards 1st to 15th & Streams</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Faculty & Exam Grading System</span>
                 </li>
               </ul>
               <button
                 onClick={() => handleRenewSubscription('PROFESSIONAL', 35988)}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-600/30"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-orange-500/20"
               >
                 Renew Professional (₹35,988)
               </button>
             </div>
 
             {/* Enterprise */}
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4">
-              <h3 className="text-lg font-bold text-white">Enterprise Plan</h3>
-              <div className="text-3xl font-black text-white font-mono">
-                ₹95,988 <span className="text-xs text-slate-400 font-normal">/ year</span>
+            <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900">Enterprise Plan</h3>
+              <div className="text-3xl font-black text-slate-900 font-mono">
+                ₹95,988 <span className="text-xs text-slate-500 font-normal">/ year</span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-300">
+              <ul className="space-y-2 text-xs text-slate-700">
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Unlimited Students & Multi-Branch</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Custom Domain & Branding</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-600" />
                   <span>Dedicated Account Manager</span>
                 </li>
               </ul>
               <button
                 onClick={() => handleRenewSubscription('ENTERPRISE', 95988)}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-2.5 rounded-xl text-xs transition border border-slate-200"
               >
                 Renew Enterprise (₹95,988)
               </button>
@@ -464,20 +461,20 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
       {/* CREATE FEE STRUCTURE MODAL */}
       {showFeeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4">
-            <button onClick={() => setShowFeeModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4">
+            <button onClick={() => setShowFeeModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
-            <h2 className="text-xl font-bold text-white">Configure Standard Fee Structure</h2>
+            <h2 className="text-xl font-black text-slate-900">Configure Standard Fee Structure</h2>
 
             <form onSubmit={handleCreateFeeStructure} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Standard (1 - 15)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1 - 15)</label>
                 <select
                   value={feeForm.standard}
                   onChange={(e) => setFeeForm({ ...feeForm, standard: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
                 >
                   {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
                     <option key={std} value={std}>
@@ -488,35 +485,35 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Structure Name</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Structure Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Std 11th Science Annual Fee"
                   value={feeForm.name}
                   onChange={(e) => setFeeForm({ ...feeForm, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Total Base Fee Amount (₹)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Total Base Fee Amount (₹)</label>
                 <input
                   type="number"
                   min={1000}
                   required
                   value={feeForm.totalAmount}
                   onChange={(e) => setFeeForm({ ...feeForm, totalAmount: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Default Installments Split</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Default Installments Split</label>
                 <select
                   value={feeForm.installmentsCount}
                   onChange={(e) => setFeeForm({ ...feeForm, installmentsCount: Number(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
                 >
                   <option value={1}>1 Full Payment (Single Schedule)</option>
                   <option value={3}>3 Installments (Quarterly)</option>
@@ -527,7 +524,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition"
               >
                 Save Fee Structure
               </button>
@@ -538,77 +535,77 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
       {/* CREATE FACULTY MODAL */}
       {showFacultyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4">
-            <button onClick={() => setShowFacultyModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4">
+            <button onClick={() => setShowFacultyModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
-            <h2 className="text-xl font-bold text-white">Add Faculty Profile</h2>
+            <h2 className="text-xl font-black text-slate-900">Add Faculty Profile</h2>
 
             <form onSubmit={handleCreateFaculty} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Faculty Full Name *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty Full Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="Prof. Ramesh Sharma"
                   value={facultyForm.name}
                   onChange={(e) => setFacultyForm({ ...facultyForm, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Phone Number *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Phone Number *</label>
                   <input
                     type="text"
                     required
                     placeholder="9876543210"
                     value={facultyForm.phone}
                     onChange={(e) => setFacultyForm({ ...facultyForm, phone: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Email Address</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address</label>
                   <input
                     type="email"
                     placeholder="teacher@academy.com"
                     value={facultyForm.email}
                     onChange={(e) => setFacultyForm({ ...facultyForm, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Subject Specialization *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Subject Specialization *</label>
                 <input
                   type="text"
                   required
                   placeholder="Physics / Mathematics / Commerce"
                   value={facultyForm.subject}
                   onChange={(e) => setFacultyForm({ ...facultyForm, subject: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Qualification</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Qualification</label>
                 <input
                   type="text"
                   placeholder="M.Sc. Physics, B.Ed."
                   value={facultyForm.qualification}
                   onChange={(e) => setFacultyForm({ ...facultyForm, qualification: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition"
               >
                 Save Faculty Profile
               </button>

@@ -146,22 +146,21 @@ export default function StudentsPage() {
 
   const activeBatchList = classes.length > 0 ? classes : DEFAULT_BATCH_PRESETS;
 
-  // Live Net Fee Calculations
   const netTotalFee = Math.max(0, (Number(formData.customTotalFee) || 0) - (Number(formData.discountAmount) || 0));
   const activeInstallmentCount = formData.paymentType === 'INSTALLMENT' ? Number(formData.installmentCount) || 3 : 1;
   const perInstallmentAmount = Math.round(netTotalFee / activeInstallmentCount);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-6 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-white">Student Roster</h1>
-          <p className="text-sm text-slate-400">Manage student enrollments, fee discounts & installment schedules (Std 1st - 15th)</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">Student Roster</h1>
+          <p className="text-sm text-slate-500 font-medium mt-0.5">Manage student enrollments, fee discounts & installment schedules (Std 1st - 15th)</p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 flex items-center space-x-2 transition"
+          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Student</span>
@@ -169,22 +168,22 @@ export default function StudentsPage() {
       </div>
 
       {/* Search Filter */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center px-4">
-        <Search className="w-4 h-4 text-slate-500 mr-3" />
+      <div className="bg-white border border-slate-200 rounded-2xl p-3 flex items-center px-4 shadow-sm">
+        <Search className="w-4 h-4 text-slate-400 mr-3" />
         <input
           type="text"
           placeholder="Search by student name, code, or phone number..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-transparent text-white placeholder-slate-500 focus:outline-none w-full text-sm"
+          className="bg-transparent text-slate-900 placeholder-slate-400 focus:outline-none w-full text-sm font-medium"
         />
       </div>
 
       {/* Roster Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-xs">
+          <table className="w-full text-left text-sm text-slate-700">
+            <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
               <tr>
                 <th className="p-4">Student Code</th>
                 <th className="p-4">Student Name</th>
@@ -194,27 +193,27 @@ export default function StudentsPage() {
                 <th className="p-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                  <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">
                     No enrolled students found. Click &quot;Add New Student&quot; to enroll.
                   </td>
                 </tr>
               ) : (
                 filteredStudents.map((s) => (
-                  <tr key={s._id} className="hover:bg-slate-800/40">
-                    <td className="p-4 font-mono text-indigo-400 font-semibold">{s.studentCode}</td>
-                    <td className="p-4 font-medium text-white">{s.name}</td>
-                    <td className="p-4 text-slate-300">
-                      <span className="bg-slate-800 text-slate-200 text-xs px-2.5 py-1 rounded-lg border border-slate-700 font-mono">
+                  <tr key={s._id} className="hover:bg-slate-50 transition">
+                    <td className="p-4 font-mono text-orange-600 font-bold">{s.studentCode}</td>
+                    <td className="p-4 font-semibold text-slate-900">{s.name}</td>
+                    <td className="p-4 text-slate-700">
+                      <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-1 rounded-lg border border-slate-200 font-mono font-medium">
                         {s.classBatchId?.batchName || `Std ${s.standard}th`}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-400 font-mono">{s.parentPhone}</td>
-                    <td className="p-4 text-indigo-400 font-semibold">₹{s.advanceBalance || 0}</td>
+                    <td className="p-4 text-slate-600 font-mono">{s.parentPhone}</td>
+                    <td className="p-4 text-slate-900 font-bold font-mono">₹{s.advanceBalance || 0}</td>
                     <td className="p-4">
-                      <span className="bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-semibold border border-emerald-500/20">
+                      <span className="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-200">
                         {s.status || 'ACTIVE'}
                       </span>
                     </td>
@@ -228,64 +227,64 @@ export default function StudentsPage() {
 
       {/* Add Student Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-5 my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-5 my-8 text-slate-900">
             <button
               onClick={() => setShowAddModal(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white"
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-lg font-bold"
             >
               ✕
             </button>
             <div>
-              <h2 className="text-xl font-bold text-white">Enroll New Student</h2>
-              <p className="text-xs text-slate-400 mt-1">Configure class batch, parent details, fee discount & installment schedule (Std 1st - 15th).</p>
+              <h2 className="text-xl font-black text-slate-900">Enroll New Student</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">Configure class batch, parent details, fee discount & installment schedule (Std 1st - 15th).</p>
             </div>
 
             <form onSubmit={handleCreateStudent} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Student Full Name *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="Aarav Sharma"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Parent Name *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Parent Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="Rajesh Sharma"
                     value={formData.parentName}
                     onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Parent Phone *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Parent Phone *</label>
                   <input
                     type="tel"
                     required
                     placeholder="9876543210"
                     value={formData.parentPhone}
                     onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Class Batch (Std 1st - 15th) *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Class Batch (Std 1st - 15th) *</label>
                 <select
                   value={formData.classBatchId}
                   onChange={(e) => handleBatchSelect(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
                 >
                   <optgroup label="Academic Class Batches">
                     {activeBatchList.map((c: any) => {
@@ -302,31 +301,31 @@ export default function StudentsPage() {
               </div>
 
               {/* Fee & Discount Section */}
-              <div className="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
-                <div className="flex items-center justify-between text-xs font-bold text-indigo-400 uppercase">
+              <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between text-xs font-bold text-orange-600 uppercase">
                   <span>Fee & Payment Schedule</span>
-                  <Calculator className="w-4 h-4" />
+                  <Calculator className="w-4 h-4 text-orange-500" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">Base Total Fee (₹)</label>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Base Total Fee (₹)</label>
                     <input
                       type="number"
                       value={formData.customTotalFee}
                       onChange={(e) => setFormData({ ...formData, customTotalFee: Number(e.target.value) })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">Fee Discount (₹)</label>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Fee Discount (₹)</label>
                     <input
                       type="number"
                       placeholder="e.g. 5000"
                       value={formData.discountAmount}
                       onChange={(e) => setFormData({ ...formData, discountAmount: Number(e.target.value) })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold focus:outline-none"
+                      className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs text-emerald-600 font-bold font-mono focus:outline-none"
                     />
                   </div>
                 </div>
@@ -334,11 +333,11 @@ export default function StudentsPage() {
                 {/* Payment Plan & Installments */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">Payment Plan</label>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Plan</label>
                     <select
                       value={formData.paymentType}
                       onChange={(e) => setFormData({ ...formData, paymentType: e.target.value as any })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none"
                     >
                       <option value="FULL">Full Payment</option>
                       <option value="INSTALLMENT">Installments Plan</option>
@@ -347,11 +346,11 @@ export default function StudentsPage() {
 
                   {formData.paymentType === 'INSTALLMENT' && (
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-400 mb-1">Installment Count</label>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Installment Count</label>
                       <select
                         value={formData.installmentCount}
                         onChange={(e) => setFormData({ ...formData, installmentCount: Number(e.target.value) })}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none"
                       >
                         <option value={3}>3 Installments</option>
                         <option value={6}>6 Installments</option>
@@ -362,16 +361,16 @@ export default function StudentsPage() {
                 </div>
 
                 {/* Live Breakdown Preview */}
-                <div className="bg-slate-900/80 border border-slate-800/80 p-3 rounded-xl flex items-center justify-between text-xs font-mono">
+                <div className="bg-white border border-orange-200 p-3 rounded-xl flex items-center justify-between text-xs font-mono shadow-sm">
                   <div>
-                    <span className="text-slate-400 block text-[10px]">Net Billed Fee:</span>
-                    <span className="text-emerald-400 font-bold">₹{netTotalFee.toLocaleString('en-IN')}</span>
+                    <span className="text-slate-500 block text-[10px] font-sans">Net Billed Fee:</span>
+                    <span className="text-emerald-700 font-black">₹{netTotalFee.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-slate-400 block text-[10px]">
+                    <span className="text-slate-500 block text-[10px] font-sans">
                       {formData.paymentType === 'INSTALLMENT' ? `${activeInstallmentCount} Monthly Schedules:` : 'Single Schedule:'}
                     </span>
-                    <span className="text-indigo-400 font-bold">
+                    <span className="text-orange-600 font-black">
                       {formData.paymentType === 'INSTALLMENT'
                         ? `₹${perInstallmentAmount.toLocaleString('en-IN')} / month`
                         : `₹${netTotalFee.toLocaleString('en-IN')}`}
@@ -383,7 +382,7 @@ export default function StudentsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition text-sm"
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
               >
                 {isSubmitting ? 'Enrolling Student...' : 'Save & Enroll Student'}
               </button>

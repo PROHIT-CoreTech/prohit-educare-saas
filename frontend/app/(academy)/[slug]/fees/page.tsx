@@ -68,7 +68,6 @@ export default function FeeEnginePage() {
         allocations: res.data.allocations,
       });
 
-      // Refresh student fee summary
       fetchSummary(selectedStudentId);
     } catch (err: any) {
       alert('Payment Recording Error: ' + (err.response?.data?.message || err.message));
@@ -77,7 +76,7 @@ export default function FeeEnginePage() {
     }
   };
 
-  // Generate Digital Receipt Card on HTML5 Canvas
+  // Generate Digital Receipt Card on HTML5 Canvas (High Contrast Light Theme)
   useEffect(() => {
     if (receiptData && canvasRef.current) {
       const canvas = canvasRef.current;
@@ -87,50 +86,54 @@ export default function FeeEnginePage() {
       canvas.width = 600;
       canvas.height = 400;
 
-      // Background Gradient
-      const gradient = ctx.createLinearGradient(0, 0, 600, 400);
-      gradient.addColorStop(0, '#0f172a');
-      gradient.addColorStop(1, '#1e1b4b');
-      ctx.fillStyle = gradient;
+      // Crisp White Canvas Background
+      ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, 600, 400);
 
-      // Border Accent
-      ctx.strokeStyle = '#6366f1';
-      ctx.lineWidth = 4;
+      // Vibrant Orange Top Accent Header
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(0, 0, 600, 15);
+
+      // Border Outline
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
       ctx.strokeRect(10, 10, 580, 380);
 
       // Header Text
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 24px sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 22px sans-serif';
       ctx.fillText('PROHIT EDUCARE - OFFICIAL RECEIPT', 30, 50);
 
-      ctx.fillStyle = '#818cf8';
-      ctx.font = '16px monospace';
+      ctx.fillStyle = '#f97316';
+      ctx.font = 'bold 15px monospace';
       ctx.fillText(`Receipt #: ${receiptData.receiptNumber}`, 30, 80);
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.strokeStyle = '#cbd5e1';
       ctx.beginPath();
-      ctx.moveTo(30, 100);
-      ctx.lineTo(570, 100);
+      ctx.moveTo(30, 95);
+      ctx.lineTo(570, 95);
       ctx.stroke();
 
       // Details
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = '16px sans-serif';
-      ctx.fillText(`Student: ${receiptData.studentName}`, 30, 140);
-      ctx.fillText(`Date: ${receiptData.date}`, 30, 170);
-      ctx.fillText(`Payment Mode: ${receiptData.paymentMode}`, 30, 200);
+      ctx.fillStyle = '#334155';
+      ctx.font = '15px sans-serif';
+      ctx.fillText(`Student Name: ${receiptData.studentName}`, 30, 135);
+      ctx.fillText(`Date: ${receiptData.date}`, 30, 165);
+      ctx.fillText(`Payment Mode: ${receiptData.paymentMode}`, 30, 195);
 
-      // Amount Box
-      ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
-      ctx.fillRect(30, 230, 540, 70);
+      // Amount Box (Mint Green Light Background)
+      ctx.fillStyle = '#ecfdf5';
+      ctx.fillRect(30, 225, 540, 75);
+      ctx.strokeStyle = '#a7f3d0';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(30, 225, 540, 75);
 
-      ctx.fillStyle = '#34d399';
-      ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(`AMOUNT PAID: ₹${receiptData.amountPaid.toLocaleString('en-IN')}`, 50, 275);
+      ctx.fillStyle = '#047857';
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillText(`AMOUNT PAID: ₹${receiptData.amountPaid.toLocaleString('en-IN')}`, 50, 272);
 
       // Footer Stamp
-      ctx.fillStyle = '#94a3b8';
+      ctx.fillStyle = '#64748b';
       ctx.font = '12px sans-serif';
       ctx.fillText('Atomic FIFO Settlement Verified by PROHIT CoreTech Engine', 30, 355);
     }
@@ -152,7 +155,6 @@ export default function FeeEnginePage() {
           console.error(e);
         }
       } else {
-        // Fallback download
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -163,23 +165,23 @@ export default function FeeEnginePage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Atomic FIFO Fee Collection Engine</h1>
-        <p className="text-sm text-slate-400">Record payments with sequential schedule allocation and instant receipt cards</p>
+    <div className="space-y-8 font-sans">
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-extrabold text-slate-900">Atomic FIFO Fee Collection Engine</h1>
+        <p className="text-sm text-slate-500 font-medium mt-0.5">Record payments with sequential schedule allocation and instant receipt cards</p>
       </div>
 
       {/* Student Selector */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <label className="block text-xs font-semibold text-slate-300 uppercase">Select Target Student</label>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+        <label className="block text-xs font-bold text-slate-700 uppercase">Select Target Student</label>
         <select
           value={selectedStudentId}
           onChange={handleStudentChange}
-          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 font-medium"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
         >
           {students.map((s) => (
             <option key={s._id} value={s._id}>
-              {s.name} ({s.studentCode}) - Std {s.standard}
+              {s.name} ({s.studentCode}) - Std {s.standard}th
             </option>
           ))}
         </select>
@@ -188,32 +190,31 @@ export default function FeeEnginePage() {
       {/* Student Fee Summary & Schedule Breakdown */}
       {feeSummary && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left 2 Cols: Fee Schedules */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
-              <h2 className="text-lg font-bold text-white mb-4">Fee Schedule Installments (FIFO Priority)</h2>
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+              <h2 className="text-lg font-bold text-slate-900">Fee Schedule Installments (FIFO Priority)</h2>
               <div className="space-y-3">
                 {feeSummary.feeSchedules?.map((inst: any) => (
                   <div
                     key={inst._id}
-                    className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between"
+                    className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-xs"
                   >
                     <div>
-                      <span className="text-xs font-semibold text-indigo-400">Installment #{inst.installmentNo}</span>
-                      <p className="text-sm font-medium text-white">Due Date: {new Date(inst.dueDate).toLocaleDateString()}</p>
+                      <span className="text-xs font-bold text-orange-600 uppercase">Installment #{inst.installmentNo}</span>
+                      <p className="text-sm font-semibold text-slate-900">Due Date: {new Date(inst.dueDate).toLocaleDateString()}</p>
                     </div>
 
                     <div className="text-right">
-                      <p className="text-sm font-bold text-white">
+                      <p className="text-sm font-extrabold text-slate-900 font-mono">
                         Paid ₹{inst.paidAmount} / Total ₹{inst.amount}
                       </p>
                       <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1 ${
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mt-1 uppercase ${
                           inst.status === 'PAID'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : inst.status === 'PARTIAL'
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
                         }`}
                       >
                         {inst.status}
@@ -225,30 +226,29 @@ export default function FeeEnginePage() {
             </div>
           </div>
 
-          {/* Right Col: Mobile 2-Tap Payment Modal Card */}
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center space-x-2 text-indigo-400 mb-2">
-                <Smartphone className="w-5 h-5" />
-                <h2 className="text-lg font-bold text-white">Quick 2-Tap Payment</h2>
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center space-x-2 text-orange-600 mb-1">
+                <Smartphone className="w-5 h-5 text-orange-500" />
+                <h2 className="text-lg font-extrabold text-slate-900">Quick 2-Tap Payment</h2>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Amount to Pay (₹)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Amount to Pay (₹)</label>
                 <input
                   type="number"
                   value={amountToPay}
                   onChange={(e) => setAmountToPay(Number(e.target.value))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-2xl font-bold text-emerald-400 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-2xl font-black text-emerald-700 font-mono focus:outline-none focus:border-orange-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Payment Mode</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Payment Mode</label>
                 <select
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 font-semibold focus:outline-none"
                 >
                   <option value="UPI">UPI / GPay / PhonePe</option>
                   <option value="CASH">Cash</option>
@@ -258,20 +258,20 @@ export default function FeeEnginePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Transaction Ref (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Transaction Ref (Optional)</label>
                 <input
                   type="text"
                   placeholder="UPI Ref ID"
                   value={transactionRef}
                   onChange={(e) => setTransactionRef(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-slate-900 font-medium focus:outline-none"
                 />
               </div>
 
               <button
                 onClick={handleRecordPayment}
                 disabled={processing}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2 text-base"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center space-x-2 text-base"
               >
                 <CreditCard className="w-5 h-5" />
                 <span>{processing ? 'Processing FIFO Transaction...' : 'Tap 2: Confirm Payment'}</span>
@@ -283,21 +283,21 @@ export default function FeeEnginePage() {
 
       {/* Digital Canvas Receipt Card Modal */}
       {receiptData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-2xl w-full relative shadow-2xl space-y-4 text-center">
-            <button onClick={() => setReceiptData(null)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-2xl w-full relative shadow-2xl space-y-4 text-center">
+            <button onClick={() => setReceiptData(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
-            <h2 className="text-xl font-bold text-white">Payment Recorded Successfully</h2>
+            <h2 className="text-xl font-extrabold text-slate-900">Payment Recorded Successfully</h2>
 
             <div className="flex justify-center my-4">
-              <canvas ref={canvasRef} className="rounded-2xl shadow-2xl border border-slate-700 max-w-full h-auto" />
+              <canvas ref={canvasRef} className="rounded-2xl shadow-md border border-slate-200 max-w-full h-auto" />
             </div>
 
             <div className="flex items-center justify-center space-x-4">
               <button
                 onClick={handleShareReceipt}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-xl shadow-lg flex items-center space-x-2"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share / Download Receipt Card</span>

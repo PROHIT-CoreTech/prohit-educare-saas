@@ -20,7 +20,6 @@ const SUBSCRIPTION_PLANS = [
       'Digital Canvas Receipt Generation',
     ],
     popular: false,
-    color: 'from-blue-600 to-indigo-600',
   },
   {
     id: 'PROFESSIONAL',
@@ -38,7 +37,6 @@ const SUBSCRIPTION_PLANS = [
       'Priority Platform Email Support',
     ],
     popular: true,
-    color: 'from-indigo-600 to-violet-600',
   },
   {
     id: 'ENTERPRISE',
@@ -56,7 +54,6 @@ const SUBSCRIPTION_PLANS = [
       'Raw MongoDB Data Dump Exports',
     ],
     popular: false,
-    color: 'from-violet-600 to-rose-600',
   },
 ];
 
@@ -141,28 +138,28 @@ export default function SubscriptionPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans text-slate-900">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <div className="flex items-center space-x-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">
-            <ShieldCheck className="w-4 h-4" />
+          <div className="flex items-center space-x-2 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-1">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span>Academy SaaS Subscription & Billing</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Subscription & Plan Management</h1>
-          <p className="text-sm text-slate-400">View license status, trial period, and renew online via Cashfree Gateway</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">Subscription & Plan Management</h1>
+          <p className="text-sm text-slate-500 font-medium mt-0.5">View license status, trial period, and renew online via Cashfree Gateway</p>
         </div>
 
         {subscription && (
-          <div className="flex items-center space-x-3 bg-slate-900 border border-slate-800 p-3 px-5 rounded-2xl">
-            <span className="text-xs text-slate-400 font-semibold uppercase">Current Status:</span>
+          <div className="flex items-center space-x-3 bg-white border border-slate-200 p-3 px-5 rounded-2xl shadow-sm">
+            <span className="text-xs text-slate-500 font-bold uppercase">Current Status:</span>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-extrabold border ${
+              className={`px-3 py-1 rounded-full text-xs font-black uppercase border ${
                 subscription.subscriptionStatus === 'ACTIVE'
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : subscription.subscriptionStatus === 'TRIAL'
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                  : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-rose-50 text-rose-700 border-rose-200'
               }`}
             >
               {subscription.subscriptionStatus}
@@ -173,19 +170,19 @@ export default function SubscriptionPage() {
 
       {/* Subscription Overview Card */}
       {subscription && (
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/60 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-slate-400 uppercase">Academy Tenant</span>
-              <p className="text-xl font-bold text-white">{subscription.name}</p>
-              <span className="text-xs text-indigo-400 font-mono block">{subscription.slug}.prohiteducare.com</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Academy Tenant</span>
+              <p className="text-xl font-black text-slate-900">{subscription.name}</p>
+              <span className="text-xs text-orange-600 font-mono font-bold block">{subscription.slug}.prohiteducare.com</span>
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-slate-400 uppercase">Trial / License Countdown</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Trial / License Countdown</span>
               <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5 text-amber-400" />
-                <p className="text-2xl font-extrabold text-white">
+                <Clock className="w-5 h-5 text-orange-500" />
+                <p className="text-2xl font-black text-slate-900 font-mono">
                   {subscription.subscriptionStatus === 'TRIAL'
                     ? `${subscription.trialDaysRemaining} Days Left`
                     : subscription.subscriptionStatus === 'ACTIVE'
@@ -193,7 +190,7 @@ export default function SubscriptionPage() {
                     : 'Expired'}
                 </p>
               </div>
-              <span className="text-xs text-slate-400 block">
+              <span className="text-xs text-slate-500 font-medium block">
                 {subscription.subscriptionStatus === 'TRIAL'
                   ? `Trial Ends on ${formatDate(subscription.trialEndsAt)}`
                   : `Renews on ${formatDate(subscription.subscriptionEndsAt)}`}
@@ -201,20 +198,20 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs font-semibold text-slate-400 uppercase">Payment Gateway Engine</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Gateway Engine</span>
               <div className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5 text-emerald-400" />
-                <p className="text-lg font-bold text-emerald-400">Cashfree PG Verified</p>
+                <CreditCard className="w-5 h-5 text-emerald-600" />
+                <p className="text-lg font-extrabold text-emerald-700">Cashfree PG Verified</p>
               </div>
-              <span className="text-xs text-slate-500 block">HMAC-SHA256 Encrypted Payments</span>
+              <span className="text-xs text-slate-500 font-medium block">HMAC-SHA256 Encrypted Payments</span>
             </div>
           </div>
 
           {(subscription.isTrialExpired || subscription.subscriptionStatus === 'EXPIRED') && (
-            <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl flex items-center justify-between">
-              <div className="flex items-center space-x-3 text-rose-300">
-                <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
-                <p className="text-xs font-medium">
+            <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center space-x-3 text-rose-800">
+                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                <p className="text-xs font-bold">
                   Your 14-day free trial has expired. Select a plan below to activate your annual subscription and restore full platform privileges.
                 </p>
               </div>
@@ -226,44 +223,44 @@ export default function SubscriptionPage() {
       {/* Plan Selection Grid */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Select Subscription Tier</h2>
-          <p className="text-xs text-slate-400">All plans are billed annually with Cashfree Payment Gateway security</p>
+          <h2 className="text-xl font-extrabold text-slate-900">Select Subscription Tier</h2>
+          <p className="text-xs text-slate-500 font-medium">All plans are billed annually with Cashfree Payment Gateway security</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {SUBSCRIPTION_PLANS.map((plan) => (
             <div
               key={plan.id}
-              className={`bg-slate-900 border rounded-3xl p-6 shadow-xl relative flex flex-col justify-between space-y-6 transition hover:border-indigo-500/50 ${
-                plan.popular ? 'border-indigo-500 shadow-indigo-500/10' : 'border-slate-800'
+              className={`bg-white border rounded-3xl p-6 shadow-sm relative flex flex-col justify-between space-y-6 transition ${
+                plan.popular ? 'border-2 border-orange-500 shadow-md bg-orange-50/20' : 'border-slate-200'
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                <div className="absolute -top-3.5 right-6 bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
                   Most Popular
                 </div>
               )}
 
               <div className="space-y-4">
                 <div>
-                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{plan.studentLimit}</span>
-                  <h3 className="text-xl font-extrabold text-white mt-1">{plan.name}</h3>
-                  <p className="text-xs text-slate-400 mt-1">{plan.description}</p>
+                  <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">{plan.studentLimit}</span>
+                  <h3 className="text-xl font-black text-slate-900 mt-1">{plan.name}</h3>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">{plan.description}</p>
                 </div>
 
-                <div className="border-t border-b border-slate-800/80 py-4">
+                <div className="border-t border-b border-slate-200 py-4">
                   <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-extrabold text-white">₹{plan.monthlyPrice.toLocaleString('en-IN')}</span>
-                    <span className="text-xs text-slate-400">/ month</span>
+                    <span className="text-3xl font-black text-slate-900 font-mono">₹{plan.monthlyPrice.toLocaleString('en-IN')}</span>
+                    <span className="text-xs text-slate-500 font-medium">/ month</span>
                   </div>
-                  <span className="text-xs text-slate-500 mt-1 block font-mono">Billed annually at ₹{plan.annualPrice.toLocaleString('en-IN')}/yr</span>
+                  <span className="text-xs text-slate-500 mt-1 block font-mono font-semibold">Billed annually at ₹{plan.annualPrice.toLocaleString('en-IN')}/yr</span>
                 </div>
 
-                <ul className="space-y-2.5 text-xs text-slate-300">
+                <ul className="space-y-2.5 text-xs text-slate-700">
                   {plan.features.map((feat, idx) => (
                     <li key={idx} className="flex items-start space-x-2">
-                      <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span>{feat}</span>
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <span className="font-medium">{feat}</span>
                     </li>
                   ))}
                 </ul>
@@ -272,10 +269,10 @@ export default function SubscriptionPage() {
               <button
                 onClick={() => handleInitiateRenewal(plan.id)}
                 disabled={processing}
-                className={`w-full font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center space-x-2 text-sm ${
+                className={`w-full font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm ${
                   plan.popular
-                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30'
-                    : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-amber-300" />
@@ -288,39 +285,39 @@ export default function SubscriptionPage() {
 
       {/* Cashfree Payment Gateway Modal */}
       {checkoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full relative shadow-2xl space-y-6 text-center">
-            <button onClick={() => setCheckoutModal(null)} className="absolute top-6 right-6 text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-md w-full relative shadow-2xl space-y-6 text-center">
+            <button onClick={() => setCheckoutModal(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
 
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
               <CreditCard className="w-6 h-6" />
             </div>
 
             <div>
-              <span className="text-xs font-bold text-emerald-400 uppercase">Cashfree Payment Gateway</span>
-              <h2 className="text-xl font-bold text-white mt-1">Complete Subscription Renewal</h2>
-              <p className="text-xs text-slate-400 mt-1">Order Session ID: {checkoutModal.orderId}</p>
+              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Cashfree Payment Gateway</span>
+              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Complete Subscription Renewal</h2>
+              <p className="text-xs text-slate-500 font-mono mt-1">Order Session ID: {checkoutModal.orderId}</p>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left space-y-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Selected Tier:</span>
-                <span className="font-bold text-white">{checkoutModal.planName}</span>
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2">
+              <div className="flex justify-between text-xs font-medium">
+                <span className="text-slate-500">Selected Tier:</span>
+                <span className="font-bold text-slate-900">{checkoutModal.planName}</span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Billing Cycle:</span>
-                <span className="font-semibold text-slate-300">Annual (1 Year License)</span>
+              <div className="flex justify-between text-xs font-medium">
+                <span className="text-slate-500">Billing Cycle:</span>
+                <span className="font-bold text-slate-800">Annual (1 Year License)</span>
               </div>
-              <div className="flex justify-between text-sm border-t border-slate-800 pt-2 font-bold">
-                <span className="text-white">Total Amount:</span>
-                <span className="text-emerald-400">₹{checkoutModal.amount.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between text-sm border-t border-slate-200 pt-2 font-black">
+                <span className="text-slate-900">Total Amount:</span>
+                <span className="text-emerald-700 font-mono">₹{checkoutModal.amount.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
             {paymentSuccess ? (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl text-emerald-400 font-bold text-xs flex items-center justify-center space-x-2">
+              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-emerald-700 font-bold text-xs flex items-center justify-center space-x-2">
                 <Check className="w-4 h-4" />
                 <span>{paymentSuccess}</span>
               </div>
@@ -328,9 +325,9 @@ export default function SubscriptionPage() {
               <button
                 onClick={handleConfirmPayment}
                 disabled={processing}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2 text-sm"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center space-x-2 text-sm"
               >
-                <Zap className="w-4 h-4 fill-emerald-300" />
+                <Zap className="w-4 h-4 fill-white" />
                 <span>{processing ? 'Processing Cashfree Payment...' : 'Pay ₹' + checkoutModal.amount.toLocaleString('en-IN') + ' & Activate'}</span>
               </button>
             )}

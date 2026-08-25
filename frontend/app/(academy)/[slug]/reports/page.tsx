@@ -21,43 +21,43 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-extrabold text-white">Financial & Operational Analytics</h1>
-        <p className="text-sm text-slate-400">MongoDB Aggregation Pipeline driven business metrics</p>
+    <div className="space-y-8 font-sans">
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-2xl font-extrabold text-slate-900">Financial & Operational Analytics</h1>
+        <p className="text-sm text-slate-500 font-medium mt-0.5">MongoDB Aggregation Pipeline driven business metrics</p>
       </div>
 
       {overview && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-2">
-            <span className="text-xs font-semibold uppercase text-slate-400">Total Billed Receivables</span>
-            <p className="text-3xl font-extrabold text-white">₹{overview.totalBilled?.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-slate-500">Gross fees scheduled for current academic period</p>
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-2 shadow-sm">
+            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Billed Receivables</span>
+            <p className="text-3xl font-black text-slate-900 font-mono">₹{overview.totalBilled?.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-slate-500 font-medium">Gross fees scheduled for current academic period</p>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-2">
-            <span className="text-xs font-semibold uppercase text-slate-400">Total Settled (Paid)</span>
-            <p className="text-3xl font-extrabold text-emerald-400">₹{overview.totalPaid?.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-emerald-500">Allocated FIFO across due dates</p>
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-2 shadow-sm">
+            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Settled (Paid)</span>
+            <p className="text-3xl font-black text-emerald-600 font-mono">₹{overview.totalPaid?.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-emerald-700 font-semibold">Allocated FIFO across due dates</p>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl space-y-2">
-            <span className="text-xs font-semibold uppercase text-slate-400">Outstanding Balance</span>
-            <p className="text-3xl font-extrabold text-rose-400">₹{overview.remainingBalance?.toLocaleString('en-IN')}</p>
-            <p className="text-xs text-rose-500">Net uncollected receivables</p>
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-2 shadow-sm">
+            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Outstanding Balance</span>
+            <p className="text-3xl font-black text-orange-600 font-mono">₹{overview.remainingBalance?.toLocaleString('en-IN')}</p>
+            <p className="text-xs text-orange-700 font-semibold">Net uncollected receivables</p>
           </div>
         </div>
       )}
 
-      <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center space-y-4">
-        <FileText className="w-12 h-12 text-indigo-400 mx-auto" />
-        <h2 className="text-xl font-bold text-white">Export Audit-Ready Financial Statement</h2>
-        <p className="text-slate-400 text-sm max-w-lg mx-auto">
+      <div className="bg-white border border-slate-200 p-8 rounded-3xl text-center space-y-4 shadow-sm">
+        <FileText className="w-12 h-12 text-orange-500 mx-auto" />
+        <h2 className="text-xl font-extrabold text-slate-900">Export Audit-Ready Financial Statement</h2>
+        <p className="text-slate-600 text-sm max-w-lg mx-auto font-medium">
           All financial allocations are audited atomically with immutable sequence counters per academy.
         </p>
         <button
           onClick={() => window.print()}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-xl shadow-lg inline-flex items-center space-x-2"
+          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-orange-500/20 inline-flex items-center space-x-2 transition"
         >
           <Download className="w-4 h-4" />
           <span>Print / Export PDF Report</span>
