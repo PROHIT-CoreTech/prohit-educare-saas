@@ -16,6 +16,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [feeForm, setFeeForm] = useState({
     standard: 10,
+    medium: 'english',
+    stream: 'science',
     name: 'Annual Tuition Fee',
     totalAmount: 35000,
     installmentsCount: 3,
@@ -71,6 +73,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       fetchFeeStructures();
       setFeeForm({
         standard: 10,
+        medium: 'english',
+        stream: 'science',
         name: 'Annual Tuition Fee',
         totalAmount: 35000,
         installmentsCount: 3,
@@ -223,9 +227,16 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               feeStructures.map((fs) => (
                 <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="bg-orange-50 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-xl border border-orange-200">
-                      Standard {fs.standard}th
-                    </span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="bg-orange-50 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-xl border border-orange-200">
+                        Std {fs.standard}th
+                      </span>
+                      <span className="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-xl border border-slate-200 uppercase">
+                        {fs.standard <= 10
+                          ? fs.medium === 'semi_english' ? 'Semi-English' : fs.medium === 'marathi' ? 'Marathi' : fs.medium === 'hindi' ? 'Hindi' : 'English'
+                          : fs.stream !== 'none' ? fs.stream : 'General'}
+                      </span>
+                    </div>
                     <span className="text-xs text-slate-500 font-mono font-semibold">{fs.installmentsCount} Installments</span>
                   </div>
 
@@ -473,7 +484,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1 - 15)</label>
                 <select
                   value={feeForm.standard}
-                  onChange={(e) => setFeeForm({ ...feeForm, standard: Number(e.target.value) })}
+                  onChange={(e) => {
+                    const std = Number(e.target.value);
+                    setFeeForm({
+                      ...feeForm,
+                      standard: std,
+                      medium: std >= 11 ? 'english' : feeForm.medium,
+                      stream: std >= 11 ? 'science' : 'none',
+                    });
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
                 >
                   {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
@@ -483,6 +502,36 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   ))}
                 </select>
               </div>
+
+              {/* Dynamic Medium / Stream Field */}
+              {feeForm.standard <= 10 ? (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Medium of Instruction (Std 1st - 10th)</label>
+                  <select
+                    value={feeForm.medium}
+                    onChange={(e) => setFeeForm({ ...feeForm, medium: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                  >
+                    <option value="marathi">Marathi Medium</option>
+                    <option value="semi_english">Semi-English Medium</option>
+                    <option value="english">English Medium</option>
+                    <option value="hindi">Hindi Medium</option>
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Stream / Section (Std 11th - 15th)</label>
+                  <select
+                    value={feeForm.stream}
+                    onChange={(e) => setFeeForm({ ...feeForm, stream: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                  >
+                    <option value="science">Science Stream</option>
+                    <option value="commerce">Commerce Stream</option>
+                    <option value="arts">Arts Stream</option>
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Structure Name</label>

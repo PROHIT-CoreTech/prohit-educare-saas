@@ -48,13 +48,15 @@ export class FeeEngineService {
     return breakdown;
   }
 
-  async createFeeStructure(dto: { standard: number; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
+  async createFeeStructure(dto: { standard: number; medium?: string; stream?: string; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
     const academyId = this.tenantContextService.academyId;
     const breakdown = this.generateInstallmentBreakdown(dto.totalAmount, dto.installmentsCount, dto.startDate ? new Date(dto.startDate) : new Date());
 
     const feeStructure = await this.feeStructureModel.create({
       academyId,
       standard: dto.standard,
+      medium: dto.medium || (dto.standard >= 11 ? 'english' : 'english'),
+      stream: dto.stream || (dto.standard >= 11 ? 'science' : 'none'),
       name: dto.name,
       totalAmount: dto.totalAmount,
       installmentsCount: dto.installmentsCount,

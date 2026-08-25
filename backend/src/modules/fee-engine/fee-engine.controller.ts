@@ -9,7 +9,7 @@ export class FeeEngineController {
   constructor(private readonly feeEngineService: FeeEngineService) {}
 
   @Post('structures')
-  async createFeeStructure(@Body() body: { standard: number; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
+  async createFeeStructure(@Body() body: { standard: number; medium?: string; stream?: string; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
     return this.feeEngineService.createFeeStructure(body);
   }
 
