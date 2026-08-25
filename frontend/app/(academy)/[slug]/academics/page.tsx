@@ -312,8 +312,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-extrabold text-slate-900">{c.batchName}</span>
-                      <span className="bg-slate-200 text-slate-800 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md uppercase">
-                        {c.medium}
+                      <span className="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase border border-orange-200">
+                        {c.medium === 'semi_english' ? 'Semi-English' : c.medium === 'marathi' ? 'Marathi' : c.medium === 'hindi' ? 'Hindi' : 'English'}
                       </span>
                     </div>
 
@@ -333,8 +333,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
             <div key={c._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3 hover:border-orange-300 transition">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Std {c.standard}th Batch</span>
-                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-1 rounded-full uppercase font-mono font-semibold border border-slate-200">
-                  {c.medium}
+                <span className="bg-orange-50 text-orange-700 text-xs px-2.5 py-1 rounded-full uppercase font-bold border border-orange-200">
+                  {c.medium === 'semi_english' ? 'Semi-English' : c.medium === 'marathi' ? 'Marathi' : c.medium === 'hindi' ? 'Hindi' : 'English'}
                 </span>
               </div>
 
