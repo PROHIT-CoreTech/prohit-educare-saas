@@ -35,6 +35,18 @@ export class Student {
   @Prop({ required: false, enum: ['science', 'commerce', 'arts', 'none'], default: 'none' })
   stream?: string;
 
+  @Prop({ required: false, default: 0 })
+  discountAmount?: number;
+
+  @Prop({ required: false, enum: ['FULL', 'INSTALLMENT'], default: 'FULL' })
+  paymentType?: string;
+
+  @Prop({ required: false, default: 1 })
+  installmentCount?: number;
+
+  @Prop({ required: false })
+  customTotalFee?: number;
+
   @Prop({ required: false })
   dateOfBirth?: Date;
 

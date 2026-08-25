@@ -191,6 +191,44 @@ export default function FeeEnginePage() {
       {feeSummary && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            {/* Student Configured Fee Plan Card */}
+            <div className="bg-orange-50/60 border border-orange-200 p-5 rounded-3xl space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-orange-200/80 pb-3">
+                <div>
+                  <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Configured Fee Plan</span>
+                  <h3 className="text-lg font-black text-slate-900">{feeSummary.student?.name} ({feeSummary.student?.studentCode})</h3>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs uppercase">
+                    Std {feeSummary.student?.standard}th - {feeSummary.student?.standard <= 10 ? (feeSummary.student?.medium || 'English') : (feeSummary.student?.stream || 'General')}
+                  </span>
+                  <span className="bg-white text-slate-800 text-xs font-bold px-3 py-1 rounded-full border border-slate-200 uppercase">
+                    {feeSummary.student?.paymentType === 'INSTALLMENT' ? `${feeSummary.student?.installmentCount || 3} Installments Split` : '1 Full Payment'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 text-xs font-mono pt-1">
+                <div>
+                  <span className="text-slate-500 block font-sans font-medium">Net Billed Fee:</span>
+                  <span className="font-extrabold text-slate-900 text-sm">₹{feeSummary.summary?.totalBilled?.toLocaleString('en-IN')}</span>
+                  {feeSummary.student?.discountAmount > 0 && (
+                    <span className="text-[10px] text-emerald-700 block font-sans font-bold">Disc: ₹{feeSummary.student.discountAmount}</span>
+                  )}
+                </div>
+
+                <div>
+                  <span className="text-slate-500 block font-sans font-medium">Total Paid:</span>
+                  <span className="font-extrabold text-emerald-600 text-sm">₹{feeSummary.summary?.totalPaid?.toLocaleString('en-IN')}</span>
+                </div>
+
+                <div>
+                  <span className="text-slate-500 block font-sans font-medium">Remaining Due:</span>
+                  <span className="font-extrabold text-rose-600 text-sm">₹{feeSummary.summary?.remainingBalance?.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
               <h2 className="text-lg font-bold text-slate-900">Fee Schedule Installments (FIFO Priority)</h2>
               <div className="space-y-3">

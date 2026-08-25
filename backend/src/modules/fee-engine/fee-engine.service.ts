@@ -143,8 +143,16 @@ export class FeeEngineService {
 
     let baseFee = params.customTotalFee;
     if (!baseFee || baseFee <= 0) {
-      const feeStructure = await this.feeStructureModel.findOne({ academyId, standard: params.standard }).exec();
-      baseFee = feeStructure ? feeStructure.totalAmount : (params.standard >= 11 ? 50000 : 30000);
+      let feeStructure;
+      if (params.standard >= 11 && student.stream && student.stream !== 'none') {
+        feeStructure = await this.feeStructureModel.findOne({ academyId, standard: params.standard, stream: student.stream }).exec();
+      } else if (params.standard <= 10 && student.medium) {
+        feeStructure = await this.feeStructureModel.findOne({ academyId, standard: params.standard, medium: student.medium }).exec();
+      }
+      if (!feeStructure) {
+        feeStructure = await this.feeStructureModel.findOne({ academyId, standard: params.standard }).exec();
+      }
+      baseFee = feeStructure ? feeStructure.totalAmount : (params.standard >= 11 ? 50000 : 35000);
     }
 
     const discount = Math.max(0, params.discountAmount || 0);
@@ -293,7 +301,19 @@ export class FeeEngineService {
     const student = await this.studentModel.findOne({ _id: studentId, academyId }).exec();
     if (!student) throw new NotFoundException('Student not found');
 
-    const feeSchedules = await this.feeScheduleModel.find({ academyId, studentId: student._id }).sort({ dueDate: 1 }).exec();
+    let feeSchedules = await this.feeScheduleModel.find({ academyId, studentId: student._id }).sort({ dueDate: 1 }).exec();
+
+    if (feeSchedules.length === 0) {
+      feeSchedules = await this.assignCustomFeeToStudent({
+        studentId: student._id.toString(),
+        standard: student.standard,
+        discountAmount: student.discountAmount || 0,
+        paymentType: (student.paymentType as 'FULL' | 'INSTALLMENT') || 'FULL',
+        installmentCount: student.installmentCount || 1,
+        customTotalFee: student.customTotalFee,
+      });
+    }
+
     const payments = await this.paymentModel.find({ academyId, studentId: student._id }).sort({ paymentDate: -1 }).exec();
 
     const totalBilled = feeSchedules.reduce((acc, s) => acc + s.amount, 0);
