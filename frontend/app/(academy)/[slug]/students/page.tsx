@@ -45,7 +45,7 @@ export default function StudentsPage() {
     classBatchId: 'preset_10_eng',
     standard: 10,
     discountAmount: 0,
-    paymentType: 'FULL' as 'FULL' | 'INSTALLMENT',
+    paymentType: 'FULL',
     installmentCount: 3,
     customTotalFee: 35000,
   });
@@ -81,9 +81,27 @@ export default function StudentsPage() {
     }
   };
 
+  const activeBatchList = classes.length > 0 ? classes : DEFAULT_BATCH_PRESETS;
+
+  const handleStandardChange = (newStd: number) => {
+    const matchingBatches = activeBatchList.filter((b: any) => b.standard === newStd);
+    const selectedBatchId = matchingBatches.length > 0 
+      ? (matchingBatches[0]._id || matchingBatches[0].id) 
+      : `preset_${newStd}`;
+    const matchedFee = feeStructures.find((fs) => fs.standard === newStd);
+    const feeAmt = matchedFee ? matchedFee.totalAmount : newStd >= 11 ? 50000 : 35000;
+
+    setFormData({
+      ...formData,
+      standard: newStd,
+      classBatchId: selectedBatchId,
+      customTotalFee: feeAmt,
+    });
+  };
+
   const handleBatchSelect = (batchId: string) => {
     const sel = activeBatchList.find((c: any) => (c._id || c.id) === batchId);
-    const std = sel ? sel.standard : 10;
+    const std = sel ? sel.standard : formData.standard;
     const matchedFee = feeStructures.find((fs) => fs.standard === std);
     const feeAmt = matchedFee ? matchedFee.totalAmount : std >= 11 ? 50000 : 35000;
 
@@ -102,16 +120,23 @@ export default function StudentsPage() {
       let targetBatchId = formData.classBatchId;
 
       if (targetBatchId.startsWith('preset_')) {
-        const preset = DEFAULT_BATCH_PRESETS.find((p) => p.id === targetBatchId);
-        if (preset) {
-          const newBatchRes = await apiClient.post('/classes', {
-            standard: preset.standard,
-            medium: preset.medium,
-            section: preset.section,
-            batchName: preset.batchName,
-          });
-          targetBatchId = newBatchRes.data._id;
+        let preset = DEFAULT_BATCH_PRESETS.find((p) => p.id === targetBatchId);
+        if (!preset) {
+          preset = {
+            id: `preset_${formData.standard}`,
+            standard: formData.standard,
+            medium: formData.standard >= 11 ? 'english' : 'marathi',
+            section: formData.standard >= 11 ? 'science' : 'none',
+            batchName: `Class ${formData.standard}th Standard Batch`,
+          };
         }
+        const newBatchRes = await apiClient.post('/classes', {
+          standard: preset.standard,
+          medium: preset.medium,
+          section: preset.section,
+          batchName: preset.batchName,
+        });
+        targetBatchId = newBatchRes.data._id;
       }
 
       await apiClient.post('/students', {
@@ -151,43 +176,45 @@ export default function StudentsPage() {
   const filteredStudents = students.filter(
     (s) =>
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.studentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.parentPhone.includes(searchTerm),
+      s.rollNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.parentPhone?.includes(searchTerm)
   );
 
-  const activeBatchList = classes.length > 0 ? classes : DEFAULT_BATCH_PRESETS;
+  const netFee = Math.max(0, (formData.customTotalFee || 0) - (formData.discountAmount || 0));
+  const installmentAmount = formData.paymentType === 'INSTALLMENT' ? Math.round(netFee / formData.installmentCount) : netFee;
 
-  const netTotalFee = Math.max(0, (Number(formData.customTotalFee) || 0) - (Number(formData.discountAmount) || 0));
-  const activeInstallmentCount = formData.paymentType === 'INSTALLMENT' ? Number(formData.installmentCount) || 3 : 1;
-  const perInstallmentAmount = Math.round(netTotalFee / activeInstallmentCount);
+  const currentStdBatches = activeBatchList.filter((b: any) => b.standard === formData.standard);
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+    <div className="space-y-8 font-sans text-slate-900">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Student Roster</h1>
-          <p className="text-sm text-slate-500 font-medium mt-0.5">Manage student enrollments, fee discounts & installment schedules (Std 1st - 15th)</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Student Roster</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Manage student enrollments, fee discounts & installment schedules</p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition"
+          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 self-start md:self-auto"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           <span>Add New Student</span>
         </button>
       </div>
 
-      {/* Search Filter */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3 flex items-center px-4 shadow-sm">
-        <Search className="w-4 h-4 text-slate-400 mr-3" />
-        <input
-          type="text"
-          placeholder="Search by student name, code, or phone number..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-transparent text-slate-900 placeholder-slate-400 focus:outline-none w-full text-sm font-medium"
-        />
+      {/* Search Bar */}
+      <div className="flex items-center space-x-4">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+          <input
+            type="text"
+            placeholder="Search by student name, code, or phone number..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-orange-500 font-medium shadow-sm"
+          />
+        </div>
       </div>
 
       {/* Roster Table */}
@@ -196,10 +223,10 @@ export default function StudentsPage() {
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
               <tr>
-                <th className="p-4">Student Code</th>
                 <th className="p-4">Student Name</th>
-                <th className="p-4">Class Batch</th>
-                <th className="p-4">Parent Phone</th>
+                <th className="p-4">Student Code</th>
+                <th className="p-4">Parent Details</th>
+                <th className="p-4">Standard & Batch</th>
                 <th className="p-4">Advance Credit</th>
                 <th className="p-4">Status</th>
               </tr>
@@ -207,25 +234,28 @@ export default function StudentsPage() {
             <tbody className="divide-y divide-slate-200">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">
-                    No enrolled students found. Click &quot;Add New Student&quot; to enroll.
+                  <td colSpan={6} className="p-12 text-center text-slate-500 font-medium">
+                    No enrolled students found. Click &quot;Add New Student&quot; to enroll your first student.
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((s) => (
-                  <tr key={s._id} className="hover:bg-slate-50 transition">
-                    <td className="p-4 font-mono text-orange-600 font-bold">{s.studentCode}</td>
-                    <td className="p-4 font-semibold text-slate-900">{s.name}</td>
-                    <td className="p-4 text-slate-700">
-                      <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-1 rounded-lg border border-slate-200 font-mono font-medium">
-                        {s.classBatchId?.batchName || `Std ${s.standard}th`}
+                filteredStudents.map((stu) => (
+                  <tr key={stu._id} className="hover:bg-slate-50 transition">
+                    <td className="p-4 font-bold text-slate-900">{stu.name}</td>
+                    <td className="p-4 font-mono font-semibold text-orange-600">{stu.rollNumber}</td>
+                    <td className="p-4 font-medium">
+                      <div>{stu.parentName}</div>
+                      <div className="text-xs text-slate-500 font-mono">{stu.parentPhone}</div>
+                    </td>
+                    <td className="p-4 font-medium">
+                      <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-200">
+                        Std {stu.standard}th - {stu.classBatchId?.batchName || 'General Batch'}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-600 font-mono">{s.parentPhone}</td>
-                    <td className="p-4 text-slate-900 font-bold font-mono">₹{s.advanceBalance || 0}</td>
+                    <td className="p-4 font-mono font-bold text-emerald-600">₹{stu.advanceCredit?.toLocaleString('en-IN') || 0}</td>
                     <td className="p-4">
-                      <span className="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-200">
-                        {s.status || 'ACTIVE'}
+                      <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                        ACTIVE
                       </span>
                     </td>
                   </tr>
@@ -236,19 +266,18 @@ export default function StudentsPage() {
         </div>
       </div>
 
-      {/* Add Student Modal */}
+      {/* ADD STUDENT MODAL */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-5 my-8 text-slate-900">
-            <button
-              onClick={() => setShowAddModal(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 text-lg font-bold"
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
             <div>
               <h2 className="text-xl font-black text-slate-900">Enroll New Student</h2>
-              <p className="text-xs text-slate-500 font-medium mt-1">Configure class batch, parent details, fee discount & installment schedule (Std 1st - 15th).</p>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Configure target standard, class batch, parent details, fee discount & installment schedule (Std 1st - 15th).
+              </p>
             </div>
 
             <form onSubmit={handleCreateStudent} className="space-y-4">
@@ -290,25 +319,45 @@ export default function StudentsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Class Batch (Std 1st - 15th) *</label>
-                <select
-                  value={formData.classBatchId}
-                  onChange={(e) => handleBatchSelect(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
-                >
-                  <optgroup label="Academic Class Batches">
-                    {activeBatchList.map((c: any) => {
-                      const id = c._id || c.id;
-                      const secLabel = c.section && c.section !== 'none' ? ` - ${c.section.toUpperCase()}` : '';
-                      return (
-                        <option key={id} value={id}>
-                          {c.batchName || `Std ${c.standard}th ${c.medium}${secLabel}`}
-                        </option>
-                      );
-                    })}
-                  </optgroup>
-                </select>
+              {/* Standard & Class Batch Pickers */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1st - 15th) *</label>
+                  <select
+                    value={formData.standard}
+                    onChange={(e) => handleStandardChange(Number(e.target.value))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
+                  >
+                    {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
+                      <option key={std} value={std}>
+                        Std {std}th {std >= 13 ? '(Degree)' : std >= 11 ? '(Science/Comm/Arts)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Class Batch *</label>
+                  <select
+                    value={formData.classBatchId}
+                    onChange={(e) => handleBatchSelect(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  >
+                    {currentStdBatches.length > 0 ? (
+                      currentStdBatches.map((c: any) => {
+                        const id = c._id || c.id;
+                        const secLabel = c.section && c.section !== 'none' ? ` - ${c.section.toUpperCase()}` : '';
+                        return (
+                          <option key={id} value={id}>
+                            {c.batchName || `Std ${c.standard}th ${c.medium}${secLabel}`}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option value={`preset_${formData.standard}`}>General Std {formData.standard}th Batch</option>
+                    )}
+                  </select>
+                </div>
               </div>
 
               {/* Fee & Discount Section */}
@@ -320,71 +369,66 @@ export default function StudentsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Base Total Fee (₹)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Base Total Fee (₹)</label>
                     <input
                       type="number"
+                      required
                       value={formData.customTotalFee}
                       onChange={(e) => setFormData({ ...formData, customTotalFee: Number(e.target.value) })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold focus:outline-none"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Fee Discount (₹)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Fee Discount (₹)</label>
                     <input
                       type="number"
-                      placeholder="e.g. 5000"
+                      min={0}
                       value={formData.discountAmount}
                       onChange={(e) => setFormData({ ...formData, discountAmount: Number(e.target.value) })}
-                      className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs text-emerald-600 font-bold font-mono focus:outline-none"
+                      className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-emerald-700 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
 
-                {/* Payment Plan & Installments */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Plan</label>
-                    <select
-                      value={formData.paymentType}
-                      onChange={(e) => setFormData({ ...formData, paymentType: e.target.value as any })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none"
-                    >
-                      <option value="FULL">Full Payment</option>
-                      <option value="INSTALLMENT">Installments Plan</option>
-                    </select>
-                  </div>
-
-                  {formData.paymentType === 'INSTALLMENT' && (
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Installment Count</label>
-                      <select
-                        value={formData.installmentCount}
-                        onChange={(e) => setFormData({ ...formData, installmentCount: Number(e.target.value) })}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-none"
-                      >
-                        <option value={3}>3 Installments</option>
-                        <option value={6}>6 Installments</option>
-                        <option value={9}>9 Installments</option>
-                      </select>
-                    </div>
-                  )}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Payment Plan</label>
+                  <select
+                    value={formData.paymentType}
+                    onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="FULL">Full Payment (Single Schedule)</option>
+                    <option value="INSTALLMENT">Installment Schedule</option>
+                  </select>
                 </div>
 
-                {/* Live Breakdown Preview */}
-                <div className="bg-white border border-orange-200 p-3 rounded-xl flex items-center justify-between text-xs font-mono shadow-sm">
+                {formData.paymentType === 'INSTALLMENT' && (
                   <div>
-                    <span className="text-slate-500 block text-[10px] font-sans">Net Billed Fee:</span>
-                    <span className="text-emerald-700 font-black">₹{netTotalFee.toLocaleString('en-IN')}</span>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Number of Installments</label>
+                    <select
+                      value={formData.installmentCount}
+                      onChange={(e) => setFormData({ ...formData, installmentCount: Number(e.target.value) })}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
+                    >
+                      <option value={3}>3 Installments (Quarterly Split)</option>
+                      <option value={6}>6 Installments (Bi-Monthly Split)</option>
+                      <option value={9}>9 Installments (Monthly Split)</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-slate-500 block font-medium">Net Billed Fee:</span>
+                    <span className="font-extrabold text-slate-900 font-mono text-sm">₹{netFee.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-slate-500 block text-[10px] font-sans">
-                      {formData.paymentType === 'INSTALLMENT' ? `${activeInstallmentCount} Monthly Schedules:` : 'Single Schedule:'}
+                    <span className="text-slate-500 block font-medium">
+                      {formData.paymentType === 'INSTALLMENT' ? `Per Installment (${formData.installmentCount}x):` : 'Single Schedule:'}
                     </span>
-                    <span className="text-orange-600 font-black">
-                      {formData.paymentType === 'INSTALLMENT'
-                        ? `₹${perInstallmentAmount.toLocaleString('en-IN')} / month`
-                        : `₹${netTotalFee.toLocaleString('en-IN')}`}
+                    <span className="font-extrabold text-orange-600 font-mono text-sm">
+                      ₹{installmentAmount.toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>
