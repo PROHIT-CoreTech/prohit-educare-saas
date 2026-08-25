@@ -8,6 +8,16 @@ import { SubscriptionActiveGuard } from '../../common/guards/subscription-active
 export class FeeEngineController {
   constructor(private readonly feeEngineService: FeeEngineService) {}
 
+  @Post('structures')
+  async createFeeStructure(@Body() body: { standard: number; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
+    return this.feeEngineService.createFeeStructure(body);
+  }
+
+  @Get('structures')
+  async getFeeStructures() {
+    return this.feeEngineService.getFeeStructures();
+  }
+
   @Post('assign-structure')
   async assignFeeStructure(@Body() body: { studentId: string; feeStructureId: string }) {
     return this.feeEngineService.assignFeeStructureToStudent(body.studentId, body.feeStructureId);

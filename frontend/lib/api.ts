@@ -11,9 +11,13 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('prohit_auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (!config.headers.Authorization) {
+      const platformToken = localStorage.getItem('prohit_platform_token');
+      const tenantToken = localStorage.getItem('prohit_auth_token');
+      const token = window.location.pathname.startsWith('/platform-admin') ? (platformToken || tenantToken) : (tenantToken || platformToken);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
   }
   return config;

@@ -27,7 +27,7 @@ export class ReportsService {
           totalBilled: { $sum: '$amount' },
           totalPaidFromSchedules: { $sum: '$paidAmount' },
           pendingCount: {
-            $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] },
+            $sum: { $cond: [{ $in: ['$status', ['PENDING', 'PARTIAL', 'OVERDUE']] }, 1, 0] },
           },
           overdueCount: {
             $sum: { $cond: [{ $eq: ['$status', 'OVERDUE'] }, 1, 0] },

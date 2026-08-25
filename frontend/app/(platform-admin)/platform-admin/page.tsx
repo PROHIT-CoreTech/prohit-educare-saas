@@ -82,7 +82,11 @@ export default function PlatformAdminPage() {
       setAcademies(academiesRes.data);
       setAuditLogs(auditRes.data);
     } catch (err: any) {
-      console.error(err);
+      console.error('Failed to fetch platform admin data:', err);
+      if (err.response?.status === 401) {
+        localStorage.removeItem('prohit_platform_token');
+        setToken(null);
+      }
     } finally {
       setLoading(false);
     }

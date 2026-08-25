@@ -22,7 +22,7 @@ export class ClassBatch {
 }
 
 export const ClassBatchSchema = SchemaFactory.createForClass(ClassBatch);
-ClassBatchSchema.index({ academyId: 1, standard: 1, medium: 1, section: 1 }, { unique: true });
+ClassBatchSchema.index({ academyId: 1, standard: 1, medium: 1, section: 1, batchName: 1 }, { unique: true });
 
 ClassBatchSchema.pre('save', function (next) {
   if (this.standard >= 11) {

@@ -25,15 +25,22 @@ export class ClassesService {
       dto.section = 'none';
     }
 
-    const batch = await this.classBatchModel.create({
-      academyId,
-      standard: dto.standard,
-      medium: dto.medium,
-      section: dto.section,
-      batchName: dto.batchName,
-    });
+    try {
+      const batch = await this.classBatchModel.create({
+        academyId,
+        standard: dto.standard,
+        medium: dto.medium,
+        section: dto.section,
+        batchName: dto.batchName,
+      });
 
-    return batch;
+      return batch;
+    } catch (error: any) {
+      if (error.code === 11000) {
+        throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for Std ${dto.standard} ${dto.medium} ${dto.section !== 'none' ? dto.section : ''}.`);
+      }
+      throw error;
+    }
   }
 
   async findAll() {

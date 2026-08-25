@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, CreditCard, BookOpen, BarChart3, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, BookOpen, BarChart3, LogOut, ShieldAlert, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { apiClient } from '../../../lib/api';
 
 export default function AcademyLayout({
@@ -16,6 +16,7 @@ export default function AcademyLayout({
   const pathname = usePathname();
   const [academy, setAcademy] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [subscription, setSubscription] = useState<any>(null);
   const [isImpersonating, setIsImpersonating] = useState(false);
 
   useEffect(() => {
@@ -24,6 +25,11 @@ export default function AcademyLayout({
       apiClient
         .get('/academies/my-academy')
         .then((res) => setAcademy(res.data))
+        .catch(() => {});
+
+      apiClient
+        .get('/billing/my-subscription')
+        .then((res) => setSubscription(res.data))
         .catch(() => {});
 
       apiClient
@@ -51,6 +57,25 @@ export default function AcademyLayout({
         <div className="bg-amber-500 text-slate-950 font-bold px-4 py-1 text-center text-xs flex items-center justify-center space-x-2">
           <ShieldAlert className="w-4 h-4" />
           <span>Platform Admin Impersonation Session Active for {academy?.name || params.slug}</span>
+        </div>
+      )}
+
+      {/* Subscription / Trial Expiration Banner */}
+      {subscription && (subscription.isTrialExpired || subscription.subscriptionStatus === 'EXPIRED') && (
+        <div className="bg-gradient-to-r from-rose-600 to-amber-600 text-white font-bold px-4 py-2 text-center text-xs flex items-center justify-between shadow-lg">
+          <div className="flex items-center space-x-2 mx-auto">
+            <AlertCircle className="w-4 h-4 animate-bounce text-yellow-300" />
+            <span>
+              Your 14-Day Free Trial / Subscription for {academy?.name || 'Academy'} has expired! Upgrade now to maintain full platform access.
+            </span>
+            <Link
+              href="/subscription"
+              className="bg-white text-rose-700 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition ml-2 inline-flex items-center space-x-1"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Renew / Upgrade Now</span>
+            </Link>
+          </div>
         </div>
       )}
 
@@ -119,6 +144,16 @@ export default function AcademyLayout({
             >
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Reports</span>
+            </Link>
+
+            <Link
+              href={`/subscription`}
+              className={`px-3 py-2 rounded-xl flex items-center space-x-2 transition ${
+                pathname.includes('/subscription') ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span className="hidden sm:inline">Subscription</span>
             </Link>
 
             <button

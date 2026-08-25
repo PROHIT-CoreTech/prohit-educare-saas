@@ -48,6 +48,36 @@ export class FeeEngineService {
     return breakdown;
   }
 
+  async createFeeStructure(dto: { standard: number; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
+    const academyId = this.tenantContextService.academyId;
+    const breakdown = this.generateInstallmentBreakdown(dto.totalAmount, dto.installmentsCount, dto.startDate ? new Date(dto.startDate) : new Date());
+
+    const feeStructure = await this.feeStructureModel.create({
+      academyId,
+      standard: dto.standard,
+      name: dto.name,
+      totalAmount: dto.totalAmount,
+      installmentsCount: dto.installmentsCount,
+      installmentBreakdown: breakdown,
+    });
+
+    // Auto-assign fee structure to all students in this standard who don't have fee schedules
+    const studentsInStandard = await this.studentModel.find({ academyId, standard: dto.standard }).exec();
+    for (const student of studentsInStandard) {
+      const existingCount = await this.feeScheduleModel.countDocuments({ academyId, studentId: student._id });
+      if (existingCount === 0) {
+        await this.assignFeeStructureToStudent(student._id.toString(), feeStructure._id.toString());
+      }
+    }
+
+    return feeStructure;
+  }
+
+  async getFeeStructures() {
+    const academyId = this.tenantContextService.academyId;
+    return this.feeStructureModel.find({ academyId }).sort({ standard: 1 }).exec();
+  }
+
   async assignFeeStructureToStudent(studentId: string, feeStructureId: string) {
     const academyId = this.tenantContextService.academyId;
     const student = await this.studentModel.findOne({ _id: studentId, academyId }).exec();
@@ -70,6 +100,28 @@ export class FeeEngineService {
         status: 'PENDING',
       });
       schedules.push(schedule);
+    }
+
+    // Auto-settle advance balance if student has advance credit
+    if (student.advanceBalance > 0) {
+      for (const schedule of schedules) {
+        if (student.advanceBalance <= 0) break;
+        const due = schedule.amount - schedule.paidAmount;
+        if (due <= 0) continue;
+
+        const allocation = Math.min(student.advanceBalance, due);
+        schedule.paidAmount += allocation;
+        student.advanceBalance -= allocation;
+
+        if (schedule.paidAmount >= schedule.amount) {
+          schedule.status = 'PAID';
+        } else {
+          schedule.status = 'PARTIAL';
+        }
+
+        await schedule.save();
+      }
+      await student.save();
     }
 
     return schedules;

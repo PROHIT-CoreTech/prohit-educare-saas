@@ -44,6 +44,61 @@ export class BillingService {
     };
   }
 
+  async getMySubscription(academyId: string) {
+    const academy = await this.academyModel.findById(academyId).exec();
+    if (!academy) throw new NotFoundException('Academy not found');
+
+    const now = new Date();
+    let isTrialExpired = false;
+    let trialDaysRemaining = 0;
+
+    if (academy.subscriptionStatus === 'TRIAL' && academy.trialEndsAt) {
+      const trialEnds = new Date(academy.trialEndsAt);
+      const diffMs = trialEnds.getTime() - now.getTime();
+      trialDaysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+      if (diffMs <= 0) {
+        isTrialExpired = true;
+      }
+    }
+
+    return {
+      academyId: academy._id,
+      name: academy.name,
+      slug: academy.slug,
+      subscriptionStatus: isTrialExpired ? 'EXPIRED' : academy.subscriptionStatus,
+      trialEndsAt: academy.trialEndsAt,
+      subscriptionEndsAt: academy.subscriptionEndsAt,
+      trialDaysRemaining,
+      isTrialExpired,
+      cashfreeOrderId: academy.cashfreeOrderId,
+    };
+  }
+
+  async confirmSubscriptionRenewal(academyId: string, plan: string, orderId?: string) {
+    const academy = await this.academyModel.findById(academyId).exec();
+    if (!academy) throw new NotFoundException('Academy not found');
+
+    const currentEnd = academy.subscriptionEndsAt && new Date(academy.subscriptionEndsAt) > new Date()
+      ? new Date(academy.subscriptionEndsAt)
+      : new Date();
+
+    currentEnd.setFullYear(currentEnd.getFullYear() + 1);
+    academy.subscriptionStatus = 'ACTIVE';
+    academy.subscriptionEndsAt = currentEnd;
+    if (orderId) {
+      academy.cashfreeOrderId = orderId;
+    }
+    await academy.save();
+
+    this.logger.log(`Subscription activated/renewed for ${academy.name} (${plan}) until ${currentEnd.toISOString()}`);
+
+    return {
+      message: `Subscription successfully renewed for ${plan}!`,
+      status: 'ACTIVE',
+      subscriptionEndsAt: currentEnd,
+    };
+  }
+
   /**
    * Verifies Cashfree Webhook HMAC-SHA256 Signature
    */
