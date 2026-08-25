@@ -558,18 +558,20 @@ export default function PlatformAdminPage() {
               <table className="w-full text-left text-sm text-slate-300">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-xs tracking-wider">
                   <tr>
-                    <th className="p-4">Date & Time</th>
-                    <th className="p-4">Academy / Subdomain</th>
-                    <th className="p-4">Action Event</th>
-                    <th className="p-4">Payment Mode & Ref</th>
-                    <th className="p-4">Plan & Amount</th>
-                    <th className="p-4">Performed By</th>
+                    <th className="p-4 whitespace-nowrap">Date & Time</th>
+                    <th className="p-4 whitespace-nowrap">Academy / Subdomain</th>
+                    <th className="p-4 whitespace-nowrap">Action Event</th>
+                    <th className="p-4 whitespace-nowrap">Subscription Start</th>
+                    <th className="p-4 whitespace-nowrap">Subscription Expiry</th>
+                    <th className="p-4 whitespace-nowrap">Payment Mode & Ref</th>
+                    <th className="p-4 whitespace-nowrap">Plan & Amount</th>
+                    <th className="p-4 whitespace-nowrap">Performed By</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-xs">
                   {filteredAuditLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                      <td colSpan={8} className="p-8 text-center text-slate-500">
                         No subscription transaction logs found matching your search.
                       </td>
                     </tr>
@@ -581,9 +583,17 @@ export default function PlatformAdminPage() {
                       const amount = details.amount ? `₹${details.amount?.toLocaleString('en-IN')}` : details.plan === 'STARTER' ? '₹11,988 / yr' : '₹35,988 / yr';
                       const paymentMode = details.paymentMode || (log.action === 'OFFLINE_TENANT_REGISTERED' ? 'OFFLINE_CASH' : 'CASHFREE_PG');
 
+                      const subStart = formatDate(details.subscriptionStart || log.academyId?.createdAt || log.createdAt);
+                      const subExpiry = formatDate(
+                        details.subscriptionExpiry ||
+                        (log.academyId?.subscriptionStatus === 'ACTIVE'
+                          ? log.academyId?.subscriptionEndsAt || new Date(new Date(log.createdAt).setFullYear(new Date(log.createdAt).getFullYear() + 1))
+                          : log.academyId?.trialEndsAt || new Date(new Date(log.createdAt).setDate(new Date(log.createdAt).getDate() + 14)))
+                      );
+
                       return (
                         <tr key={log._id} className="hover:bg-slate-800/40">
-                          <td className="p-4 font-mono text-slate-300">
+                          <td className="p-4 font-mono text-slate-300 whitespace-nowrap">
                             {new Date(log.createdAt).toLocaleString('en-IN', {
                               day: '2-digit',
                               month: '2-digit',
@@ -592,11 +602,11 @@ export default function PlatformAdminPage() {
                               minute: '2-digit',
                             })}
                           </td>
-                          <td className="p-4 font-semibold text-white">
+                          <td className="p-4 font-semibold text-white whitespace-nowrap">
                             <div>{academyName}</div>
                             <span className="text-indigo-400 font-mono text-[10px]">{academySlug}.educare.prohitcoretech.com</span>
                           </td>
-                          <td className="p-4">
+                          <td className="p-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${
                                 log.action === 'OFFLINE_TENANT_REGISTERED'
@@ -613,7 +623,19 @@ export default function PlatformAdminPage() {
                                 : log.action}
                             </span>
                           </td>
-                          <td className="p-4 font-mono text-slate-300">
+                          <td className="p-4 text-xs font-mono text-slate-300 whitespace-nowrap">
+                            <div className="flex items-center space-x-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                              <span>{subStart}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-xs font-mono text-emerald-400 font-semibold whitespace-nowrap">
+                            <div className="flex items-center space-x-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>{subExpiry}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 font-mono text-slate-300 whitespace-nowrap">
                             <div className="flex items-center space-x-1.5">
                               <CreditCard className="w-3.5 h-3.5 text-slate-400" />
                               <span>{paymentMode}</span>
@@ -622,10 +644,10 @@ export default function PlatformAdminPage() {
                               <span className="text-[10px] text-slate-500 block">Ref: {details.paymentReference}</span>
                             )}
                           </td>
-                          <td className="p-4 font-bold text-emerald-400 font-mono">
-                            {log.action === 'OFFLINE_TENANT_REGISTERED' ? amount : 'N/A'}
+                          <td className="p-4 font-bold text-emerald-400 font-mono whitespace-nowrap">
+                            {log.action === 'OFFLINE_TENANT_REGISTERED' || log.action?.includes('Provision') ? amount : 'N/A'}
                           </td>
-                          <td className="p-4 text-slate-400">
+                          <td className="p-4 text-slate-400 whitespace-nowrap">
                             {log.platformUserId?.name || 'Master Admin'} ({log.platformUserId?.email || 'admin@prohiteducare.com'})
                           </td>
                         </tr>

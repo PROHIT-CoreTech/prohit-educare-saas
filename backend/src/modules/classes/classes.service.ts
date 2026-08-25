@@ -1,15 +1,28 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ClassBatch, ClassBatchDocument } from '../../database/schemas/class-batch.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
 
 @Injectable()
-export class ClassesService {
+export class ClassesService implements OnModuleInit {
+  private readonly logger = new Logger(ClassesService.name);
+
   constructor(
     @InjectModel(ClassBatch.name) private classBatchModel: Model<ClassBatchDocument>,
     private tenantContextService: TenantContextService,
   ) {}
+
+  async onModuleInit() {
+    try {
+      // Drop any stale legacy index that restricted standard to only 1 batch total
+      await this.classBatchModel.collection.dropIndex('academyId_1_standard_1_medium_1_section_1').catch(() => {});
+      await this.classBatchModel.syncIndexes();
+      this.logger.log('Successfully synced ClassBatch indexes (multiple batches per standard/stream enabled)');
+    } catch (err: any) {
+      this.logger.warn('ClassBatch index sync info:', err.message);
+    }
+  }
 
   async create(dto: { standard: number; medium: string; section?: string; batchName: string }) {
     const academyId = this.tenantContextService.academyId;
@@ -37,9 +50,9 @@ export class ClassesService {
       return batch;
     } catch (error: any) {
       if (error.code === 11000) {
-        throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for Std ${dto.standard} ${dto.medium} ${dto.section !== 'none' ? dto.section : ''}.`);
+        throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for Std ${dto.standard} (${dto.medium}${dto.section !== 'none' ? ' - ' + dto.section : ''}).`);
       }
-      throw error;
+      throw new BadRequestException(error.message || 'Failed to create class batch.');
     }
   }
 

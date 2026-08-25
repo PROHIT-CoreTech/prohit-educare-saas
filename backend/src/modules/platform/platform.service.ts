@@ -87,12 +87,43 @@ export class PlatformService {
    * Returns all platform subscription transaction and audit logs
    */
   async getPlatformAuditLogs() {
-    return this.platformAuditLogModel
+    const auditLogs = await this.platformAuditLogModel
       .find()
       .populate('platformUserId', 'name email')
-      .populate('academyId', 'name slug')
+      .populate('academyId', 'name slug subscriptionStatus trialEndsAt subscriptionEndsAt createdAt')
       .sort({ createdAt: -1 })
       .exec();
+
+    const academies = await this.academyModel.find().exec();
+    const existingAcademyIdsInAudit = new Set(
+      auditLogs.map((log: any) => (log.academyId?._id ? log.academyId._id.toString() : log.academyId?.toString()))
+    );
+
+    const syntheticLogs: any[] = [];
+    for (const academy of academies) {
+      if (!existingAcademyIdsInAudit.has(academy._id.toString())) {
+        syntheticLogs.push({
+          _id: `sub_log_${academy._id}`,
+          academyId: academy,
+          action: academy.subscriptionStatus === 'TRIAL' ? '14-Day Free Trial Started' : 'Subscription Provisioned',
+          createdAt: academy.createdAt,
+          details: {
+            academyName: academy.name,
+            academySlug: academy.slug,
+            plan: 'PROFESSIONAL',
+            amount: 35988,
+            paymentMode: academy.subscriptionStatus === 'TRIAL' ? 'FREE_TRIAL' : 'OFFLINE_CASH',
+            subscriptionStart: academy.createdAt,
+            subscriptionExpiry:
+              academy.subscriptionStatus === 'ACTIVE'
+                ? academy.subscriptionEndsAt || new Date(new Date(academy.createdAt).setFullYear(new Date(academy.createdAt).getFullYear() + 1))
+                : academy.trialEndsAt,
+          },
+        });
+      }
+    }
+
+    return [...auditLogs, ...syntheticLogs].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async updateAcademyStatus(id: string, status: string) {

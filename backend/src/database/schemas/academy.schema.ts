@@ -43,6 +43,9 @@ export class Academy {
 
   @Prop({ required: false })
   razorpaySubscriptionId?: string;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const AcademySchema = SchemaFactory.createForClass(Academy);
