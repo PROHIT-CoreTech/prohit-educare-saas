@@ -44,6 +44,8 @@ export default function StudentsPage() {
     parentEmail: '',
     classBatchId: 'preset_10_eng',
     standard: 10,
+    medium: 'english',
+    stream: 'science',
     discountAmount: 0,
     paymentType: 'FULL',
     installmentCount: 3,
@@ -73,6 +75,8 @@ export default function StudentsPage() {
           ...prev,
           classBatchId: classRes.data[0]._id,
           standard: firstStd,
+          medium: classRes.data[0].medium || 'english',
+          stream: classRes.data[0].section || 'none',
           customTotalFee: matchedFee ? matchedFee.totalAmount : firstStd >= 11 ? 50000 : 35000,
         }));
       }
@@ -84,16 +88,22 @@ export default function StudentsPage() {
   const activeBatchList = classes.length > 0 ? classes : DEFAULT_BATCH_PRESETS;
 
   const handleStandardChange = (newStd: number) => {
+    const defaultMed = newStd <= 10 ? formData.medium : 'english';
+    const defaultStr = newStd >= 11 ? formData.stream : 'none';
+
     const matchingBatches = activeBatchList.filter((b: any) => b.standard === newStd);
     const selectedBatchId = matchingBatches.length > 0 
       ? (matchingBatches[0]._id || matchingBatches[0].id) 
       : `preset_${newStd}`;
+
     const matchedFee = feeStructures.find((fs) => fs.standard === newStd);
     const feeAmt = matchedFee ? matchedFee.totalAmount : newStd >= 11 ? 50000 : 35000;
 
     setFormData({
       ...formData,
       standard: newStd,
+      medium: defaultMed,
+      stream: defaultStr,
       classBatchId: selectedBatchId,
       customTotalFee: feeAmt,
     });
@@ -102,6 +112,9 @@ export default function StudentsPage() {
   const handleBatchSelect = (batchId: string) => {
     const sel = activeBatchList.find((c: any) => (c._id || c.id) === batchId);
     const std = sel ? sel.standard : formData.standard;
+    const med = sel ? sel.medium || 'english' : formData.medium;
+    const str = sel ? sel.section || 'none' : formData.stream;
+
     const matchedFee = feeStructures.find((fs) => fs.standard === std);
     const feeAmt = matchedFee ? matchedFee.totalAmount : std >= 11 ? 50000 : 35000;
 
@@ -109,6 +122,8 @@ export default function StudentsPage() {
       ...formData,
       classBatchId: batchId,
       standard: std,
+      medium: med,
+      stream: str,
       customTotalFee: feeAmt,
     });
   };
@@ -125,15 +140,15 @@ export default function StudentsPage() {
           preset = {
             id: `preset_${formData.standard}`,
             standard: formData.standard,
-            medium: formData.standard >= 11 ? 'english' : 'marathi',
-            section: formData.standard >= 11 ? 'science' : 'none',
+            medium: formData.standard <= 10 ? formData.medium : 'english',
+            section: formData.standard >= 11 ? formData.stream : 'none',
             batchName: `Class ${formData.standard}th Standard Batch`,
           };
         }
         const newBatchRes = await apiClient.post('/classes', {
           standard: preset.standard,
-          medium: preset.medium,
-          section: preset.section,
+          medium: formData.standard <= 10 ? formData.medium : preset.medium,
+          section: formData.standard >= 11 ? formData.stream : preset.section,
           batchName: preset.batchName,
         });
         targetBatchId = newBatchRes.data._id;
@@ -146,6 +161,8 @@ export default function StudentsPage() {
         parentEmail: formData.parentEmail,
         classBatchId: targetBatchId,
         standard: formData.standard,
+        medium: formData.standard <= 10 ? formData.medium : 'english',
+        stream: formData.standard >= 11 ? formData.stream : 'none',
         discountAmount: Number(formData.discountAmount) || 0,
         paymentType: formData.paymentType,
         installmentCount: formData.paymentType === 'INSTALLMENT' ? Number(formData.installmentCount) : 1,
@@ -160,6 +177,8 @@ export default function StudentsPage() {
         parentEmail: '',
         classBatchId: classes.length > 0 ? classes[0]._id : 'preset_10_eng',
         standard: 10,
+        medium: 'english',
+        stream: 'science',
         discountAmount: 0,
         paymentType: 'FULL',
         installmentCount: 3,
@@ -226,7 +245,7 @@ export default function StudentsPage() {
                 <th className="p-4">Student Name</th>
                 <th className="p-4">Student Code</th>
                 <th className="p-4">Parent Details</th>
-                <th className="p-4">Standard & Batch</th>
+                <th className="p-4">Standard, Medium & Stream</th>
                 <th className="p-4">Advance Credit</th>
                 <th className="p-4">Status</th>
               </tr>
@@ -248,9 +267,16 @@ export default function StudentsPage() {
                       <div className="text-xs text-slate-500 font-mono">{stu.parentPhone}</div>
                     </td>
                     <td className="p-4 font-medium">
-                      <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-200">
-                        Std {stu.standard}th - {stu.classBatchId?.batchName || 'General Batch'}
-                      </span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-200">
+                          Std {stu.standard}th - {stu.classBatchId?.batchName || 'General Batch'}
+                        </span>
+                        <span className="bg-slate-100 text-slate-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-slate-200 uppercase">
+                          {stu.standard <= 10
+                            ? stu.medium === 'semi_english' ? 'Semi-Eng' : stu.medium === 'marathi' ? 'Marathi' : stu.medium === 'hindi' ? 'Hindi' : 'English'
+                            : stu.stream !== 'none' ? stu.stream : 'General'}
+                        </span>
+                      </div>
                     </td>
                     <td className="p-4 font-mono font-bold text-emerald-600">₹{stu.advanceCredit?.toLocaleString('en-IN') || 0}</td>
                     <td className="p-4">
@@ -276,7 +302,7 @@ export default function StudentsPage() {
             <div>
               <h2 className="text-xl font-black text-slate-900">Enroll New Student</h2>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Configure target standard, class batch, parent details, fee discount & installment schedule (Std 1st - 15th).
+                Configure target standard, medium/stream, class batch, fee discount & installment schedule (Std 1st - 15th).
               </p>
             </div>
 
@@ -319,22 +345,52 @@ export default function StudentsPage() {
                 </div>
               </div>
 
-              {/* Standard & Class Batch Pickers */}
+              {/* Standard Selector */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1st - 15th) *</label>
+                <select
+                  value={formData.standard}
+                  onChange={(e) => handleStandardChange(Number(e.target.value))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
+                >
+                  {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
+                    <option key={std} value={std}>
+                      Std {std}th {std >= 13 ? '(Degree)' : std >= 11 ? '(Science/Comm/Arts)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dynamic Medium / Stream & Batch Selector */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1st - 15th) *</label>
-                  <select
-                    value={formData.standard}
-                    onChange={(e) => handleStandardChange(Number(e.target.value))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
-                  >
-                    {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
-                      <option key={std} value={std}>
-                        Std {std}th {std >= 13 ? '(Degree)' : std >= 11 ? '(Science/Comm/Arts)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {formData.standard <= 10 ? (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Medium of Instruction *</label>
+                    <select
+                      value={formData.medium}
+                      onChange={(e) => setFormData({ ...formData, medium: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                    >
+                      <option value="marathi">Marathi Medium</option>
+                      <option value="semi_english">Semi-English Medium</option>
+                      <option value="english">English Medium</option>
+                      <option value="hindi">Hindi Medium</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Stream / Section *</label>
+                    <select
+                      value={formData.stream}
+                      onChange={(e) => setFormData({ ...formData, stream: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                    >
+                      <option value="science">Science Stream</option>
+                      <option value="commerce">Commerce Stream</option>
+                      <option value="arts">Arts Stream</option>
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Class Batch *</label>

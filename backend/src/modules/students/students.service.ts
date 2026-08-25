@@ -20,6 +20,8 @@ export class StudentsService {
     parentEmail?: string;
     classBatchId: string;
     standard: number;
+    medium?: string;
+    stream?: string;
     dateOfBirth?: Date;
     discountAmount?: number;
     paymentType?: 'FULL' | 'INSTALLMENT';
@@ -39,6 +41,8 @@ export class StudentsService {
       parentEmail: dto.parentEmail,
       classBatchId: new Types.ObjectId(dto.classBatchId),
       standard: dto.standard,
+      medium: dto.medium || (dto.standard >= 11 ? 'english' : 'english'),
+      stream: dto.stream || (dto.standard >= 11 ? 'science' : 'none'),
       dateOfBirth: dto.dateOfBirth,
       status: 'ACTIVE',
       advanceBalance: 0,

@@ -29,6 +29,12 @@ export class Student {
   @Prop({ required: true })
   standard: number;
 
+  @Prop({ required: false, enum: ['marathi', 'semi_english', 'english', 'hindi'], default: 'english' })
+  medium?: string;
+
+  @Prop({ required: false, enum: ['science', 'commerce', 'arts', 'none'], default: 'none' })
+  stream?: string;
+
   @Prop({ required: false })
   dateOfBirth?: Date;
 
