@@ -23,20 +23,18 @@ export class FeeEngineService {
   ) {}
 
   generateInstallmentBreakdown(totalAmount: number, installmentsCount: number, startDate: Date = new Date()) {
-    if (installmentsCount <= 0 || totalAmount <= 0) {
-      throw new BadRequestException('Invalid totalAmount or installmentsCount');
-    }
+    const validCount = Math.max(1, installmentsCount || 1);
+    const validTotal = Math.max(0, totalAmount || 0);
 
-    const baseAmount = Math.floor(totalAmount / installmentsCount);
-    const remainder = totalAmount - baseAmount * installmentsCount;
+    const baseAmount = Math.floor(validTotal / validCount);
+    const remainder = validTotal - baseAmount * validCount;
 
     const breakdown = [];
-    for (let i = 1; i <= installmentsCount; i++) {
+    for (let i = 1; i <= validCount; i++) {
       const dueDate = new Date(startDate);
       dueDate.setMonth(dueDate.getMonth() + (i - 1));
 
-      // Remainder absorption on the final installment
-      const amount = i === installmentsCount ? baseAmount + remainder : baseAmount;
+      const amount = i === validCount ? baseAmount + remainder : baseAmount;
 
       breakdown.push({
         installmentNo: i,

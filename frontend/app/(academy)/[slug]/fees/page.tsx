@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2 } from 'lucide-react';
+import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 export default function FeeEnginePage() {
@@ -53,6 +53,7 @@ export default function FeeEnginePage() {
       }
     } catch (err) {
       console.error('Error fetching student summary:', err);
+      setFeeSummary(null);
     } finally {
       setLoadingSummary(false);
     }
@@ -63,6 +64,23 @@ export default function FeeEnginePage() {
     setSelectedStudentId(id);
     setFeeSummary(null);
     fetchSummary(id);
+  };
+
+  const handleInitializeFee = async () => {
+    if (!selectedStudentId) return;
+    setLoadingSummary(true);
+    try {
+      const studentObj = students.find((s) => s._id === selectedStudentId);
+      await apiClient.post('/fee-engine/initialize-student-fee', {
+        studentId: selectedStudentId,
+        standard: studentObj?.standard || 10,
+      });
+      fetchSummary(selectedStudentId);
+    } catch (err: any) {
+      alert('Error initializing fee schedule: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoadingSummary(false);
+    }
   };
 
   const handleRecordPayment = async () => {
@@ -212,8 +230,29 @@ export default function FeeEnginePage() {
         </div>
       )}
 
+      {/* Empty / Uninitialized State Fallback */}
+      {!loadingSummary && (!feeSummary || !feeSummary.feeSchedules || feeSummary.feeSchedules.length === 0) && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-sm max-w-2xl mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto font-bold text-xl">
+            ₹
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-slate-900">No Active Fee Schedule Found</h3>
+            <p className="text-xs text-slate-500 font-medium mt-1">
+              This student record does not have a generated fee schedule yet. Click below to generate their standard fee plan.
+            </p>
+          </div>
+          <button
+            onClick={handleInitializeFee}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md shadow-orange-500/20 transition"
+          >
+            Generate Fee Schedule Plan Now
+          </button>
+        </div>
+      )}
+
       {/* Student Fee Summary & Schedule Breakdown */}
-      {!loadingSummary && feeSummary && (
+      {!loadingSummary && feeSummary && feeSummary.feeSchedules && feeSummary.feeSchedules.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Student Configured Fee Plan Card */}

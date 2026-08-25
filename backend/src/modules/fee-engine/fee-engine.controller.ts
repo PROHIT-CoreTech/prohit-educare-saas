@@ -23,6 +23,20 @@ export class FeeEngineController {
     return this.feeEngineService.assignFeeStructureToStudent(body.studentId, body.feeStructureId);
   }
 
+  @Post('initialize-student-fee')
+  async initializeStudentFee(
+    @Body() body: { studentId: string; standard?: number; discountAmount?: number; paymentType?: 'FULL' | 'INSTALLMENT'; installmentCount?: number; customTotalFee?: number },
+  ) {
+    return this.feeEngineService.assignCustomFeeToStudent({
+      studentId: body.studentId,
+      standard: body.standard || 10,
+      discountAmount: body.discountAmount || 0,
+      paymentType: body.paymentType || 'FULL',
+      installmentCount: body.installmentCount || 1,
+      customTotalFee: body.customTotalFee,
+    });
+  }
+
   @Post('record-payment')
   async recordPayment(
     @Body() body: { studentId: string; amountPaid: number; paymentMode: string; transactionRef?: string },
