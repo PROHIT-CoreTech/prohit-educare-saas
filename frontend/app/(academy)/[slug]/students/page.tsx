@@ -57,6 +57,22 @@ export default function StudentsPage() {
     fetchData();
   }, []);
 
+  const getMatchingFeeAmount = (std: number, med: string, str: string, currentFeeStructures = feeStructures) => {
+    if (std >= 11) {
+      const exactMatch = currentFeeStructures.find((fs) => fs.standard === std && fs.stream === str);
+      if (exactMatch) return exactMatch.totalAmount;
+      const stdMatch = currentFeeStructures.find((fs) => fs.standard === std);
+      if (stdMatch) return stdMatch.totalAmount;
+      return 50000;
+    } else {
+      const exactMatch = currentFeeStructures.find((fs) => fs.standard === std && fs.medium === med);
+      if (exactMatch) return exactMatch.totalAmount;
+      const stdMatch = currentFeeStructures.find((fs) => fs.standard === std);
+      if (stdMatch) return stdMatch.totalAmount;
+      return 35000;
+    }
+  };
+
   const fetchData = async () => {
     try {
       const [stuRes, classRes, feeRes] = await Promise.all([
@@ -66,18 +82,22 @@ export default function StudentsPage() {
       ]);
       setStudents(stuRes.data);
       setClasses(classRes.data);
-      setFeeStructures(feeRes.data || []);
+      const loadedFeeStructures = feeRes.data || [];
+      setFeeStructures(loadedFeeStructures);
 
       if (classRes.data.length > 0) {
         const firstStd = classRes.data[0].standard;
-        const matchedFee = feeRes.data?.find((fs: any) => fs.standard === firstStd);
+        const firstMed = classRes.data[0].medium || 'english';
+        const firstStr = classRes.data[0].section || 'science';
+        const matchedFee = getMatchingFeeAmount(firstStd, firstMed, firstStr, loadedFeeStructures);
+
         setFormData((prev) => ({
           ...prev,
           classBatchId: classRes.data[0]._id,
           standard: firstStd,
-          medium: classRes.data[0].medium || 'english',
-          stream: classRes.data[0].section || 'none',
-          customTotalFee: matchedFee ? matchedFee.totalAmount : firstStd >= 11 ? 50000 : 35000,
+          medium: firstMed,
+          stream: firstStr,
+          customTotalFee: matchedFee,
         }));
       }
     } catch (err) {
@@ -89,15 +109,14 @@ export default function StudentsPage() {
 
   const handleStandardChange = (newStd: number) => {
     const defaultMed = newStd <= 10 ? formData.medium : 'english';
-    const defaultStr = newStd >= 11 ? formData.stream : 'none';
+    const defaultStr = newStd >= 11 ? (formData.stream === 'none' ? 'science' : formData.stream) : 'none';
 
     const matchingBatches = activeBatchList.filter((b: any) => b.standard === newStd);
     const selectedBatchId = matchingBatches.length > 0 
       ? (matchingBatches[0]._id || matchingBatches[0].id) 
       : `preset_${newStd}`;
 
-    const matchedFee = feeStructures.find((fs) => fs.standard === newStd);
-    const feeAmt = matchedFee ? matchedFee.totalAmount : newStd >= 11 ? 50000 : 35000;
+    const feeAmt = getMatchingFeeAmount(newStd, defaultMed, defaultStr);
 
     setFormData({
       ...formData,
@@ -109,14 +128,31 @@ export default function StudentsPage() {
     });
   };
 
+  const handleMediumChange = (newMed: string) => {
+    const feeAmt = getMatchingFeeAmount(formData.standard, newMed, formData.stream);
+    setFormData({
+      ...formData,
+      medium: newMed,
+      customTotalFee: feeAmt,
+    });
+  };
+
+  const handleStreamChange = (newStr: string) => {
+    const feeAmt = getMatchingFeeAmount(formData.standard, formData.medium, newStr);
+    setFormData({
+      ...formData,
+      stream: newStr,
+      customTotalFee: feeAmt,
+    });
+  };
+
   const handleBatchSelect = (batchId: string) => {
     const sel = activeBatchList.find((c: any) => (c._id || c.id) === batchId);
     const std = sel ? sel.standard : formData.standard;
     const med = sel ? sel.medium || 'english' : formData.medium;
     const str = sel ? sel.section || 'none' : formData.stream;
 
-    const matchedFee = feeStructures.find((fs) => fs.standard === std);
-    const feeAmt = matchedFee ? matchedFee.totalAmount : std >= 11 ? 50000 : 35000;
+    const feeAmt = getMatchingFeeAmount(std, med, str);
 
     setFormData({
       ...formData,
@@ -368,7 +404,7 @@ export default function StudentsPage() {
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Medium of Instruction *</label>
                     <select
                       value={formData.medium}
-                      onChange={(e) => setFormData({ ...formData, medium: e.target.value })}
+                      onChange={(e) => handleMediumChange(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
                     >
                       <option value="marathi">Marathi Medium</option>
@@ -382,7 +418,7 @@ export default function StudentsPage() {
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Stream / Section *</label>
                     <select
                       value={formData.stream}
-                      onChange={(e) => setFormData({ ...formData, stream: e.target.value })}
+                      onChange={(e) => handleStreamChange(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
                     >
                       <option value="science">Science Stream</option>
