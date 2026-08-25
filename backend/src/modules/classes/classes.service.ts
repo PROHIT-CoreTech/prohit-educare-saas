@@ -49,10 +49,11 @@ export class ClassesService implements OnModuleInit {
 
       return batch;
     } catch (error: any) {
+      this.logger.error('Class Batch creation error details:', error);
       if (error.code === 11000) {
         throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for Std ${dto.standard} (${dto.medium}${dto.section !== 'none' ? ' - ' + dto.section : ''}).`);
       }
-      throw new BadRequestException(error.message || 'Failed to create class batch.');
+      throw new BadRequestException(`Failed to create class batch: ${error.message || 'Unknown database error'}`);
     }
   }
 

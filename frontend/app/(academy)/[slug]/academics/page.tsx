@@ -58,12 +58,25 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       });
       fetchClasses();
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message;
-      if (err.response?.status === 401 || msg.includes('Authorization')) {
+      console.error('Create Class Batch Error:', err);
+      const resData = err.response?.data;
+      let rawMsg = resData?.message || resData?.error || err.message || 'Unknown error occurred';
+
+      if (Array.isArray(rawMsg)) {
+        rawMsg = rawMsg.join(' | ');
+      } else if (typeof rawMsg === 'object') {
+        rawMsg = JSON.stringify(rawMsg);
+      }
+
+      if (err.response?.status === 401 || (typeof rawMsg === 'string' && rawMsg.includes('Authorization'))) {
         setFormError('Your session has expired or you are not logged in. Please sign in to save.');
         setAuthError(true);
+      } else if (err.response?.status === 403 || (typeof rawMsg === 'string' && rawMsg.includes('subscription'))) {
+        setFormError(`Access Restricted (403): ${rawMsg}`);
+      } else if (err.response?.status === 500) {
+        setFormError(`Server Error (500): ${rawMsg} ${resData?.error ? '(' + resData.error + ')' : ''}`);
       } else {
-        setFormError(msg);
+        setFormError(rawMsg);
       }
     }
   };
