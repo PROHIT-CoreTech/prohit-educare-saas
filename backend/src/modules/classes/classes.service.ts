@@ -24,13 +24,21 @@ export class ClassesService implements OnModuleInit {
   async ensureSyncedIndexes() {
     if (this.indexesSynced) return;
     try {
-      // Explicitly drop legacy single-batch index from MongoDB Atlas if it exists
-      await this.classBatchModel.collection.dropIndex('academyId_1_standard_1_medium_1_section_1').catch(() => {});
+      if (!this.classBatchModel.collection) return;
+      const indexes = await this.classBatchModel.collection.indexes().catch(() => []);
+      for (const idx of indexes) {
+        // If an index has 'standard' key but lacks 'batchName' key, it's a legacy single-batch index
+        if (idx.name !== '_id_' && idx.key && idx.key.standard && !idx.key.batchName) {
+          this.logger.log(`Dropping legacy conflicting index from MongoDB Atlas: ${idx.name}`);
+          await this.classBatchModel.collection.dropIndex(idx.name).catch(() => {});
+        }
+      }
       await this.classBatchModel.syncIndexes();
       this.indexesSynced = true;
-      this.logger.log('Successfully dropped legacy index and synced ClassBatch indexes!');
+      this.logger.log('Successfully cleaned legacy indexes and synced ClassBatch schema indexes!');
     } catch (err: any) {
       this.logger.warn('ClassBatch index sync info:', err.message);
+      this.indexesSynced = true;
     }
   }
 
