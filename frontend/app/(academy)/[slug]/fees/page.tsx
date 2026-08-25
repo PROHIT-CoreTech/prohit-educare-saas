@@ -71,10 +71,21 @@ export default function FeeEnginePage() {
     setLoadingSummary(true);
     try {
       const studentObj = students.find((s) => s._id === selectedStudentId);
-      await apiClient.post('/fee-engine/initialize-student-fee', {
+      const payload = {
         studentId: selectedStudentId,
         standard: studentObj?.standard || 10,
-      });
+        discountAmount: studentObj?.discountAmount || 0,
+        paymentType: studentObj?.paymentType || 'FULL',
+        installmentCount: studentObj?.installmentCount || 1,
+        customTotalFee: studentObj?.customTotalFee,
+      };
+
+      try {
+        await apiClient.post('/fee-engine/assign-structure', payload);
+      } catch (e) {
+        await apiClient.post('/fee-engine/initialize-student-fee', payload);
+      }
+
       fetchSummary(selectedStudentId);
     } catch (err: any) {
       alert('Error initializing fee schedule: ' + (err.response?.data?.message || err.message));

@@ -19,14 +19,12 @@ export class FeeEngineController {
   }
 
   @Post('assign-structure')
-  async assignFeeStructure(@Body() body: { studentId: string; feeStructureId: string }) {
-    return this.feeEngineService.assignFeeStructureToStudent(body.studentId, body.feeStructureId);
-  }
-
-  @Post('initialize-student-fee')
-  async initializeStudentFee(
-    @Body() body: { studentId: string; standard?: number; discountAmount?: number; paymentType?: 'FULL' | 'INSTALLMENT'; installmentCount?: number; customTotalFee?: number },
+  async assignFeeStructure(
+    @Body() body: { studentId: string; feeStructureId?: string; standard?: number; discountAmount?: number; paymentType?: 'FULL' | 'INSTALLMENT'; installmentCount?: number; customTotalFee?: number },
   ) {
+    if (body.feeStructureId) {
+      return this.feeEngineService.assignFeeStructureToStudent(body.studentId, body.feeStructureId);
+    }
     return this.feeEngineService.assignCustomFeeToStudent({
       studentId: body.studentId,
       standard: body.standard || 10,
@@ -35,6 +33,13 @@ export class FeeEngineController {
       installmentCount: body.installmentCount || 1,
       customTotalFee: body.customTotalFee,
     });
+  }
+
+  @Post('initialize-student-fee')
+  async initializeStudentFee(
+    @Body() body: { studentId: string; standard?: number; discountAmount?: number; paymentType?: 'FULL' | 'INSTALLMENT'; installmentCount?: number; customTotalFee?: number },
+  ) {
+    return this.assignFeeStructure(body);
   }
 
   @Post('record-payment')
