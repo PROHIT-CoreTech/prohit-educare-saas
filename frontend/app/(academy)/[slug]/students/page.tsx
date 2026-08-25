@@ -348,7 +348,7 @@ export default function StudentsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Aarav Sharma"
+                  placeholder="Enter full name of student"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -361,7 +361,7 @@ export default function StudentsPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Rajesh Sharma"
+                    placeholder="Enter full name of parent"
                     value={formData.parentName}
                     onChange={(e) => setFormData({ ...formData, parentName: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -373,7 +373,7 @@ export default function StudentsPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="9876543210"
+                    placeholder="Enter parent phone number"
                     value={formData.parentPhone}
                     onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"

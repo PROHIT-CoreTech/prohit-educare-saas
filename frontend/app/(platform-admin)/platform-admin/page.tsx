@@ -218,6 +218,7 @@ export default function PlatformAdminPage() {
               <input
                 type="email"
                 required
+                placeholder="Enter master admin email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -230,6 +231,7 @@ export default function PlatformAdminPage() {
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
                   required
+                  placeholder="Enter master password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 pr-10 font-medium"
@@ -716,7 +718,7 @@ export default function PlatformAdminPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Patel Science Classes"
+                    placeholder="Enter academy name"
                     value={offlineForm.name}
                     onChange={(e) => setOfflineForm({ ...offlineForm, name: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -729,7 +731,7 @@ export default function PlatformAdminPage() {
                     <input
                       type="text"
                       required
-                      placeholder="patel"
+                      placeholder="Enter subdomain slug"
                       value={offlineForm.slug}
                       onChange={(e) =>
                         setOfflineForm({
@@ -750,7 +752,7 @@ export default function PlatformAdminPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Prof. Rajesh Patel"
+                    placeholder="Enter full name of director"
                     value={offlineForm.adminName}
                     onChange={(e) => setOfflineForm({ ...offlineForm, adminName: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -762,7 +764,7 @@ export default function PlatformAdminPage() {
                   <input
                     type="email"
                     required
-                    placeholder="rajesh@patelclasses.com"
+                    placeholder="Enter director email address"
                     value={offlineForm.adminEmail}
                     onChange={(e) => setOfflineForm({ ...offlineForm, adminEmail: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -776,7 +778,7 @@ export default function PlatformAdminPage() {
                   <div className="relative">
                     <input
                       type={showOfflinePassword ? 'text' : 'password'}
-                      placeholder="Academy123! (Default)"
+                      placeholder="Enter default password"
                       value={offlineForm.adminPassword}
                       onChange={(e) => setOfflineForm({ ...offlineForm, adminPassword: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 pr-10 font-medium"
@@ -795,7 +797,7 @@ export default function PlatformAdminPage() {
                   <label className="block font-bold text-slate-700 uppercase mb-1">Phone Number</label>
                   <input
                     type="text"
-                    placeholder="+91 9876543210"
+                    placeholder="Enter phone number"
                     value={offlineForm.phone}
                     onChange={(e) => setOfflineForm({ ...offlineForm, phone: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -848,7 +850,7 @@ export default function PlatformAdminPage() {
                 <label className="block font-bold text-slate-700 uppercase mb-1">Payment Receipt Ref / Notes</label>
                 <input
                   type="text"
-                  placeholder="e.g. Bank Ref #TXN998234 or Receipt #OFF-102"
+                  placeholder="Enter payment receipt reference or notes"
                   value={offlineForm.paymentReference}
                   onChange={(e) => setOfflineForm({ ...offlineForm, paymentReference: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"

@@ -146,7 +146,7 @@ export default function MarketingPage() {
               <div className="relative flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
                 <input
                   type="text"
-                  placeholder="viraj"
+                  placeholder="Enter custom subdomain"
                   value={slug}
                   onChange={(e) => {
                     const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -349,7 +349,7 @@ export default function MarketingPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Viraj Academy of Science"
+                  placeholder="Enter academy name"
                   value={signupForm.name}
                   onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-medium"
@@ -362,7 +362,7 @@ export default function MarketingPage() {
                   <input
                     type="text"
                     required
-                    placeholder="viraj"
+                    placeholder="Enter subdomain slug"
                     value={signupForm.slug}
                     onChange={(e) =>
                       setSignupForm({
@@ -381,7 +381,7 @@ export default function MarketingPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Prof. Viraj Patel"
+                  placeholder="Enter full name of admin"
                   value={signupForm.adminName}
                   onChange={(e) => setSignupForm({ ...signupForm, adminName: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-medium"
@@ -393,7 +393,7 @@ export default function MarketingPage() {
                 <input
                   type="email"
                   required
-                  placeholder="admin@virajacademy.com"
+                  placeholder="Enter admin email address"
                   value={signupForm.adminEmail}
                   onChange={(e) => setSignupForm({ ...signupForm, adminEmail: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-medium"
@@ -407,7 +407,7 @@ export default function MarketingPage() {
                     type={showPassword ? 'text' : 'password'}
                     required
                     minLength={6}
-                    placeholder="••••••••"
+                    placeholder="Enter password"
                     value={signupForm.adminPassword}
                     onChange={(e) => setSignupForm({ ...signupForm, adminPassword: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none pr-10 font-medium"

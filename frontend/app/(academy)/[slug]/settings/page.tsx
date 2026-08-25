@@ -531,7 +531,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Std 11th Science Annual Fee"
+                  placeholder="Enter fee structure name"
                   value={feeForm.name}
                   onChange={(e) => setFeeForm({ ...feeForm, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
@@ -576,7 +576,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 <input
                   type="text"
                   required
-                  placeholder="Prof. Ramesh Sharma"
+                  placeholder="Enter full name of faculty"
                   value={facultyForm.name}
                   onChange={(e) => setFacultyForm({ ...facultyForm, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
@@ -589,7 +589,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   <input
                     type="text"
                     required
-                    placeholder="9876543210"
+                    placeholder="Enter phone number"
                     value={facultyForm.phone}
                     onChange={(e) => setFacultyForm({ ...facultyForm, phone: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
@@ -600,7 +600,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address</label>
                   <input
                     type="email"
-                    placeholder="teacher@academy.com"
+                    placeholder="Enter email address"
                     value={facultyForm.email}
                     onChange={(e) => setFacultyForm({ ...facultyForm, email: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
@@ -613,7 +613,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 <input
                   type="text"
                   required
-                  placeholder="Physics / Mathematics / Commerce"
+                  placeholder="Enter subject specialization"
                   value={facultyForm.subject}
                   onChange={(e) => setFacultyForm({ ...facultyForm, subject: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
@@ -624,7 +624,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Qualification</label>
                 <input
                   type="text"
-                  placeholder="M.Sc. Physics, B.Ed."
+                  placeholder="Enter qualification"
                   value={facultyForm.qualification}
                   onChange={(e) => setFacultyForm({ ...facultyForm, qualification: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
