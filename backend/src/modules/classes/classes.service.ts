@@ -1,30 +1,41 @@
 import { Injectable, BadRequestException, NotFoundException, OnModuleInit, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectModel, InjectConnection } from '@nestjs/mongoose';
+import { Model, Connection } from 'mongoose';
 import { ClassBatch, ClassBatchDocument } from '../../database/schemas/class-batch.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
 
 @Injectable()
 export class ClassesService implements OnModuleInit {
   private readonly logger = new Logger(ClassesService.name);
+  private indexesSynced = false;
 
   constructor(
     @InjectModel(ClassBatch.name) private classBatchModel: Model<ClassBatchDocument>,
+    @InjectConnection() private connection: Connection,
     private tenantContextService: TenantContextService,
   ) {}
 
   async onModuleInit() {
+    this.connection.once('open', async () => {
+      await this.ensureSyncedIndexes();
+    });
+  }
+
+  async ensureSyncedIndexes() {
+    if (this.indexesSynced) return;
     try {
-      // Drop any stale legacy index that restricted standard to only 1 batch total
+      // Explicitly drop legacy single-batch index from MongoDB Atlas if it exists
       await this.classBatchModel.collection.dropIndex('academyId_1_standard_1_medium_1_section_1').catch(() => {});
       await this.classBatchModel.syncIndexes();
-      this.logger.log('Successfully synced ClassBatch indexes (multiple batches per standard/stream enabled)');
+      this.indexesSynced = true;
+      this.logger.log('Successfully dropped legacy index and synced ClassBatch indexes!');
     } catch (err: any) {
       this.logger.warn('ClassBatch index sync info:', err.message);
     }
   }
 
   async create(dto: { standard: number; medium: string; section?: string; batchName: string }) {
+    await this.ensureSyncedIndexes();
     const academyId = this.tenantContextService.academyId;
 
     if (dto.standard >= 11) {

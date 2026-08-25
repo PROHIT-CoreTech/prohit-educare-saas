@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { BadRequestException } from '@nestjs/common';
 
 export type ClassBatchDocument = ClassBatch & Document;
 
@@ -27,10 +28,10 @@ ClassBatchSchema.index({ academyId: 1, standard: 1, medium: 1, section: 1, batch
 ClassBatchSchema.pre('save', function (next) {
   if (this.standard >= 11) {
     if (this.medium !== 'english') {
-      return next(new Error('For standard 11 and above, medium must be locked to "english"'));
+      return next(new BadRequestException('For standard 11 and above, medium must be locked to "english"'));
     }
     if (!this.section || this.section === 'none' || !['science', 'commerce', 'arts'].includes(this.section)) {
-      return next(new Error('For standard 11 and above, section (science, commerce, or arts) is required'));
+      return next(new BadRequestException('For standard 11 and above, section (science, commerce, or arts) is required'));
     }
   } else {
     if (!this.section) {

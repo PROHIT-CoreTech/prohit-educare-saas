@@ -208,15 +208,31 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Batch Name</label>
+                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Batch Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Mavala Batch - 10"
+                  placeholder="e.g. Morning Batch, Afternoon Batch, Batch A"
                   value={classForm.batchName}
                   onChange={(e) => setClassForm({ ...classForm, batchName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500"
                 />
+
+                <div className="mt-2.5 space-y-1.5">
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase block">Quick Suggestions for Multiple Batches:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Morning Batch', 'Afternoon Batch', 'Evening Batch', 'Batch A', 'Batch B', 'JEE Science Batch', 'NEET Batch'].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setClassForm({ ...classForm, batchName: preset })}
+                        className="bg-slate-800 hover:bg-indigo-600/30 hover:border-indigo-500/50 text-indigo-300 text-[11px] px-2.5 py-1 rounded-lg border border-slate-700 transition"
+                      >
+                        + {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {formError && (
