@@ -28,6 +28,11 @@ export class StudentsController {
     return this.studentsService.update(id, body);
   }
 
+  @Post(':id/promote')
+  promote(@Param('id') id: string, @Body() body: any) {
+    return this.studentsService.promote(id, body);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.studentsService.remove(id);

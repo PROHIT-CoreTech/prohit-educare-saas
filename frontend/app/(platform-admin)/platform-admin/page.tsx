@@ -113,8 +113,8 @@ export default function PlatformAdminPage() {
       if (res.data.token) {
         localStorage.setItem('prohit_auth_token', res.data.token);
         const targetUrl = window.location.hostname.includes('localhost')
-          ? `http://${slug}.localhost:3000/dashboard`
-          : `https://${slug}.educare.prohitcoretech.com/dashboard`;
+          ? `http://${slug}.localhost:3000/dashboard?token=${res.data.token}`
+          : `https://${slug}.educare.prohitcoretech.com/dashboard?token=${res.data.token}`;
         window.open(targetUrl, '_blank');
       }
     } catch (err: any) {

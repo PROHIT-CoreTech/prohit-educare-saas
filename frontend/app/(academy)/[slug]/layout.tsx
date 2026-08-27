@@ -19,9 +19,23 @@ export default function AcademyLayout({
   const [subscription, setSubscription] = useState<any>(null);
   const [isImpersonating, setIsImpersonating] = useState(false);
 
+  const [unauthenticated, setUnauthenticated] = useState(false);
+
   useEffect(() => {
-    const token = localStorage.getItem('prohit_auth_token');
+    let token = typeof window !== 'undefined' ? localStorage.getItem('prohit_auth_token') : null;
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryToken = urlParams.get('token');
+      if (queryToken) {
+        token = queryToken;
+        localStorage.setItem('prohit_auth_token', queryToken);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+
     if (token) {
+      setUnauthenticated(false);
       apiClient
         .get('/academies/my-academy')
         .then((res) => setAcademy(res.data))
@@ -40,9 +54,16 @@ export default function AcademyLayout({
             setIsImpersonating(true);
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          if (err.response?.status === 401) {
+            localStorage.removeItem('prohit_auth_token');
+            setUnauthenticated(true);
+          }
+        });
+    } else {
+      setUnauthenticated(true);
     }
-  }, []);
+  }, [pathname]);
 
   if (pathname.endsWith('/login')) {
     return <>{children}</>;
@@ -57,6 +78,22 @@ export default function AcademyLayout({
         <div className="bg-amber-400 text-slate-950 font-bold px-4 py-1.5 text-center text-xs flex items-center justify-center space-x-2 shadow-sm">
           <ShieldAlert className="w-4 h-4 text-slate-950" />
           <span>Platform Admin Impersonation Session Active for {academy?.name || params.slug}</span>
+        </div>
+      )}
+
+      {/* Unauthenticated Banner */}
+      {unauthenticated && (
+        <div className="bg-rose-600 text-white font-bold px-4 py-2 text-center text-xs flex items-center justify-between shadow-md">
+          <div className="flex items-center space-x-2 mx-auto">
+            <AlertCircle className="w-4 h-4 text-white" />
+            <span>You are not logged in to {academy?.name || params.slug} Academy. Please sign in to perform actions or manage data.</span>
+            <Link
+              href="/login"
+              className="bg-white text-rose-600 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition ml-2 inline-flex items-center space-x-1"
+            >
+              <span>Sign In Now</span>
+            </Link>
+          </div>
         </div>
       )}
 

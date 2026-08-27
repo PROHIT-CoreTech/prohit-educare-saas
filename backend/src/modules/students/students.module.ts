@@ -5,6 +5,7 @@ import { StudentsController } from './students.controller';
 import { StudentsService } from './students.service';
 import { Student, StudentSchema } from '../../database/schemas/student.schema';
 import { Academy, AcademySchema } from '../../database/schemas/academy.schema';
+import { Counter, CounterSchema } from '../../database/schemas/counter.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
 import { FeeEngineModule } from '../fee-engine/fee-engine.module';
 
@@ -13,6 +14,7 @@ import { FeeEngineModule } from '../fee-engine/fee-engine.module';
     MongooseModule.forFeature([
       { name: Student.name, schema: StudentSchema },
       { name: Academy.name, schema: AcademySchema },
+      { name: Counter.name, schema: CounterSchema },
     ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'super-secret-key-123',

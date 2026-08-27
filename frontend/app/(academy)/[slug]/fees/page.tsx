@@ -106,11 +106,12 @@ export default function FeeEnginePage() {
       });
 
       setReceiptData({
-        receiptNumber: res.data.receiptNumber,
-        amountPaid: amountToPay,
+        receiptNumber: res.data.receiptNumber || 'REC-' + Date.now(),
+        amountPaid: Number(amountToPay),
         paymentMode,
-        studentName: feeSummary?.student?.name,
-        date: new Date().toLocaleDateString(),
+        studentName: feeSummary?.student?.name || 'Student',
+        studentCode: feeSummary?.student?.studentCode || 'STU-2026-00001',
+        date: new Date().toLocaleDateString('en-IN'),
         allocations: res.data.allocations,
       });
 
@@ -122,66 +123,76 @@ export default function FeeEnginePage() {
     }
   };
 
+  const drawReceiptCard = (canvas: HTMLCanvasElement | null, data: any) => {
+    if (!canvas || !data) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = 600;
+    canvas.height = 400;
+
+    // Crisp White Canvas Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 600, 400);
+
+    // Vibrant Orange Top Accent Header
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(0, 0, 600, 15);
+
+    // Border Outline
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(10, 10, 580, 380);
+
+    // Header Text
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('PROHIT EDUCARE - OFFICIAL RECEIPT', 30, 50);
+
+    ctx.fillStyle = '#f97316';
+    ctx.font = 'bold 15px monospace';
+    ctx.fillText(`Receipt #: ${data.receiptNumber || ''}`, 30, 80);
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.moveTo(30, 95);
+    ctx.lineTo(570, 95);
+    ctx.stroke();
+
+    // Details
+    ctx.fillStyle = '#334155';
+    ctx.font = '15px sans-serif';
+    ctx.fillText(`Student Name: ${data.studentName || 'Student'}`, 30, 135);
+    ctx.fillText(`Student No / Code: ${data.studentCode || 'N/A'}`, 30, 160);
+    ctx.fillText(`Date: ${data.date}`, 30, 185);
+    ctx.fillText(`Payment Mode: ${data.paymentMode}`, 30, 210);
+
+    // Amount Box (Mint Green Light Background)
+    ctx.fillStyle = '#ecfdf5';
+    ctx.fillRect(30, 235, 540, 70);
+    ctx.strokeStyle = '#a7f3d0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(30, 235, 540, 70);
+
+    ctx.fillStyle = '#047857';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText(`AMOUNT PAID: ₹${(data.amountPaid || 0).toLocaleString('en-IN')}`, 50, 280);
+
+    // Footer Stamp
+    ctx.fillStyle = '#64748b';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Atomic FIFO Settlement Verified by PROHIT CoreTech Engine', 30, 360);
+  };
+
   // Generate Digital Receipt Card on HTML5 Canvas (High Contrast Light Theme)
   useEffect(() => {
-    if (receiptData && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      canvas.width = 600;
-      canvas.height = 400;
-
-      // Crisp White Canvas Background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 600, 400);
-
-      // Vibrant Orange Top Accent Header
-      ctx.fillStyle = '#f97316';
-      ctx.fillRect(0, 0, 600, 15);
-
-      // Border Outline
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(10, 10, 580, 380);
-
-      // Header Text
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('PROHIT EDUCARE - OFFICIAL RECEIPT', 30, 50);
-
-      ctx.fillStyle = '#f97316';
-      ctx.font = 'bold 15px monospace';
-      ctx.fillText(`Receipt #: ${receiptData.receiptNumber}`, 30, 80);
-
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.beginPath();
-      ctx.moveTo(30, 95);
-      ctx.lineTo(570, 95);
-      ctx.stroke();
-
-      // Details
-      ctx.fillStyle = '#334155';
-      ctx.font = '15px sans-serif';
-      ctx.fillText(`Student Name: ${receiptData.studentName}`, 30, 135);
-      ctx.fillText(`Date: ${receiptData.date}`, 30, 165);
-      ctx.fillText(`Payment Mode: ${receiptData.paymentMode}`, 30, 195);
-
-      // Amount Box (Mint Green Light Background)
-      ctx.fillStyle = '#ecfdf5';
-      ctx.fillRect(30, 225, 540, 75);
-      ctx.strokeStyle = '#a7f3d0';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(30, 225, 540, 75);
-
-      ctx.fillStyle = '#047857';
-      ctx.font = 'bold 30px sans-serif';
-      ctx.fillText(`AMOUNT PAID: ₹${receiptData.amountPaid.toLocaleString('en-IN')}`, 50, 272);
-
-      // Footer Stamp
-      ctx.fillStyle = '#64748b';
-      ctx.font = '12px sans-serif';
-      ctx.fillText('Atomic FIFO Settlement Verified by PROHIT CoreTech Engine', 30, 355);
+    if (receiptData) {
+      const timer = setTimeout(() => {
+        if (canvasRef.current) {
+          drawReceiptCard(canvasRef.current, receiptData);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [receiptData]);
 
@@ -405,8 +416,48 @@ export default function FeeEnginePage() {
                   <h3 className="font-extrabold text-slate-900">Payment Saved & Receipt Generated!</h3>
                 </div>
 
+                {/* HTML Styled Digital Receipt Preview */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 font-sans">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div>
+                      <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Official Fee Receipt</span>
+                      <h4 className="text-sm font-extrabold text-slate-900">{receiptData.studentName}</h4>
+                      <span className="text-[11px] font-mono font-semibold text-slate-500 block">Student Code: {receiptData.studentCode}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-mono font-bold text-orange-600 block">{receiptData.receiptNumber}</span>
+                      <span className="text-[11px] text-slate-500 font-medium">{receiptData.date}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-slate-500 block font-medium">Payment Mode:</span>
+                      <span className="font-bold text-slate-800 uppercase">{receiptData.paymentMode}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block font-medium">Settlement Status:</span>
+                      <span className="font-bold text-emerald-700 uppercase">Atomic FIFO Settled</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-emerald-800 uppercase">Total Amount Paid</span>
+                    <span className="text-xl font-black text-emerald-700 font-mono">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+
+                {/* Digital Canvas Receipt (For Image Download / WhatsApp Share) */}
                 <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-                  <canvas ref={canvasRef} className="w-full h-auto block" />
+                  <canvas
+                    ref={(node) => {
+                      canvasRef.current = node;
+                      if (node && receiptData) {
+                        drawReceiptCard(node, receiptData);
+                      }
+                    }}
+                    className="w-full h-auto block"
+                  />
                 </div>
 
                 <button
