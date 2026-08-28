@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers } from 'lucide-react';
+import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload } from 'lucide-react';
 import { apiClient } from '../../../lib/api';
 
 export default function PlatformAdminPage() {
@@ -33,6 +33,7 @@ export default function PlatformAdminPage() {
     adminEmail: '',
     adminPassword: '',
     phone: '',
+    logoUrl: '',
     plan: 'PROFESSIONAL',
     subscriptionStatus: 'ACTIVE',
     paymentMode: 'CASH',
@@ -154,6 +155,7 @@ export default function PlatformAdminPage() {
           adminEmail: '',
           adminPassword: '',
           phone: '',
+          logoUrl: '',
           plan: 'PROFESSIONAL',
           subscriptionStatus: 'ACTIVE',
           paymentMode: 'CASH',
@@ -743,6 +745,59 @@ export default function PlatformAdminPage() {
                     />
                     <span className="text-slate-500 font-mono">.educare.prohitcoretech.com</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Academy Logo Section */}
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                  <span>Academy Logo (Optional)</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Data URL</span>
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Paste Logo URL (e.g. https://...)"
+                      value={offlineForm.logoUrl}
+                      onChange={(e) => setOfflineForm({ ...offlineForm, logoUrl: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                    />
+                    <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
+                      <Upload className="w-3.5 h-3.5 text-orange-500" />
+                      <span>Upload File</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setOfflineForm({ ...offlineForm, logoUrl: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {offlineForm.logoUrl && (
+                    <div className="flex items-center space-x-3 p-2 bg-orange-50/60 border border-orange-200 rounded-xl">
+                      <img
+                        src={offlineForm.logoUrl}
+                        alt="Academy Logo Preview"
+                        className="w-9 h-9 object-contain rounded-lg border border-slate-200 bg-white"
+                        onError={(e: any) => { e.target.style.display = 'none'; }}
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-orange-800 block">Academy Logo Attached</span>
+                        <span className="text-[10px] text-slate-500 font-mono">Will be rendered on student receipts & dashboard header</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

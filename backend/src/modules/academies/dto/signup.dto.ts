@@ -25,4 +25,10 @@ export class SignupAcademyDto {
 
   @IsString()
   phone?: string;
+
+  @IsString()
+  logoUrl?: string;
+
+  @IsString()
+  primaryColor?: string;
 }

@@ -150,6 +150,8 @@ export class PlatformService {
       adminEmail: string;
       adminPassword?: string;
       phone?: string;
+      logoUrl?: string;
+      primaryColor?: string;
       plan?: string;
       subscriptionStatus?: string;
       paymentMode?: string;
@@ -176,6 +178,8 @@ export class PlatformService {
     const academy = await this.academyModel.create({
       name: dto.name.trim(),
       slug: cleanSlug,
+      logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
+      primaryColor: dto.primaryColor || '#f97316',
       subscriptionStatus: status,
       trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       subscriptionEndsAt: status === 'ACTIVE' ? subEndsAt : undefined,

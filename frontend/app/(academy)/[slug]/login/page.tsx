@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Mail, Building2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
@@ -10,6 +10,15 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [academyLogo, setAcademyLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiClient
+      .get(`/academies/check-slug/${params.slug}`)
+      .then(() => {})
+      .catch(() => {});
+  }, [params.slug]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +45,17 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-900">
       <div className="bg-white border border-slate-200 p-8 rounded-3xl max-w-md w-full shadow-xl space-y-6">
         <div className="flex items-center space-x-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center font-black text-xl shadow-md shadow-orange-500/20 uppercase">
-            {params.slug.charAt(0)}
-          </div>
+          {academyLogo ? (
+            <img
+              src={academyLogo}
+              alt={params.slug}
+              className="w-12 h-12 object-contain rounded-2xl border border-slate-200 bg-white p-1 shadow-md"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center font-black text-xl shadow-md shadow-orange-500/20 uppercase">
+              {params.slug.charAt(0)}
+            </div>
+          )}
           <div>
             <h1 className="font-extrabold text-xl text-slate-900 capitalize">{params.slug} Academy</h1>
             <p className="text-xs text-orange-600 font-mono font-semibold">{params.slug}.educare.prohitcoretech.com</p>

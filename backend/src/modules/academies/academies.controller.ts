@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Param, UseGuards } from '@nestjs/common';
 import { AcademiesService } from './academies.service';
 import { SignupAcademyDto } from './dto/signup.dto';
 import { AcademyAuthGuard } from '../../common/guards/academy-auth.guard';
@@ -21,5 +21,11 @@ export class AcademiesController {
   @Get('my-academy')
   async getMyAcademy() {
     return this.academiesService.getMyAcademy();
+  }
+
+  @UseGuards(AcademyAuthGuard)
+  @Patch('my-academy')
+  async updateMyAcademy(@Body() dto: any) {
+    return this.academiesService.updateMyAcademy(dto);
   }
 }

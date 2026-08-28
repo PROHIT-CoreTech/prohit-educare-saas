@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Shield, Zap, CreditCard, Sparkles, CheckCircle2, XCircle, ArrowRight, BookOpen, Users, BarChart3, Check, ShieldAlert, LogIn, Eye, EyeOff } from 'lucide-react';
+import { Shield, Zap, CreditCard, Sparkles, CheckCircle2, XCircle, ArrowRight, BookOpen, Users, BarChart3, Check, ShieldAlert, LogIn, Eye, EyeOff, Upload, Image as ImageIcon } from 'lucide-react';
 import { apiClient } from '../../lib/api';
 
 export default function MarketingPage() {
@@ -20,6 +20,7 @@ export default function MarketingPage() {
     adminEmail: '',
     adminPassword: '',
     phone: '',
+    logoUrl: '',
   });
   const [signupMessage, setSignupMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -373,6 +374,59 @@ export default function MarketingPage() {
                     className="w-full bg-transparent text-slate-900 focus:outline-none font-bold"
                   />
                   <span className="text-slate-500 text-xs font-mono font-semibold">.educare.prohitcoretech.com</span>
+                </div>
+              </div>
+
+              {/* Academy Logo Section (Upload or Image URL) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                  <span>Academy Logo (Optional)</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Data URL</span>
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Paste Logo URL (e.g. https://...)"
+                      value={signupForm.logoUrl}
+                      onChange={(e) => setSignupForm({ ...signupForm, logoUrl: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:border-orange-500 focus:outline-none font-medium"
+                    />
+                    <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
+                      <Upload className="w-3.5 h-3.5 text-orange-500" />
+                      <span>Upload File</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setSignupForm({ ...signupForm, logoUrl: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {signupForm.logoUrl && (
+                    <div className="flex items-center space-x-3 p-2 bg-orange-50/60 border border-orange-200 rounded-xl">
+                      <img
+                        src={signupForm.logoUrl}
+                        alt="Academy Logo Preview"
+                        className="w-9 h-9 object-contain rounded-lg border border-slate-200 bg-white"
+                        onError={(e: any) => { e.target.style.display = 'none'; }}
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-orange-800 block">Academy Logo Attached</span>
+                        <span className="text-[10px] text-slate-500 font-mono">Will be featured on receipts & portal header</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

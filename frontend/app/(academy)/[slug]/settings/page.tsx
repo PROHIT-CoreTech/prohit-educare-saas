@@ -1,16 +1,30 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check } from 'lucide-react';
+import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
-  const [activeTab, setActiveTab] = useState<'subscription' | 'fee-structure' | 'faculty'>('fee-structure');
+  const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription'>('profile');
   
   const [subscription, setSubscription] = useState<any>(null);
   const [loadingSub, setLoadingSub] = useState(true);
   const [renewingPlan, setRenewingPlan] = useState<string | null>(null);
   const [renewalError, setRenewalError] = useState('');
+
+  const [academyInfo, setAcademyInfo] = useState<any>(null);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    directorName: '',
+    phone: '',
+    email: '',
+    address: '',
+    logoUrl: '',
+    primaryColor: '#f97316',
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState('');
 
   const [feeStructures, setFeeStructures] = useState<any[]>([]);
   const [showFeeModal, setShowFeeModal] = useState(false);
@@ -36,10 +50,44 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   });
 
   useEffect(() => {
+    fetchAcademy();
     fetchSubscription();
     fetchFeeStructures();
     fetchFaculty();
   }, []);
+
+  const fetchAcademy = async () => {
+    try {
+      const res = await apiClient.get('/academies/my-academy');
+      setAcademyInfo(res.data);
+      setProfileForm({
+        name: res.data.name || '',
+        directorName: res.data.directorName || '',
+        phone: res.data.phone || '',
+        email: res.data.email || '',
+        address: res.data.address || '',
+        logoUrl: res.data.logoUrl || '',
+        primaryColor: res.data.primaryColor || '#f97316',
+      });
+    } catch (e) {}
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    setProfileSuccess('');
+    try {
+      await apiClient.patch('/academies/my-academy', profileForm);
+      setProfileSuccess('Academy Profile updated successfully!');
+      setShowEditProfileModal(false);
+      setTimeout(() => setProfileSuccess(''), 4000);
+      fetchAcademy();
+    } catch (err: any) {
+      alert('Failed to update profile: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const fetchSubscription = async () => {
     try {
@@ -160,13 +208,25 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             <span>Academy Administration & Settings</span>
           </h1>
           <p className="text-sm text-slate-500 font-medium mt-0.5">
-            Manage your subscription license, standard-wise fee structures (Std 1st – 15th), and faculty directory
+            Manage your academy profile, standard fee structures (Std 1st – 15th), faculty directory, and subscription
           </p>
         </div>
       </div>
 
       {/* Sub-Tabs Selector */}
       <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
+            activeTab === 'profile'
+              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Academy Profile</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('fee-structure')}
           className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
@@ -203,6 +263,283 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           <span>Subscription & Billing</span>
         </button>
       </div>
+
+      {profileSuccess && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-4 rounded-2xl flex items-center space-x-2 shadow-xs">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+          <span>{profileSuccess}</span>
+        </div>
+      )}
+
+      {/* TAB 0: ACADEMY PROFILE WITH EDIT OPTION */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+              <div className="flex items-center space-x-4">
+                {academyInfo?.logoUrl ? (
+                  <img
+                    src={academyInfo.logoUrl}
+                    alt="Academy Logo"
+                    className="w-16 h-16 object-contain rounded-2xl border border-slate-200 bg-white p-1 shadow-sm"
+                  />
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-2xl text-white font-black text-2xl flex items-center justify-center shadow-md uppercase"
+                    style={{ backgroundColor: academyInfo?.primaryColor || '#f97316' }}
+                  >
+                    {academyInfo?.name?.charAt(0) || params.slug.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-2xl font-black text-slate-900">{academyInfo?.name || `${params.slug} Academy`}</h2>
+                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200 uppercase">
+                      {academyInfo?.subscriptionStatus || 'ACTIVE'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-orange-600 font-mono font-semibold mt-0.5">
+                    {params.slug}.educare.prohitcoretech.com
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowEditProfileModal(true)}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 self-start sm:self-auto"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Edit Profile</span>
+              </button>
+            </div>
+
+            {/* Profile Grid Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Academy Name</span>
+                <span className="text-base font-extrabold text-slate-900">{academyInfo?.name || 'N/A'}</span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Director / Owner Name</span>
+                <span className="text-base font-extrabold text-slate-900 flex items-center space-x-1.5">
+                  <User className="w-4 h-4 text-orange-500" />
+                  <span>{academyInfo?.directorName || 'Director'}</span>
+                </span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Contact Phone</span>
+                <span className="text-base font-bold text-slate-900 font-mono flex items-center space-x-1.5">
+                  <Phone className="w-4 h-4 text-orange-500" />
+                  <span>{academyInfo?.phone || 'Not Provided'}</span>
+                </span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Contact Email</span>
+                <span className="text-base font-bold text-slate-900 flex items-center space-x-1.5">
+                  <Mail className="w-4 h-4 text-orange-500" />
+                  <span>{academyInfo?.email || `admin@${params.slug}.com`}</span>
+                </span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Academy Address / City</span>
+                <span className="text-base font-bold text-slate-900 flex items-center space-x-1.5">
+                  <MapPin className="w-4 h-4 text-orange-500" />
+                  <span>{academyInfo?.address || 'Maharashtra, India'}</span>
+                </span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Primary Brand Color</span>
+                <div className="flex items-center space-x-2">
+                  <span
+                    className="w-5 h-5 rounded-full border border-slate-300 shadow-xs"
+                    style={{ backgroundColor: academyInfo?.primaryColor || '#f97316' }}
+                  />
+                  <span className="text-sm font-bold font-mono text-slate-900 uppercase">
+                    {academyInfo?.primaryColor || '#f97316'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT ACADEMY PROFILE MODAL */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-xl w-full relative shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowEditProfileModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold text-lg"
+            >
+              ✕
+            </button>
+
+            <div>
+              <div className="flex items-center space-x-2 text-orange-600 font-bold text-xs uppercase mb-1">
+                <Edit3 className="w-4 h-4" />
+                <span>Profile Settings</span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900">Edit Academy Profile</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Update your official academy name, director details, contact phone/email, address, logo, and brand theme.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Academy Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Director / Owner Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.directorName}
+                    onChange={(e) => setProfileForm({ ...profileForm, directorName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Contact Phone *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Contact Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Academy Address / Location</label>
+                <input
+                  type="text"
+                  placeholder="Enter academy campus address"
+                  value={profileForm.address}
+                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                />
+              </div>
+
+              {/* Logo Upload / URL */}
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                  <span>Academy Official Logo</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Data URL</span>
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Paste Logo Image URL (e.g. https://...)"
+                      value={profileForm.logoUrl}
+                      onChange={(e) => setProfileForm({ ...profileForm, logoUrl: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                    />
+                    <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
+                      <Upload className="w-3.5 h-3.5 text-orange-500" />
+                      <span>Upload</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setProfileForm({ ...profileForm, logoUrl: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {profileForm.logoUrl && (
+                    <div className="flex items-center space-x-3 p-3 bg-orange-50/50 border border-orange-200 rounded-xl">
+                      <img
+                        src={profileForm.logoUrl}
+                        alt="Logo Preview"
+                        className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-white p-0.5"
+                        onError={(e: any) => { e.target.style.display = 'none'; }}
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-orange-800 block">Logo Attached</span>
+                        <span className="text-[10px] text-slate-500 font-mono">Will be rendered on student receipts & portal header</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Primary Color Selector */}
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Primary Brand Accent Color</label>
+                <div className="flex items-center space-x-3">
+                  {['#f97316', '#4f46e5', '#059669', '#d97706', '#dc2626'].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setProfileForm({ ...profileForm, primaryColor: color })}
+                      className={`w-8 h-8 rounded-full border-2 transition ${
+                        profileForm.primaryColor === color ? 'border-slate-900 scale-110 shadow-md' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={profileForm.primaryColor}
+                    onChange={(e) => setProfileForm({ ...profileForm, primaryColor: e.target.value })}
+                    className="w-8 h-8 rounded-lg cursor-pointer border border-slate-200"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingProfile}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{savingProfile ? 'Saving Profile...' : 'Save Profile Changes'}</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: STANDARD-WISE FEE STRUCTURES */}
       {activeTab === 'fee-structure' && (

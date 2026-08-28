@@ -44,9 +44,10 @@ export class AcademiesService {
     const academy = await this.academyModel.create({
       name: dto.name,
       slug,
+      logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
+      primaryColor: dto.primaryColor || '#f97316',
       subscriptionStatus: 'TRIAL',
       trialEndsAt,
-      primaryColor: '#4f46e5',
     });
 
     const passwordHash = await bcrypt.hash(dto.adminPassword, 10);
@@ -79,6 +80,8 @@ export class AcademiesService {
         id: academy._id,
         name: academy.name,
         slug: academy.slug,
+        logoUrl: academy.logoUrl,
+        primaryColor: academy.primaryColor,
         subscriptionStatus: academy.subscriptionStatus,
         trialEndsAt: academy.trialEndsAt,
       },
@@ -98,5 +101,24 @@ export class AcademiesService {
       throw new NotFoundException('Academy not found');
     }
     return academy;
+  }
+
+  async updateMyAcademy(dto: {
+    name?: string;
+    directorName?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    logoUrl?: string;
+    primaryColor?: string;
+  }) {
+    const academyId = this.tenantContextService.academyId;
+    const updated = await this.academyModel
+      .findByIdAndUpdate(academyId, dto, { new: true })
+      .exec();
+    if (!updated) {
+      throw new NotFoundException('Academy not found');
+    }
+    return updated;
   }
 }

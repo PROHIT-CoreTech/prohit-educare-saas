@@ -14,8 +14,20 @@ export class Academy {
   @Prop({ default: '' })
   logoUrl: string;
 
-  @Prop({ default: '#4f46e5' })
+  @Prop({ default: '#f97316' })
   primaryColor: string;
+
+  @Prop({ default: '' })
+  directorName?: string;
+
+  @Prop({ default: '' })
+  phone?: string;
+
+  @Prop({ default: '' })
+  email?: string;
+
+  @Prop({ default: '' })
+  address?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'SubscriptionPlan', required: false })
   planId?: Types.ObjectId;

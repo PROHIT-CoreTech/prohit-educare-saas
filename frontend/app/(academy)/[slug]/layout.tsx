@@ -120,12 +120,20 @@ export default function AcademyLayout({
       <header className="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-md text-lg"
-              style={{ backgroundColor: primaryColor }}
-            >
-              {academy?.name?.charAt(0) || params.slug.charAt(0).toUpperCase()}
-            </div>
+            {academy?.logoUrl ? (
+              <img
+                src={academy.logoUrl}
+                alt={academy?.name || 'Academy Logo'}
+                className="w-10 h-10 object-contain rounded-xl border border-slate-200 bg-white p-0.5 shadow-sm"
+              />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-md text-lg"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {academy?.name?.charAt(0) || params.slug.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div>
               <h1 className="font-bold text-lg text-slate-900 leading-tight">{academy?.name || `${params.slug} Academy`}</h1>
               <span className="text-xs text-orange-600 font-mono font-semibold">{params.slug}.prohiteducare.com</span>
