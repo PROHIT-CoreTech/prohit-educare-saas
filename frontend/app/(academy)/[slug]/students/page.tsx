@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, User, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter } from 'lucide-react';
+import { Plus, Search, User, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 const DEFAULT_BATCH_PRESETS = [
@@ -34,9 +34,14 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [feeStructures, setFeeStructures] = useState<any[]>([]);
+  const [academyInfo, setAcademyInfo] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+  // Digital ID Card State
+  const [showIdCardModal, setShowIdCardModal] = useState(false);
+  const [selectedIdCardStudent, setSelectedIdCardStudent] = useState<any>(null);
 
   // Promotion State
   const [showPromoteModal, setShowPromoteModal] = useState(false);
@@ -62,6 +67,13 @@ export default function StudentsPage() {
     standard: 10,
     medium: 'english',
     stream: 'science',
+    photoUrl: '',
+    bloodGroup: 'B+',
+    emergencyContactName: '',
+    emergencyPhone: '',
+    address: '',
+    rollNo: '',
+    validUpto: '31-MAR-2027',
     discountAmount: 0,
     paymentType: 'FULL',
     installmentCount: 3,
@@ -94,13 +106,15 @@ export default function StudentsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [stuRes, classRes, feeRes] = await Promise.all([
+      const [stuRes, classRes, feeRes, acadRes] = await Promise.all([
         apiClient.get('/students'),
         apiClient.get('/classes'),
         apiClient.get('/fee-engine/structures').catch(() => ({ data: [] })),
+        apiClient.get('/academies/my-academy').catch(() => ({ data: null })),
       ]);
       setStudents(stuRes.data);
       setClasses(classRes.data);
+      if (acadRes?.data) setAcademyInfo(acadRes.data);
       const loadedFeeStructures = feeRes.data || [];
       setFeeStructures(loadedFeeStructures);
       setAuthError(false);
@@ -232,6 +246,13 @@ export default function StudentsPage() {
         standard: formData.standard,
         medium: formData.standard <= 10 ? formData.medium : 'english',
         stream: formData.standard >= 11 ? formData.stream : 'none',
+        photoUrl: formData.photoUrl,
+        bloodGroup: formData.bloodGroup,
+        emergencyContactName: formData.emergencyContactName || formData.parentName,
+        emergencyPhone: formData.emergencyPhone || formData.parentPhone,
+        address: formData.address,
+        rollNo: formData.rollNo,
+        validUpto: formData.validUpto,
         discountAmount: Number(formData.discountAmount) || 0,
         paymentType: formData.paymentType,
         installmentCount: formData.paymentType === 'INSTALLMENT' ? Number(formData.installmentCount) : 1,
@@ -248,6 +269,13 @@ export default function StudentsPage() {
         standard: 10,
         medium: 'english',
         stream: 'science',
+        photoUrl: '',
+        bloodGroup: 'B+',
+        emergencyContactName: '',
+        emergencyPhone: '',
+        address: '',
+        rollNo: '',
+        validUpto: '31-MAR-2027',
         discountAmount: 0,
         paymentType: 'FULL',
         installmentCount: 3,
@@ -526,7 +554,25 @@ export default function StudentsPage() {
               ) : (
                 filteredStudents.map((stu) => (
                   <tr key={stu._id} className="hover:bg-slate-50 transition">
-                    <td className="p-4 font-bold text-slate-900">{stu.name}</td>
+                    <td className="p-4 font-bold text-slate-900">
+                      <div className="flex items-center space-x-3">
+                        {stu.photoUrl ? (
+                          <img src={stu.photoUrl} alt={stu.name} className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-xs" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-extrabold text-xs border border-orange-200 shrink-0">
+                            {stu.name?.charAt(0)?.toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <div>{stu.name}</div>
+                          {stu.bloodGroup && (
+                            <span className="text-[10px] text-rose-600 font-bold block">
+                              Blood: {stu.bloodGroup}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="p-4 font-mono font-semibold text-orange-600">{stu.studentCode || stu.rollNumber || 'STU-2026-00001'}</td>
                     <td className="p-4 font-medium">
                       <div>{stu.parentName}</div>
@@ -558,6 +604,19 @@ export default function StudentsPage() {
                     </td>
                     <td className="p-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-2">
+                        {/* Digital ID Card Button */}
+                        <button
+                          onClick={() => {
+                            setSelectedIdCardStudent(stu);
+                            setShowIdCardModal(true);
+                          }}
+                          className="bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-teal-200 transition flex items-center space-x-1 cursor-pointer"
+                          title="View & Download Digital Student ID Card"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Digital ID Card</span>
+                        </button>
+
                         {/* Promote / Continue Next Standard Button */}
                         <button
                           onClick={() => handleOpenPromoteModal(stu)}
@@ -774,6 +833,43 @@ export default function StudentsPage() {
             </div>
 
             <form onSubmit={handleCreateStudent} className="space-y-4">
+              {/* Photo Upload Provision */}
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
+                <label className="block text-xs font-bold text-slate-700 uppercase">Student Passport Photo Provision *</label>
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 rounded-2xl bg-white border border-slate-300 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                    {formData.photoUrl ? (
+                      <img src={formData.photoUrl} alt="Student Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-slate-400" />
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 flex-1">
+                    <label className="bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl border border-slate-200 transition flex items-center space-x-2 cursor-pointer w-fit shadow-xs">
+                      <Upload className="w-3.5 h-3.5 text-orange-500" />
+                      <span>Upload Student Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                              setFormData({ ...formData, photoUrl: evt.target?.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                    <span className="text-[10px] text-slate-400 block font-medium">Supported formats: JPG, PNG, WEBP (Max 2MB)</span>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
                 <input
@@ -784,6 +880,35 @@ export default function StudentsPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                 />
+              </div>
+
+              {/* Blood Group & Address */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Blood Group</label>
+                  <select
+                    value={formData.bloodGroup}
+                    onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
+                  >
+                    {['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'].map((bg) => (
+                      <option key={bg} value={bg}>
+                        {bg}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Address / City</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 123, Shanti Nagar, Pune"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -965,6 +1090,182 @@ export default function StudentsPage() {
                 {isSubmitting ? 'Enrolling Student...' : 'Save & Enroll Student'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DIGITAL STUDENT ID CARD MODAL */}
+      {showIdCardModal && selectedIdCardStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 text-slate-900 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 max-w-4xl w-full relative shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
+            <button
+              onClick={() => setShowIdCardModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <div className="flex items-center space-x-2 text-teal-600 font-bold text-xs uppercase mb-1">
+                  <CreditCard className="w-4 h-4" />
+                  <span>Official Student Identifier</span>
+                </div>
+                <h2 className="text-xl font-black text-slate-900">Digital Student ID Card (Front & Back)</h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  Official two-sided identification card formatted for standard plastic card printing (CR80 ratio).
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => window.print()}
+                  className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-teal-600/20 transition flex items-center space-x-2 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print / Save as PDF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Printable ID Card Container (Front & Back Cards) */}
+            <div id="printable-id-card" className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center py-4 bg-slate-100 p-6 rounded-3xl border border-slate-200">
+              
+              {/* FRONT PAGE CARD */}
+              <div className="w-[360px] h-[230px] bg-white rounded-2xl border-2 border-teal-700 overflow-hidden shadow-xl flex flex-col justify-between relative text-slate-800">
+                {/* Header Banner */}
+                <div className="bg-teal-800 text-white p-2.5 px-3 flex items-center space-x-2.5 border-b-2 border-teal-900">
+                  <div className="w-9 h-9 rounded-full bg-white/10 p-1 flex items-center justify-center border border-white/20 shrink-0">
+                    {academyInfo?.logoUrl ? (
+                      <img src={academyInfo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                    ) : (
+                      <GraduationCap className="w-5 h-5 text-yellow-400" />
+                    )}
+                  </div>
+                  <div className="leading-tight overflow-hidden">
+                    <h3 className="font-black uppercase text-[11px] tracking-wide text-yellow-300 truncate">
+                      {academyInfo?.name || 'BRIGHT MINDS COACHING ACADEMY'}
+                    </h3>
+                    <p className="text-[8px] text-teal-100 font-medium truncate">{academyInfo?.address || 'Quality Coaching & Academic ERP'}</p>
+                  </div>
+                </div>
+
+                {/* Sub-Header Title Banner */}
+                <div className="bg-teal-700 text-white text-center py-1 font-black uppercase text-[10px] tracking-widest">
+                  STUDENT ID CARD
+                </div>
+
+                {/* Card Body */}
+                <div className="p-3 px-4 flex items-start justify-between flex-1 gap-2 bg-gradient-to-b from-teal-50/30 to-white">
+                  {/* Student Text Fields */}
+                  <div className="space-y-1 text-[10px] text-slate-800 flex-1 leading-tight">
+                    <div className="pb-0.5">
+                      <span className="font-extrabold text-slate-900 text-xs block truncate uppercase">
+                        NAME: {selectedIdCardStudent.name}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-1">
+                      <span className="font-bold text-slate-600">ROLL NO:</span>
+                      <span className="font-mono font-extrabold text-teal-800">{selectedIdCardStudent.rollNo || selectedIdCardStudent.studentCode}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-1">
+                      <span className="font-bold text-slate-600">COURSE:</span>
+                      <span className="font-extrabold text-slate-900">
+                        Std {selectedIdCardStudent.standard}th {selectedIdCardStudent.stream !== 'none' ? `(${selectedIdCardStudent.stream.toUpperCase()})` : ''}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-1">
+                      <span className="font-bold text-slate-600">BATCH:</span>
+                      <span className="font-bold text-slate-800 truncate max-w-[150px]">
+                        {selectedIdCardStudent.classBatchId?.batchName || `Std ${selectedIdCardStudent.standard}th Batch`}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-1 pt-0.5">
+                      <span className="font-bold text-slate-600">VALID UPTO:</span>
+                      <span className="font-mono font-bold text-rose-700">{selectedIdCardStudent.validUpto || '31-MAR-2027'}</span>
+                    </div>
+                  </div>
+
+                  {/* Student Photo & Signature */}
+                  <div className="flex flex-col items-center shrink-0 space-y-1">
+                    <div className="w-[72px] h-[85px] rounded-lg bg-slate-100 border-2 border-teal-700 overflow-hidden shadow-sm flex items-center justify-center">
+                      {selectedIdCardStudent.photoUrl ? (
+                        <img src={selectedIdCardStudent.photoUrl} alt="Photo" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-10 h-10 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="text-[7px] font-bold text-slate-600 border-t border-slate-300 pt-0.5 w-full text-center">
+                      <span className="font-serif italic block text-[9px] text-slate-800 leading-none">Rahul Sharma</span>
+                      <span className="uppercase text-[6px] tracking-tighter text-slate-500 font-sans">PRINCIPAL'S SIGNATURE</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Bar */}
+                <div className="bg-teal-900 text-teal-100 p-1 px-3 flex items-center justify-between text-[8px] font-bold">
+                  <span className="bg-teal-800 text-white px-2 py-0.5 rounded text-[7px] tracking-wider uppercase font-black">ISSUED BY ACADEMY</span>
+                  <span className="font-mono">{academyInfo?.phone || '+91 9876543210'}</span>
+                </div>
+              </div>
+
+              {/* BACK PAGE CARD */}
+              <div className="w-[360px] h-[230px] bg-white rounded-2xl border-2 border-teal-700 overflow-hidden shadow-xl flex flex-col justify-between relative text-slate-800">
+                {/* Back Header */}
+                <div className="bg-teal-800 text-white p-2 px-3 text-center border-b-2 border-teal-900">
+                  <h4 className="font-extrabold uppercase text-[10px] tracking-wider text-yellow-300">
+                    EMERGENCY CONTACT INFORMATION
+                  </h4>
+                  <p className="text-[8px] text-teal-100 font-bold uppercase tracking-widest">IMPORTANT DETAILS</p>
+                </div>
+
+                {/* Back Details Grid */}
+                <div className="p-3 px-4 space-y-1.5 text-[9.5px] leading-tight flex-1 bg-gradient-to-b from-teal-50/20 to-white">
+                  <div className="flex items-center space-x-1.5 border-b border-slate-100 pb-1">
+                    <span className="font-extrabold text-slate-900 uppercase">BLOOD GROUP:</span>
+                    <span className="font-mono font-black text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                      {selectedIdCardStudent.bloodGroup || 'B+'}
+                    </span>
+                  </div>
+
+                  <div className="border-b border-slate-100 pb-1">
+                    <span className="font-extrabold text-slate-900 uppercase">EMERGENCY CONTACT NAME: </span>
+                    <span className="font-bold text-slate-700">{selectedIdCardStudent.emergencyContactName || selectedIdCardStudent.parentName}</span>
+                  </div>
+
+                  <div className="border-b border-slate-100 pb-1">
+                    <span className="font-extrabold text-slate-900 uppercase">EMERGENCY PHONE NO: </span>
+                    <span className="font-mono font-bold text-slate-800">{selectedIdCardStudent.emergencyPhone || selectedIdCardStudent.parentPhone}</span>
+                  </div>
+
+                  <div className="border-b border-slate-100 pb-1 truncate">
+                    <span className="font-extrabold text-slate-900 uppercase">ADDRESS: </span>
+                    <span className="font-medium text-slate-700">{selectedIdCardStudent.address || academyInfo?.address || 'Pune, Maharashtra'}</span>
+                  </div>
+
+                  {/* Instructions Box */}
+                  <div className="bg-teal-50/80 border border-teal-200 p-2 rounded-xl text-[8px] space-y-0.5 text-teal-950">
+                    <span className="font-black uppercase tracking-wider block text-teal-900">INSTRUCTIONS:</span>
+                    <ol className="list-decimal list-inside space-y-0.5 font-medium leading-tight text-slate-700">
+                      <li>This card is non-transferable.</li>
+                      <li>Loss of card must be reported immediately.</li>
+                      <li>Always wear this card within academy premises.</li>
+                      <li>If found, please return to academy address above.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                {/* Back Footer Bar */}
+                <div className="bg-teal-900 text-teal-200 p-1 px-3 text-center text-[7.5px] font-bold">
+                  <span>PROHIT EDUCARE ERP • DIGITAL ACADEMY IDENTIFICATION</span>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       )}

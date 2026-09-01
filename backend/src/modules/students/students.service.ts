@@ -25,6 +25,13 @@ export class StudentsService {
     medium?: string;
     stream?: string;
     dateOfBirth?: Date;
+    photoUrl?: string;
+    bloodGroup?: string;
+    emergencyContactName?: string;
+    emergencyPhone?: string;
+    address?: string;
+    rollNo?: string;
+    validUpto?: string;
     discountAmount?: number;
     paymentType?: 'FULL' | 'INSTALLMENT';
     installmentCount?: number;
@@ -69,6 +76,13 @@ export class StudentsService {
       installmentCount: dto.paymentType === 'INSTALLMENT' ? (dto.installmentCount || 3) : 1,
       customTotalFee: dto.customTotalFee,
       dateOfBirth: dto.dateOfBirth,
+      photoUrl: dto.photoUrl,
+      bloodGroup: dto.bloodGroup,
+      emergencyContactName: dto.emergencyContactName || dto.parentName,
+      emergencyPhone: dto.emergencyPhone || dto.parentPhone,
+      address: dto.address,
+      rollNo: dto.rollNo || studentCode,
+      validUpto: dto.validUpto || `31-MAR-${currentYear + 1}`,
       status: 'ACTIVE',
       advanceBalance: 0,
     });

@@ -50,6 +50,27 @@ export class Student {
   @Prop({ required: false })
   dateOfBirth?: Date;
 
+  @Prop({ required: false, trim: true })
+  photoUrl?: string;
+
+  @Prop({ required: false, trim: true })
+  bloodGroup?: string;
+
+  @Prop({ required: false, trim: true })
+  emergencyContactName?: string;
+
+  @Prop({ required: false, trim: true })
+  emergencyPhone?: string;
+
+  @Prop({ required: false, trim: true })
+  address?: string;
+
+  @Prop({ required: false, trim: true })
+  rollNo?: string;
+
+  @Prop({ required: false, trim: true })
+  validUpto?: string;
+
   @Prop({ required: true, enum: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' })
   status: string;
 
