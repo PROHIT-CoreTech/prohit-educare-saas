@@ -1326,39 +1326,51 @@ export default function StudentsPage() {
           {/* Print isolation styles */}
           <style>{`
             @media print {
-              body * {
-                visibility: hidden !important;
-              }
-              #printable-id-card, #printable-id-card * {
-                visibility: visible !important;
-              }
-              #printable-id-card {
-                position: fixed !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                padding: 40px !important;
-                margin: 0 !important;
-                background: #ffffff !important;
-                border: none !important;
-                box-shadow: none !important;
-                display: flex !important;
-                flex-direction: row !important;
-                justify-content: center !important;
-                align-items: center !important;
-                gap: 32px !important;
+              @page {
+                size: landscape;
+                margin: 0;
               }
               html, body {
+                height: 100% !important;
+                max-height: 100% !important;
+                overflow: hidden !important;
                 background: #ffffff !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
               }
-              @page {
-                size: landscape;
-                margin: 0;
+              body * {
+                visibility: hidden !important;
+              }
+              #printable-id-card, #printable-id-card * {
+                visibility: visible !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                text-shadow: none !important;
+                filter: none !important;
+              }
+              #printable-id-card {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                width: auto !important;
+                height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #ffffff !important;
+                border: none !important;
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 24px !important;
+                page-break-after: avoid !important;
+                page-break-before: avoid !important;
+                page-break-inside: avoid !important;
+                break-after: avoid !important;
+                break-inside: avoid !important;
               }
             }
           `}</style>
