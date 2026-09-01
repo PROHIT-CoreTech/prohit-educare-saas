@@ -95,24 +95,27 @@ export class PlatformService {
       .exec();
 
     const academies = await this.academyModel.find().exec();
-    const existingAcademyIdsInAudit = new Set(
-      auditLogs.map((log: any) => (log.academyId?._id ? log.academyId._id.toString() : log.academyId?.toString()))
+    const existingAcademyIdsInTransactionAudit = new Set(
+      auditLogs
+        .filter((log: any) => log.action !== 'IMPERSONATE_START')
+        .map((log: any) => (log.academyId?._id ? log.academyId._id.toString() : log.academyId?.toString()))
     );
 
     const syntheticLogs: any[] = [];
     for (const academy of academies) {
-      if (!existingAcademyIdsInAudit.has(academy._id.toString())) {
+      if (!existingAcademyIdsInTransactionAudit.has(academy._id.toString())) {
+        const isTrial = academy.subscriptionStatus === 'TRIAL';
         syntheticLogs.push({
           _id: `sub_log_${academy._id}`,
           academyId: academy,
-          action: academy.subscriptionStatus === 'TRIAL' ? '14-Day Free Trial Started' : 'Subscription Provisioned',
+          action: isTrial ? '14-Day Free Trial Started' : 'Subscription Provisioned',
           createdAt: academy.createdAt,
           details: {
             academyName: academy.name,
             academySlug: academy.slug,
-            plan: 'PROFESSIONAL',
-            amount: 35988,
-            paymentMode: academy.subscriptionStatus === 'TRIAL' ? 'FREE_TRIAL' : 'OFFLINE_CASH',
+            plan: isTrial ? 'TRIAL_14_DAYS' : 'PROFESSIONAL',
+            amount: isTrial ? 0 : 35988,
+            paymentMode: isTrial ? 'FREE_TRIAL' : 'OFFLINE_CASH',
             subscriptionStart: academy.createdAt,
             subscriptionExpiry:
               academy.subscriptionStatus === 'ACTIVE'

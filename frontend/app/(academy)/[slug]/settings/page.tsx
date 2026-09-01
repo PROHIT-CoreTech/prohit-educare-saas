@@ -43,6 +43,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [editingFacultyId, setEditingFacultyId] = useState<string | null>(null);
   const [facultySearch, setFacultySearch] = useState('');
   const [facultyForm, setFacultyForm] = useState({
+    facultyId: '',
     name: '',
     phone: '',
     email: '',
@@ -231,7 +232,9 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleOpenNewFacultyModal = () => {
     setEditingFacultyId(null);
+    const nextSeq = String(facultyList.length + 1).padStart(3, '0');
     setFacultyForm({
+      facultyId: `FAC-2026-${nextSeq}`,
       name: '',
       phone: '',
       email: '',
@@ -246,6 +249,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const handleOpenEditFacultyModal = (f: any) => {
     setEditingFacultyId(f._id);
     setFacultyForm({
+      facultyId: f.facultyId || `FAC-2026-${String(f._id).slice(-3).toUpperCase()}`,
       name: f.name || '',
       phone: f.phone || '',
       email: f.email || '',
@@ -932,9 +936,14 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                     </td>
                   </tr>
                 ) : (
-                  filteredFaculty.map((f) => (
+                  filteredFaculty.map((f, idx) => (
                     <tr key={f._id} className="hover:bg-slate-50 transition">
-                      <td className="p-4 font-bold text-slate-900">{f.name}</td>
+                      <td className="p-4 font-bold text-slate-900">
+                        <div>{f.name}</div>
+                        <span className="text-[10px] font-mono text-orange-600 font-bold block mt-0.5">
+                          {f.facultyId || `FAC-2026-${String(idx + 1).padStart(3, '0')}`}
+                        </span>
+                      </td>
                       <td className="p-4">
                         <span className="bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full text-[11px] font-extrabold border border-orange-200">
                           {f.subject}
@@ -1017,16 +1026,28 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               </div>
               <h2 className="text-2xl font-black text-slate-900">{subscription?.name || params.slug} Academy</h2>
               <p className="text-xs text-slate-500 mt-1 font-medium">
-                Trial/License Expiry Date:{' '}
+                {subscription?.subscriptionStatus === 'ACTIVE' ? 'License Expiry Date:' : 'Trial Expiry Date:'}{' '}
                 <span className="font-mono text-emerald-700 font-bold">
-                  {subscription?.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString('en-IN') : 'Active'}
+                  {subscription?.subscriptionStatus === 'ACTIVE'
+                    ? subscription?.subscriptionEndsAt
+                      ? new Date(subscription.subscriptionEndsAt).toLocaleDateString('en-IN')
+                      : 'Active Annual Plan'
+                    : subscription?.trialEndsAt
+                    ? new Date(subscription.trialEndsAt).toLocaleDateString('en-IN')
+                    : 'Active Trial'}
                 </span>
               </p>
             </div>
 
-            <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-center">
-              <div className="text-2xl font-black text-orange-600 font-mono">{subscription?.daysRemaining || 14} Days</div>
-              <span className="text-[11px] text-slate-600 font-bold">Subscription Remaining</span>
+            <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-center min-w-[160px]">
+              <div className="text-2xl font-black text-orange-600 font-mono">
+                {subscription?.subscriptionStatus === 'ACTIVE'
+                  ? '1 Year Active'
+                  : `${subscription?.trialDaysRemaining ?? subscription?.daysRemaining ?? 14} Days`}
+              </div>
+              <span className="text-[11px] text-slate-600 font-bold">
+                {subscription?.subscriptionStatus === 'ACTIVE' ? 'License Valid' : 'Subscription Remaining'}
+              </span>
             </div>
           </div>
 
@@ -1041,15 +1062,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               <ul className="space-y-2 text-xs text-slate-700">
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Up to 250 Active Students</span>
+                  <span>Up to 200 Active Students</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Standards 1st to 15th Supported</span>
+                  <span>Single Branch Academy Management</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Fee Engine & Receipts</span>
+                  <span>Atomic FIFO Fee Engine &amp; Receipts</span>
                 </li>
               </ul>
               <button
@@ -1076,11 +1097,11 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 </li>
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Standards 1st to 15th & Streams</span>
+                  <span>Academics &amp; Stream Locks (Sci/Com/Arts)</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Faculty & Exam Grading System</span>
+                  <span>Advance Credit Auto-Settlement</span>
                 </li>
               </ul>
               <button
@@ -1100,15 +1121,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               <ul className="space-y-2 text-xs text-slate-700">
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Unlimited Students & Multi-Branch</span>
+                  <span>Unlimited Multi-Branch Students</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Custom Domain & Branding</span>
+                  <span>Custom Subdomain &amp; Primary Branding</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Dedicated Account Manager</span>
+                  <span>Dedicated Account Manager &amp; SLA</span>
                 </li>
               </ul>
               <button
@@ -1251,16 +1272,30 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </h2>
 
             <form onSubmit={handleSaveFaculty} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter full name of faculty"
-                  value={facultyForm.name}
-                  onChange={(e) => setFacultyForm({ ...facultyForm, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
-                />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter full name of faculty"
+                    value={facultyForm.name}
+                    onChange={(e) => setFacultyForm({ ...facultyForm, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty ID</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="FAC-2026-001"
+                    value={facultyForm.facultyId}
+                    onChange={(e) => setFacultyForm({ ...facultyForm, facultyId: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-orange-600 font-mono font-bold focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -51,14 +51,22 @@ export class BillingService {
     const now = new Date();
     let isTrialExpired = false;
     let trialDaysRemaining = 0;
+    let daysRemaining = 0;
 
-    if (academy.subscriptionStatus === 'TRIAL' && academy.trialEndsAt) {
+    if (academy.subscriptionStatus === 'ACTIVE' && academy.subscriptionEndsAt) {
+      const subEnds = new Date(academy.subscriptionEndsAt);
+      const diffMs = subEnds.getTime() - now.getTime();
+      daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    } else if (academy.subscriptionStatus === 'TRIAL' && academy.trialEndsAt) {
       const trialEnds = new Date(academy.trialEndsAt);
       const diffMs = trialEnds.getTime() - now.getTime();
       trialDaysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+      daysRemaining = trialDaysRemaining;
       if (diffMs <= 0) {
         isTrialExpired = true;
       }
+    } else {
+      daysRemaining = 0;
     }
 
     return {
@@ -69,6 +77,7 @@ export class BillingService {
       trialEndsAt: academy.trialEndsAt,
       subscriptionEndsAt: academy.subscriptionEndsAt,
       trialDaysRemaining,
+      daysRemaining,
       isTrialExpired,
       cashfreeOrderId: academy.cashfreeOrderId,
     };

@@ -17,11 +17,17 @@ export class FacultyService {
     email?: string;
     subject: string;
     qualification?: string;
-    assignedStandards?: number[];
+    facultyId?: string;
+    assignedStandards?: string[];
   }) {
     const academyId = this.tenantContextService.academyId;
+    const count = await this.facultyModel.countDocuments({ academyId });
+    const currentYear = new Date().getFullYear();
+    const autoFacultyId = dto.facultyId || `FAC-${currentYear}-${String(count + 1).padStart(3, '0')}`;
+
     return this.facultyModel.create({
       academyId,
+      facultyId: autoFacultyId,
       name: dto.name,
       phone: dto.phone,
       email: dto.email,

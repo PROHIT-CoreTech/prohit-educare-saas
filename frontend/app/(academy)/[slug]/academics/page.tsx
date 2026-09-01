@@ -24,6 +24,8 @@ import {
   Check,
   CalendarDays,
   Sparkles,
+  Download,
+  Upload,
 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
@@ -173,6 +175,95 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
     } catch (e: any) {
       alert('Failed to update roster cell');
     }
+  };
+
+  // Download CSV Roster Template
+  const handleDownloadRosterTemplate = () => {
+    const headers = ['Faculty Name', 'Subject', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const rows = facultyList.map((f) => {
+      const roster = weeklyRoster.find((r) => r.faculty?._id === f._id);
+      const getDaySlots = (dayName: string) => {
+        const d = roster?.weeklySchedule?.find((s: any) => s.day === dayName);
+        return d && d.slots ? d.slots.join(' / ') : '';
+      };
+
+      return [
+        `"${f.name}"`,
+        `"${f.subject}"`,
+        `"${getDaySlots('Monday')}"`,
+        `"${getDaySlots('Tuesday')}"`,
+        `"${getDaySlots('Wednesday')}"`,
+        `"${getDaySlots('Thursday')}"`,
+        `"${getDaySlots('Friday')}"`,
+        `"${getDaySlots('Saturday')}"`,
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'lecture_roster_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Upload CSV Roster
+  const handleUploadRosterCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split(/\r\n|\n/).filter((l) => l.trim().length > 0);
+      if (lines.length <= 1) {
+        alert('CSV file is empty or invalid.');
+        return;
+      }
+
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      let updatedCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map((c) => c.replace(/^"|"$/g, '').trim());
+        if (cols.length < 2) continue;
+
+        const facName = cols[0];
+        const matchingFaculty = facultyList.find(
+          (f) => f.name.toLowerCase() === facName.toLowerCase() || facName.toLowerCase().includes(f.name.toLowerCase())
+        );
+
+        if (matchingFaculty) {
+          const weeklySchedule = days.map((day, idx) => {
+            const slotStr = cols[idx + 2] || '';
+            const slots = slotStr
+              .split(/,|\//)
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0);
+            return { day, slots };
+          });
+
+          try {
+            await apiClient.post('/roster/upsert', {
+              facultyId: matchingFaculty._id,
+              weeklySchedule,
+            });
+            updatedCount++;
+          } catch (err) {
+            console.error('Failed to update roster for faculty:', facName);
+          }
+        }
+      }
+
+      alert(`Successfully updated timetable slots for ${updatedCount} faculty members!`);
+      fetchRoster();
+      e.target.value = '';
+    };
+    reader.readAsText(file);
   };
 
   // Mark Faculty Attendance
@@ -526,12 +617,28 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       {/* SUB-TAB 2: LECTURE ROSTER (WEEKLY TIMETABLE GRID) */}
       {activeSubTab === 'roster' && (
         <div className="space-y-6">
-          <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex items-center justify-between">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-extrabold text-slate-900">Day-Wise Faculty Schedule (Lecture Roster)</h2>
               <p className="text-xs text-slate-500 font-medium">
-                Assign lecture slots standard-wise for each faculty member across Monday to Saturday (e.g. 10th Eng / 9th Mar, 13th / 14th Com)
+                Assign lecture slots standard-wise for each faculty member across Monday to Saturday
               </p>
+            </div>
+
+            <div className="flex items-center space-x-3 self-start md:self-auto">
+              <button
+                onClick={handleDownloadRosterTemplate}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-200 transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+              >
+                <Download className="w-4 h-4 text-orange-500" />
+                <span>Download Template</span>
+              </button>
+
+              <label className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-1.5 cursor-pointer">
+                <Upload className="w-4 h-4" />
+                <span>Upload Roster CSV</span>
+                <input type="file" accept=".csv" onChange={handleUploadRosterCsv} className="hidden" />
+              </label>
             </div>
           </div>
 
@@ -574,25 +681,39 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
                           return (
                             <td key={day} className="p-3 border-r border-slate-200 last:border-r-0 align-top">
                               {isEditing ? (
-                                <div className="space-y-2 bg-orange-50/50 p-2.5 rounded-xl border border-orange-200">
-                                  <input
-                                    type="text"
-                                    placeholder="e.g. 10th Eng / 9th Mar"
+                                <div className="space-y-2 bg-orange-50/70 p-2.5 rounded-xl border border-orange-200 shadow-sm min-w-[150px]">
+                                  <label className="text-[10px] font-bold text-orange-800 uppercase block">Assign Standard:</label>
+                                  <select
                                     value={slotText}
                                     onChange={(e) => setSlotText(e.target.value)}
-                                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 font-medium"
+                                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 font-bold text-slate-900 cursor-pointer"
                                     autoFocus
-                                  />
+                                  >
+                                    <option value="">-- Select Standard --</option>
+                                    {(faculty.assignedStandards && faculty.assignedStandards.length > 0
+                                      ? faculty.assignedStandards
+                                      : availableStandards.length > 0
+                                      ? availableStandards.map((std: number) => `${std}th`)
+                                      : ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th Sci', '11th Com', '11th Arts', '12th Sci', '12th Com', '12th Arts']
+                                    ).map((stdItem: string) => {
+                                      const stdLabel = stdItem.includes('Std') ? stdItem : `Std ${stdItem}`;
+                                      return (
+                                        <option key={stdItem} value={stdLabel}>
+                                          {stdLabel}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
                                   <div className="flex items-center space-x-1.5 justify-end">
                                     <button
                                       onClick={() => handleSaveCellSlots(faculty._id, day)}
-                                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-md transition"
+                                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-md transition cursor-pointer"
                                     >
                                       Save
                                     </button>
                                     <button
                                       onClick={() => setEditingCell(null)}
-                                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md transition"
+                                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md transition cursor-pointer"
                                     >
                                       Cancel
                                     </button>
