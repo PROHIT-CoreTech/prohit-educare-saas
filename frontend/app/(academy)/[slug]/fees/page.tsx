@@ -6,6 +6,7 @@ import { apiClient } from '../../../../lib/api';
 
 export default function FeeEnginePage() {
   const [students, setStudents] = useState<any[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState<boolean>(true);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [feeSummary, setFeeSummary] = useState<any>(null);
   const [loadingSummary, setLoadingSummary] = useState<boolean>(false);
@@ -22,6 +23,7 @@ export default function FeeEnginePage() {
   }, []);
 
   const fetchStudents = async () => {
+    setLoadingStudents(true);
     try {
       const res = await apiClient.get('/students');
       setStudents(res.data);
@@ -32,6 +34,8 @@ export default function FeeEnginePage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingStudents(false);
     }
   };
 

@@ -38,6 +38,7 @@ export default function ReportsPage() {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalPayments, setTotalPayments] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetchOverview();
@@ -56,11 +57,14 @@ export default function ReportsPage() {
   }, [page, selectedStandard, selectedMonth]);
 
   const fetchOverview = async () => {
+    setLoading(true);
     try {
       const res = await apiClient.get('/reports/financial-overview');
       setOverview(res.data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,8 +126,19 @@ export default function ReportsPage() {
         </button>
       </div>
 
-      {/* Top Metric Cards */}
-      {overview && (
+      {/* Loading Spinner Container */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center p-16 space-y-4 bg-white border border-slate-200 rounded-3xl shadow-sm">
+          <div className="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+          <div className="text-center space-y-1">
+            <p className="text-sm font-extrabold text-slate-800">Loading Financial Reports &amp; Analytics...</p>
+            <p className="text-xs text-slate-400 font-medium">Computing collections, Profit &amp; Loss breakdown, and transaction logs</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Top Metric Cards */}
+          {overview && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* 1. Fees Collection Today */}
           <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-3 shadow-sm">
@@ -435,6 +450,8 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

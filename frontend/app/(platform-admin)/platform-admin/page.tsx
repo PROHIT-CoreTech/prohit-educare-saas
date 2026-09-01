@@ -188,6 +188,9 @@ export default function PlatformAdminPage() {
   });
 
   const filteredAuditLogs = auditLogs.filter((log) => {
+    // Exclude non-transactional audit actions like IMPERSONATE_START
+    if (log.action === 'IMPERSONATE_START') return false;
+
     const details = log.details || {};
     const academyName = details.academyName || log.academyId?.name || '';
     const academySlug = details.academySlug || log.academyId?.slug || '';
@@ -363,7 +366,7 @@ export default function PlatformAdminPage() {
               }`}
             >
               <History className="w-4 h-4" />
-              <span>Transactions & Audit History ({auditLogs.length})</span>
+              <span>Transaction History ({filteredAuditLogs.length})</span>
             </button>
 
             <button
@@ -428,27 +431,18 @@ export default function PlatformAdminPage() {
                     <th className="px-6 py-4 whitespace-nowrap">Academy Name</th>
                     <th className="px-6 py-4 whitespace-nowrap">Subdomain</th>
                     <th className="px-6 py-4 whitespace-nowrap">Status</th>
-                    <th className="px-6 py-4 whitespace-nowrap">Subscription Start</th>
-                    <th className="px-6 py-4 whitespace-nowrap">Subscription Expiry</th>
                     <th className="px-6 py-4 text-right whitespace-nowrap">Master Admin Tools</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredAcademies.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">
+                      <td colSpan={4} className="px-6 py-12 text-center text-slate-500 font-medium">
                         No academy tenants found matching your filter criteria.
                       </td>
                     </tr>
                   ) : (
                     filteredAcademies.map((ac) => {
-                      const startDate = formatDate(ac.createdAt);
-                      const expiryDate = formatDate(
-                        ac.subscriptionStatus === 'ACTIVE'
-                          ? ac.subscriptionEndsAt || new Date(new Date(ac.createdAt).setFullYear(new Date(ac.createdAt).getFullYear() + 1))
-                          : ac.trialEndsAt
-                      );
-
                       return (
                         <tr key={ac._id} className="hover:bg-slate-50 transition">
                           <td className="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">
@@ -473,28 +467,8 @@ export default function PlatformAdminPage() {
                               {ac.subscriptionStatus}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-xs font-mono text-slate-700 font-semibold whitespace-nowrap">
-                            <div className="flex items-center space-x-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-orange-500" />
-                              <span>{startDate}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-xs font-mono text-emerald-700 font-bold whitespace-nowrap">
-                            <div className="flex items-center space-x-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>{expiryDate}</span>
-                            </div>
-                          </td>
                           <td className="px-6 py-4 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end space-x-2">
-                              <button
-                                onClick={() => handleInspectRecords(ac._id)}
-                                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-slate-200 inline-flex items-center space-x-1 transition"
-                              >
-                                <Eye className="w-3.5 h-3.5 mr-1 text-slate-600" />
-                                <span>Inspect Records</span>
-                              </button>
-
                               {ac.subscriptionStatus === 'ACTIVE' ? (
                                 <button
                                   onClick={() => handleStatusChange(ac._id, 'CANCELLED')}
@@ -530,7 +504,7 @@ export default function PlatformAdminPage() {
           </div>
         )}
 
-        {/* TAB 2: TRANSACTIONS & AUDIT HISTORY */}
+        {/* TAB 2: TRANSACTION HISTORY */}
         {activeTab === 'transactions' && (
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm space-y-4">
             <div className="p-6 border-b border-slate-200 flex items-center justify-between">
@@ -538,7 +512,7 @@ export default function PlatformAdminPage() {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="text"
-                  placeholder="Search transaction by tenant name or action..."
+                  placeholder="Search transactions by tenant name or action..."
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
@@ -546,7 +520,7 @@ export default function PlatformAdminPage() {
               </div>
 
               <span className="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl font-mono font-bold border border-slate-200">
-                Showing {filteredAuditLogs.length} of {auditLogs.length} Records
+                Showing {filteredAuditLogs.length} Transactions
               </span>
             </div>
 

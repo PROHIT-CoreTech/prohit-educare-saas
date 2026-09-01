@@ -110,11 +110,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     ];
   }, [feeStructures]);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchAcademy();
-    fetchSubscription();
-    fetchFeeStructures();
-    fetchFaculty();
+    const loadAllSettings = async () => {
+      setLoading(true);
+      await Promise.all([fetchAcademy(), fetchSubscription(), fetchFeeStructures(), fetchFaculty()]);
+      setLoading(false);
+    };
+    loadAllSettings();
   }, []);
 
   const fetchAcademy = async () => {
@@ -395,8 +399,19 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         </div>
       )}
 
-      {/* TAB 0: ACADEMY PROFILE WITH EDIT OPTION */}
-      {activeTab === 'profile' && (
+      {/* Loading Spinner Container */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center p-16 space-y-4 bg-white border border-slate-200 rounded-3xl shadow-sm">
+          <div className="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+          <div className="text-center space-y-1">
+            <p className="text-sm font-extrabold text-slate-800">Loading Academy Settings...</p>
+            <p className="text-xs text-slate-400 font-medium">Fetching profile, fee structures, faculty directory, and billing</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* TAB 0: ACADEMY PROFILE WITH EDIT OPTION */}
+          {activeTab === 'profile' && (
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
@@ -1105,6 +1120,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* CREATE / EDIT FEE STRUCTURE MODAL */}

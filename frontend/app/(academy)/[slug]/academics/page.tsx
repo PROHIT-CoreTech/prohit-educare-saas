@@ -57,11 +57,15 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
   const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [attendanceList, setAttendanceList] = useState<any[]>([]);
   const [attendanceDayRoster, setAttendanceDayRoster] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchClasses();
-    fetchFaculty();
-    fetchRoster();
+    const loadInitialData = async () => {
+      setLoading(true);
+      await Promise.all([fetchClasses(), fetchFaculty(), fetchRoster()]);
+      setLoading(false);
+    };
+    loadInitialData();
   }, []);
 
   useEffect(() => {
@@ -312,8 +316,19 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
         </button>
       </div>
 
-      {/* SUB-TAB 1: CLASS BATCHES */}
-      {activeSubTab === 'batches' && (
+      {/* Loading State Container */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center p-16 space-y-4 bg-white border border-slate-200 rounded-3xl shadow-sm">
+          <div className="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+          <div className="text-center space-y-1">
+            <p className="text-sm font-extrabold text-slate-800">Loading Academic Modules...</p>
+            <p className="text-xs text-slate-400 font-medium">Fetching class batches, faculty directory, and weekly timetable</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* SUB-TAB 1: CLASS BATCHES */}
+          {activeSubTab === 'batches' && (
         <div className="space-y-6">
           {/* Quick Summary KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -758,6 +773,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
             </table>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* CREATE CLASS BATCH MODAL */}

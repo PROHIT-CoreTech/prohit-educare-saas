@@ -69,6 +69,7 @@ export default function StudentsPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -91,6 +92,7 @@ export default function StudentsPage() {
   };
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [stuRes, classRes, feeRes] = await Promise.all([
         apiClient.get('/students'),
@@ -123,6 +125,8 @@ export default function StudentsPage() {
       if (err.response?.status === 401 || err.response?.data?.message?.includes('Authorization')) {
         setAuthError(true);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -504,7 +508,16 @@ export default function StudentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredStudents.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="p-16 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loading Student Records...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredStudents.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-12 text-center text-slate-500 font-medium">
                     No students found matching your search or filter.
