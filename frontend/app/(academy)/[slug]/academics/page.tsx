@@ -54,6 +54,12 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
   const [facultyList, setFacultyList] = useState<any[]>([]);
   const [editingCell, setEditingCell] = useState<{ facultyId: string; day: string } | null>(null);
   const [slotText, setSlotText] = useState('');
+  const [selectedSlotStandard, setSelectedSlotStandard] = useState('');
+  const [selectedSlotBatch, setSelectedSlotBatch] = useState('');
+
+  // Roster View Mode (Weekly vs Monthly)
+  const [rosterViewMode, setRosterViewMode] = useState<'weekly' | 'monthly'>('weekly');
+  const [monthlyYearMonth, setMonthlyYearMonth] = useState<string>(new Date().toISOString().substring(0, 7));
 
   // Attendance state
   const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -150,11 +156,12 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
   };
 
   // Save Roster Cell Slots
-  const handleSaveCellSlots = async (facultyId: string, day: string) => {
+  const handleSaveCellSlots = async (facultyId: string, day: string, slotTextOverride?: string) => {
+    const textToUse = slotTextOverride !== undefined ? slotTextOverride : slotText;
     const existingFacultyRoster = weeklyRoster.find((r) => r.faculty._id === facultyId);
     const updatedWeeklySchedule = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d) => {
       if (d === day) {
-        const slotsArray = slotText
+        const slotsArray = textToUse
           .split(/,|\//)
           .map((s) => s.trim())
           .filter((s) => s.length > 0);
@@ -170,6 +177,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
         weeklySchedule: updatedWeeklySchedule,
       });
       setEditingCell(null);
+      setSelectedSlotStandard('');
+      setSelectedSlotBatch('');
       setSlotText('');
       fetchRoster();
     } catch (e: any) {
@@ -179,15 +188,18 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
   // Download CSV Roster Template
   const handleDownloadRosterTemplate = () => {
-    const headers = ['Faculty Name', 'Subject', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const rows = facultyList.map((f) => {
+    const headers = ['Faculty ID', 'Faculty Name', 'Subject', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const rows = facultyList.map((f, idx) => {
       const roster = weeklyRoster.find((r) => r.faculty?._id === f._id);
       const getDaySlots = (dayName: string) => {
         const d = roster?.weeklySchedule?.find((s: any) => s.day === dayName);
         return d && d.slots ? d.slots.join(' / ') : '';
       };
 
+      const fId = f.facultyId || `FAC-2026-${String(idx + 1).padStart(3, '0')}`;
+
       return [
+        `"${fId}"`,
         `"${f.name}"`,
         `"${f.subject}"`,
         `"${getDaySlots('Monday')}"`,
@@ -209,7 +221,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
     document.body.removeChild(link);
   };
 
-  // Upload CSV Roster
+  // Upload CSV Roster & Sync with Timetable Data
   const handleUploadRosterCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -228,18 +240,49 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       let updatedCount = 0;
 
+      // Check header format
+      const headerCols = lines[0].split(',').map((c) => c.replace(/^"|"$/g, '').trim().toLowerCase());
+      const hasFacultyIdCol = headerCols[0].includes('id');
+      const nameColIdx = hasFacultyIdCol ? 1 : 0;
+      const subjColIdx = hasFacultyIdCol ? 2 : 1;
+      const startDayColIdx = hasFacultyIdCol ? 3 : 2;
+
       for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map((c) => c.replace(/^"|"$/g, '').trim());
         if (cols.length < 2) continue;
 
-        const facName = cols[0];
-        const matchingFaculty = facultyList.find(
-          (f) => f.name.toLowerCase() === facName.toLowerCase() || facName.toLowerCase().includes(f.name.toLowerCase())
+        const facultyIdStr = hasFacultyIdCol ? cols[0] : '';
+        const facName = cols[nameColIdx] || '';
+        const subject = cols[subjColIdx] || 'General';
+
+        if (!facName) continue;
+
+        let matchingFaculty = facultyList.find(
+          (f) =>
+            (facultyIdStr && f.facultyId?.toLowerCase() === facultyIdStr.toLowerCase()) ||
+            f.name.toLowerCase() === facName.toLowerCase() ||
+            facName.toLowerCase().includes(f.name.toLowerCase())
         );
+
+        // Auto-create faculty profile if missing in database
+        if (!matchingFaculty) {
+          try {
+            const createRes = await apiClient.post('/faculty', {
+              facultyId: facultyIdStr || undefined,
+              name: facName,
+              phone: '9876543210',
+              subject: subject || 'General',
+              status: 'ACTIVE',
+            });
+            matchingFaculty = createRes.data;
+          } catch (createErr) {
+            console.error('Could not auto-create faculty:', facName);
+          }
+        }
 
         if (matchingFaculty) {
           const weeklySchedule = days.map((day, idx) => {
-            const slotStr = cols[idx + 2] || '';
+            const slotStr = cols[startDayColIdx + idx] || '';
             const slots = slotStr
               .split(/,|\//)
               .map((s) => s.trim())
@@ -259,8 +302,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
         }
       }
 
-      alert(`Successfully updated timetable slots for ${updatedCount} faculty members!`);
-      fetchRoster();
+      await Promise.all([fetchFaculty(), fetchRoster()]);
+      alert(`Successfully extracted & synced timetable slots for ${updatedCount} faculty members from CSV!`);
       e.target.value = '';
     };
     reader.readAsText(file);
@@ -642,119 +685,286 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
             </div>
           </div>
 
-          <div className="overflow-x-auto bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-100 text-slate-800 uppercase font-bold border-b border-slate-200">
-                <tr>
-                  <th className="p-4 w-48 border-r border-slate-200">Faculty Name & Subject</th>
-                  {daysOfWeek.map((day) => (
-                    <th key={day} className="p-4 text-center border-r border-slate-200 last:border-r-0">
-                      {day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {facultyList.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
-                      No active faculty profiles configured. Add faculty members in Settings &gt; Faculty Directory first.
-                    </td>
-                  </tr>
-                ) : (
-                  facultyList.map((faculty) => {
-                    const facultyRoster = weeklyRoster.find((r) => r.faculty?._id === faculty._id);
-                    return (
-                      <tr key={faculty._id} className="hover:bg-slate-50/50 transition">
-                        <td className="p-4 border-r border-slate-200 bg-slate-50/30">
-                          <div className="font-bold text-slate-900 text-sm">{faculty.name}</div>
-                          <span className="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200 inline-block mt-1">
-                            {faculty.subject}
-                          </span>
-                        </td>
+          {/* View Mode Toggle Bar: Weekly vs Monthly */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 border border-slate-200 p-3.5 px-6 rounded-2xl shadow-xs">
+            <div className="flex items-center space-x-3">
+              <span className="text-xs font-black text-slate-700 uppercase tracking-wider">Timetable Mode:</span>
+              <div className="flex items-center bg-white border border-slate-200 p-1 rounded-xl shadow-xs">
+                <button
+                  onClick={() => setRosterViewMode('weekly')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    rosterViewMode === 'weekly' ? 'bg-orange-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Weekly View (Mon - Sat)
+                </button>
+                <button
+                  onClick={() => setRosterViewMode('monthly')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    rosterViewMode === 'monthly' ? 'bg-orange-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Monthly Timetable View
+                </button>
+              </div>
+            </div>
 
-                        {daysOfWeek.map((day) => {
-                          const daySched = facultyRoster?.weeklySchedule?.find((s: any) => s.day === day);
-                          const slots: string[] = daySched ? daySched.slots : [];
-                          const isEditing = editingCell?.facultyId === faculty._id && editingCell?.day === day;
-
-                          return (
-                            <td key={day} className="p-3 border-r border-slate-200 last:border-r-0 align-top">
-                              {isEditing ? (
-                                <div className="space-y-2 bg-orange-50/70 p-2.5 rounded-xl border border-orange-200 shadow-sm min-w-[150px]">
-                                  <label className="text-[10px] font-bold text-orange-800 uppercase block">Assign Standard:</label>
-                                  <select
-                                    value={slotText}
-                                    onChange={(e) => setSlotText(e.target.value)}
-                                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 font-bold text-slate-900 cursor-pointer"
-                                    autoFocus
-                                  >
-                                    <option value="">-- Select Standard --</option>
-                                    {(faculty.assignedStandards && faculty.assignedStandards.length > 0
-                                      ? faculty.assignedStandards
-                                      : availableStandards.length > 0
-                                      ? availableStandards.map((std: number) => `${std}th`)
-                                      : ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th Sci', '11th Com', '11th Arts', '12th Sci', '12th Com', '12th Arts']
-                                    ).map((stdItem: string) => {
-                                      const stdLabel = stdItem.includes('Std') ? stdItem : `Std ${stdItem}`;
-                                      return (
-                                        <option key={stdItem} value={stdLabel}>
-                                          {stdLabel}
-                                        </option>
-                                      );
-                                    })}
-                                  </select>
-                                  <div className="flex items-center space-x-1.5 justify-end">
-                                    <button
-                                      onClick={() => handleSaveCellSlots(faculty._id, day)}
-                                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-md transition cursor-pointer"
-                                    >
-                                      Save
-                                    </button>
-                                    <button
-                                      onClick={() => setEditingCell(null)}
-                                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md transition cursor-pointer"
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div
-                                  onClick={() => {
-                                    setEditingCell({ facultyId: faculty._id, day });
-                                    setSlotText(slots.join(' / '));
-                                  }}
-                                  className="min-h-[56px] p-2 rounded-xl hover:bg-orange-50/60 border border-transparent hover:border-orange-200 cursor-pointer transition flex flex-col items-center justify-center space-y-1 group"
-                                >
-                                  {slots.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1 justify-center">
-                                      {slots.map((slot, idx) => (
-                                        <span
-                                          key={idx}
-                                          className="bg-orange-100 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200"
-                                        >
-                                          {slot}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span className="text-slate-400 text-[10px] italic group-hover:text-orange-600 font-medium">
-                                      + Click to Assign
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+            {rosterViewMode === 'monthly' && (
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-bold text-slate-700">Target Month:</span>
+                <input
+                  type="month"
+                  value={monthlyYearMonth}
+                  onChange={(e) => setMonthlyYearMonth(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 cursor-pointer shadow-xs"
+                />
+              </div>
+            )}
           </div>
+
+          {/* WEEKLY TIMETABLE VIEW */}
+          {rosterViewMode === 'weekly' && (
+            <div className="overflow-x-auto bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-100 text-slate-800 uppercase font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="p-4 w-48 border-r border-slate-200">Faculty Name & Subject</th>
+                    {daysOfWeek.map((day) => (
+                      <th key={day} className="p-4 text-center border-r border-slate-200 last:border-r-0">
+                        {day}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {facultyList.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
+                        No active faculty profiles configured. Add faculty members in Settings &gt; Faculty Directory first.
+                      </td>
+                    </tr>
+                  ) : (
+                    facultyList.map((faculty) => {
+                      const facultyRoster = weeklyRoster.find((r) => r.faculty?._id === faculty._id);
+                      return (
+                        <tr key={faculty._id} className="hover:bg-slate-50/50 transition">
+                          <td className="p-4 border-r border-slate-200 bg-slate-50/30">
+                            <div className="font-bold text-slate-900 text-sm">{faculty.name}</div>
+                            <span className="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-200 inline-block mt-1">
+                              {faculty.subject}
+                            </span>
+                          </td>
+
+                          {daysOfWeek.map((day) => {
+                            const daySched = facultyRoster?.weeklySchedule?.find((s: any) => s.day === day);
+                            const slots: string[] = daySched ? daySched.slots : [];
+                            const isEditing = editingCell?.facultyId === faculty._id && editingCell?.day === day;
+
+                            return (
+                              <td key={day} className="p-3 border-r border-slate-200 last:border-r-0 align-top">
+                                {isEditing ? (
+                                  <div className="space-y-2.5 bg-orange-50/70 p-3 rounded-2xl border border-orange-200 shadow-sm min-w-[170px]">
+                                    <div>
+                                      <label className="text-[10px] font-bold text-orange-800 uppercase block mb-1">Standard:</label>
+                                      <select
+                                        value={selectedSlotStandard}
+                                        onChange={(e) => setSelectedSlotStandard(e.target.value)}
+                                        className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 font-bold text-slate-900 cursor-pointer"
+                                        autoFocus
+                                      >
+                                        <option value="">-- Select Standard --</option>
+                                        {(faculty.assignedStandards && faculty.assignedStandards.length > 0
+                                          ? faculty.assignedStandards
+                                          : availableStandards.length > 0
+                                          ? availableStandards.map((std: number) => `${std}th`)
+                                          : ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th Sci', '11th Com', '11th Arts', '12th Sci', '12th Com', '12th Arts']
+                                        ).map((stdItem: string) => {
+                                          const stdLabel = stdItem.includes('Std') ? stdItem : `Std ${stdItem}`;
+                                          return (
+                                            <option key={stdItem} value={stdLabel}>
+                                              {stdLabel}
+                                            </option>
+                                          );
+                                        })}
+                                      </select>
+                                    </div>
+
+                                    <div>
+                                      <label className="text-[10px] font-bold text-orange-800 uppercase block mb-1">Batch / Shift:</label>
+                                      <select
+                                        value={selectedSlotBatch}
+                                        onChange={(e) => setSelectedSlotBatch(e.target.value)}
+                                        className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-orange-500 font-bold text-slate-900 cursor-pointer"
+                                      >
+                                        <option value="">General / All Shifts</option>
+                                        <option value="Morning Batch">Morning Batch</option>
+                                        <option value="Afternoon Batch">Afternoon Batch</option>
+                                        <option value="Evening Batch">Evening Batch</option>
+                                      </select>
+                                    </div>
+
+                                    <div className="flex items-center space-x-1.5 justify-end pt-1">
+                                      <button
+                                        onClick={() => {
+                                          const formattedSlot = selectedSlotStandard
+                                            ? selectedSlotBatch
+                                              ? `${selectedSlotStandard} (${selectedSlotBatch})`
+                                              : selectedSlotStandard
+                                            : '';
+                                          handleSaveCellSlots(faculty._id, day, formattedSlot);
+                                        }}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer shadow-xs"
+                                      >
+                                        Save Slot
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingCell(null)}
+                                        className="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div
+                                    onClick={() => {
+                                      setEditingCell({ facultyId: faculty._id, day });
+                                      const rawText = slots.join(' / ');
+                                      if (rawText.includes('(')) {
+                                        const parts = rawText.split('(');
+                                        setSelectedSlotStandard(parts[0].trim());
+                                        setSelectedSlotBatch(parts[1].replace(')', '').trim());
+                                      } else {
+                                        setSelectedSlotStandard(rawText);
+                                        setSelectedSlotBatch('');
+                                      }
+                                    }}
+                                    className="min-h-[56px] p-2 rounded-xl hover:bg-orange-50/60 border border-transparent hover:border-orange-200 cursor-pointer transition flex flex-col items-center justify-center space-y-1 group"
+                                  >
+                                    {slots.length > 0 ? (
+                                      <div className="flex flex-wrap gap-1 justify-center">
+                                        {slots.map((slot, idx) => (
+                                          <span
+                                            key={idx}
+                                            className="bg-orange-100 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200"
+                                          >
+                                            {slot}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px] italic group-hover:text-orange-600 font-medium">
+                                        + Click to Assign
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* MONTHLY TIMETABLE VIEW */}
+          {rosterViewMode === 'monthly' && (
+            <div className="space-y-4">
+              <div className="bg-white border border-slate-200 p-4 px-6 rounded-2xl flex items-center justify-between shadow-sm">
+                <span className="text-xs font-bold text-slate-700">
+                  Monthly Timetable Projection for <span className="text-orange-600 font-mono font-black">{monthlyYearMonth}</span>
+                </span>
+                <span className="text-xs text-slate-500 font-medium">Date-wise projected lecture schedules</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(() => {
+                  const [yrStr, moStr] = monthlyYearMonth.split('-');
+                  const yr = parseInt(yrStr, 10) || new Date().getFullYear();
+                  const mo = parseInt(moStr, 10) || (new Date().getMonth() + 1);
+                  const totalDays = new Date(yr, mo, 0).getDate();
+
+                  const cards = [];
+                  for (let d = 1; d <= totalDays; d++) {
+                    const dateObj = new Date(yr, mo - 1, d);
+                    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+                    const isSunday = dayName === 'Sunday';
+
+                    const dayScheds: any[] = [];
+                    weeklyRoster.forEach((r) => {
+                      const dayMatch = r.weeklySchedule?.find((s: any) => s.day === dayName);
+                      if (dayMatch && dayMatch.slots && dayMatch.slots.length > 0) {
+                        dayScheds.push({
+                          faculty: r.faculty,
+                          slots: dayMatch.slots,
+                        });
+                      }
+                    });
+
+                    cards.push(
+                      <div
+                        key={d}
+                        className={`bg-white border rounded-2xl p-4 space-y-3 transition shadow-sm ${
+                          isSunday ? 'border-slate-200 bg-slate-50/50 opacity-75' : 'border-slate-200 hover:border-orange-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg font-black font-mono text-slate-900">{String(d).padStart(2, '0')}</span>
+                            <span className="text-xs font-bold text-slate-600 uppercase">{dayName}</span>
+                          </div>
+                          <span
+                            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                              isSunday
+                                ? 'bg-slate-100 text-slate-500 border-slate-200'
+                                : dayScheds.length > 0
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
+                          >
+                            {isSunday ? 'Off / Sunday' : `${dayScheds.length} Faculty Active`}
+                          </span>
+                        </div>
+
+                        {dayScheds.length === 0 ? (
+                          <div className="text-[11px] text-slate-400 py-2 font-medium">
+                            {isSunday ? 'Weekly Holiday' : 'No lectures scheduled'}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {dayScheds.map((ds, idx) => (
+                              <div key={idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="font-bold text-slate-900">{ds.faculty?.name}</span>
+                                  <span className="text-[10px] font-mono text-orange-600 font-semibold">{ds.faculty?.subject}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1 pt-1">
+                                  {ds.slots.map((s: string, sIdx: number) => (
+                                    <span
+                                      key={sIdx}
+                                      className="bg-orange-100 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200"
+                                    >
+                                      {s}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return cards;
+                })()}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
