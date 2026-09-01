@@ -389,13 +389,13 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center space-x-2">
-            <BookOpen className="w-6 h-6 text-orange-500" />
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center space-x-2">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 shrink-0" />
             <span>Academics, Roster & Attendance</span>
           </h1>
-          <p className="text-sm text-slate-500 font-medium mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
             Manage class batches, day-wise faculty timetables (Std 1st - 15th), and roster-driven daily attendance
           </p>
         </div>
@@ -403,7 +403,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
         {activeSubTab === 'batches' && (
           <button
             onClick={() => setShowClassModal(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition self-start md:self-auto"
+            className="bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition self-start sm:self-auto shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Create Class Batch</span>
@@ -412,7 +412,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center space-x-2 border-b border-slate-200 pb-1">
+      <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('batches')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${

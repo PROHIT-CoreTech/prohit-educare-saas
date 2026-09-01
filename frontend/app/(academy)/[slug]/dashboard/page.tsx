@@ -35,17 +35,17 @@ export default function TenantDashboardPage() {
   return (
     <div className="space-y-8 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Academy Overview & Dashboard</h1>
-          <p className="text-sm text-slate-500 font-medium mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Academy Overview & Dashboard</h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
             Academic Year 2026-27 operational metrics, collections, and daily schedule
           </p>
         </div>
 
         <Link
           href={`/fees`}
-          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition"
+          className="bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition self-start sm:self-auto shrink-0"
         >
           <CreditCard className="w-4 h-4" />
           <span>Collect Fees</span>

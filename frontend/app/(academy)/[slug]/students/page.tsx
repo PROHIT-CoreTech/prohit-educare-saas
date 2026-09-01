@@ -526,25 +526,25 @@ export default function StudentsPage() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Student Roster</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Student Roster</h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
             Manage student enrollments, March - April standard promotions & active/inactive statuses
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 self-start md:self-auto"
+          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 self-start sm:self-auto shrink-0 text-xs sm:text-sm"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Add New Student</span>
         </button>
       </div>
 
       {/* Search & Status Filters Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
           <input
@@ -552,24 +552,24 @@ export default function StudentsPage() {
             placeholder="Search by student name, code (e.g. STU-2026-00001), or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-orange-500 font-medium shadow-sm"
+            className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-orange-500 font-medium shadow-sm"
           />
         </div>
 
         {/* Active / Inactive Status Filter */}
-        <div className="flex items-center space-x-1 bg-slate-100 border border-slate-200 p-1.5 rounded-2xl">
-          <Filter className="w-3.5 h-3.5 text-slate-400 ml-2 mr-1" />
+        <div className="flex items-center space-x-1 bg-slate-100 border border-slate-200 p-1.5 rounded-2xl overflow-x-auto shrink-0">
+          <Filter className="w-3.5 h-3.5 text-slate-400 ml-2 mr-1 shrink-0" />
           <button
             onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               statusFilter === 'ALL' ? 'bg-orange-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            All Students ({students.length})
+            All ({students.length})
           </button>
           <button
             onClick={() => setStatusFilter('ACTIVE')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               statusFilter === 'ACTIVE' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-emerald-700'
             }`}
           >
@@ -577,7 +577,7 @@ export default function StudentsPage() {
           </button>
           <button
             onClick={() => setStatusFilter('INACTIVE')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               statusFilter === 'INACTIVE' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:text-rose-700'
             }`}
           >
