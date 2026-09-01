@@ -43,6 +43,20 @@ export default function StudentsPage() {
   const [showIdCardModal, setShowIdCardModal] = useState(false);
   const [selectedIdCardStudent, setSelectedIdCardStudent] = useState<any>(null);
 
+  const handlePrintIdCard = () => {
+    if (!selectedIdCardStudent) return;
+    const originalTitle = document.title;
+    const code = selectedIdCardStudent.rollNo || selectedIdCardStudent.studentCode || 'STUDENT';
+    const cleanName = (selectedIdCardStudent.name || 'Student').trim().replace(/\s+/g, '_');
+    document.title = `${code}_${cleanName}`;
+
+    window.print();
+
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
+  };
+
   // Edit Student Profile State
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
@@ -1309,6 +1323,46 @@ export default function StudentsPage() {
       {/* DIGITAL STUDENT ID CARD MODAL */}
       {showIdCardModal && selectedIdCardStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 text-slate-900 overflow-y-auto">
+          {/* Print isolation styles */}
+          <style>{`
+            @media print {
+              body * {
+                visibility: hidden !important;
+              }
+              #printable-id-card, #printable-id-card * {
+                visibility: visible !important;
+              }
+              #printable-id-card {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                padding: 40px !important;
+                margin: 0 !important;
+                background: #ffffff !important;
+                border: none !important;
+                box-shadow: none !important;
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 32px !important;
+              }
+              html, body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              @page {
+                size: landscape;
+                margin: 0;
+              }
+            }
+          `}</style>
+
           <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 max-w-4xl w-full relative shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
             <button
               onClick={() => setShowIdCardModal(false)}
@@ -1331,7 +1385,7 @@ export default function StudentsPage() {
 
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => window.print()}
+                  onClick={handlePrintIdCard}
                   style={{ backgroundColor: academyInfo?.primaryColor || '#f97316' }}
                   className="hover:opacity-90 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
                 >
