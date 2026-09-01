@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, User, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera } from 'lucide-react';
+import { Plus, Search, User, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 const DEFAULT_BATCH_PRESETS = [
@@ -42,6 +42,58 @@ export default function StudentsPage() {
   // Digital ID Card State
   const [showIdCardModal, setShowIdCardModal] = useState(false);
   const [selectedIdCardStudent, setSelectedIdCardStudent] = useState<any>(null);
+
+  // Edit Student Profile State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    parentName: '',
+    parentPhone: '',
+    parentEmail: '',
+    photoUrl: '',
+    bloodGroup: 'B+',
+    emergencyContactName: '',
+    emergencyPhone: '',
+    address: '',
+    rollNo: '',
+    validUpto: '31-MAR-2027',
+  });
+  const [isUpdatingStudent, setIsUpdatingStudent] = useState(false);
+
+  const handleOpenEditModal = (stu: any) => {
+    setEditingStudent(stu);
+    setEditFormData({
+      name: stu.name || '',
+      parentName: stu.parentName || '',
+      parentPhone: stu.parentPhone || '',
+      parentEmail: stu.parentEmail || '',
+      photoUrl: stu.photoUrl || '',
+      bloodGroup: stu.bloodGroup || 'B+',
+      emergencyContactName: stu.emergencyContactName || stu.parentName || '',
+      emergencyPhone: stu.emergencyPhone || stu.parentPhone || '',
+      address: stu.address || '',
+      rollNo: stu.rollNo || stu.studentCode || '',
+      validUpto: stu.validUpto || '31-MAR-2027',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditedStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    setIsUpdatingStudent(true);
+    try {
+      await apiClient.patch(`/students/${editingStudent._id}`, editFormData);
+      setShowEditModal(false);
+      setEditingStudent(null);
+      fetchData();
+    } catch (err: any) {
+      alert('Failed to update student profile: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsUpdatingStudent(false);
+    }
+  };
 
   // Promotion State
   const [showPromoteModal, setShowPromoteModal] = useState(false);
@@ -530,15 +582,14 @@ export default function StudentsPage() {
                 <th className="p-4">Student Code / Number</th>
                 <th className="p-4">Parent Details</th>
                 <th className="p-4">Standard, Medium & Stream</th>
-                <th className="p-4">Advance Credit</th>
                 <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions (Promote / Status)</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-16 text-center">
+                  <td colSpan={6} className="p-16 text-center">
                     <div className="flex flex-col items-center justify-center space-y-3">
                       <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Loading Student Records...</span>
@@ -547,7 +598,7 @@ export default function StudentsPage() {
                 </tr>
               ) : filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-500 font-medium">
+                  <td colSpan={6} className="p-12 text-center text-slate-500 font-medium">
                     No students found matching your search or filter.
                   </td>
                 </tr>
@@ -590,7 +641,6 @@ export default function StudentsPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 font-mono font-bold text-emerald-600">₹{stu.advanceCredit?.toLocaleString('en-IN') || 0}</td>
                     <td className="p-4">
                       {stu.status === 'INACTIVE' ? (
                         <span className="bg-rose-50 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full border border-rose-200 uppercase">
@@ -604,6 +654,16 @@ export default function StudentsPage() {
                     </td>
                     <td className="p-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-2">
+                        {/* Edit Student Profile Button */}
+                        <button
+                          onClick={() => handleOpenEditModal(stu)}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition flex items-center space-x-1 cursor-pointer"
+                          title="Edit Student Profile & Photo"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+
                         {/* Digital ID Card Button */}
                         <button
                           onClick={() => {
@@ -1094,6 +1154,158 @@ export default function StudentsPage() {
         </div>
       )}
 
+      {/* EDIT STUDENT PROFILE MODAL */}
+      {showEditModal && editingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setShowEditModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
+              ✕
+            </button>
+            <div>
+              <div className="flex items-center space-x-2 text-slate-600 font-bold text-xs uppercase mb-1">
+                <Edit3 className="w-4 h-4 text-orange-500" />
+                <span>Student Master Directory</span>
+              </div>
+              <h2 className="text-xl font-black text-slate-900">Edit Student Profile</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Update passport photo, parent contact details, blood group, and address for <strong className="text-slate-900">{editingStudent.name}</strong>.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveEditedStudent} className="space-y-4">
+              {/* Photo Upload Provision */}
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
+                <label className="block text-xs font-bold text-slate-700 uppercase">Update Passport Photo</label>
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 rounded-2xl bg-white border border-slate-300 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                    {editFormData.photoUrl ? (
+                      <img src={editFormData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-slate-400" />
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 flex-1">
+                    <label className="bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl border border-slate-200 transition flex items-center space-x-2 cursor-pointer w-fit shadow-xs">
+                      <Upload className="w-3.5 h-3.5 text-orange-500" />
+                      <span>Change Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                              setEditFormData({ ...editFormData, photoUrl: evt.target?.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Parent Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.parentName}
+                    onChange={(e) => setEditFormData({ ...editFormData, parentName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Parent Phone *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={editFormData.parentPhone}
+                    onChange={(e) => setEditFormData({ ...editFormData, parentPhone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Blood Group</label>
+                  <select
+                    value={editFormData.bloodGroup}
+                    onChange={(e) => setEditFormData({ ...editFormData, bloodGroup: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
+                  >
+                    {['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'].map((bg) => (
+                      <option key={bg} value={bg}>
+                        {bg}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Address / City</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dahisar, Mumbai"
+                    value={editFormData.address}
+                    onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Emergency Contact Name</label>
+                  <input
+                    type="text"
+                    value={editFormData.emergencyContactName}
+                    onChange={(e) => setEditFormData({ ...editFormData, emergencyContactName: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Emergency Phone</label>
+                  <input
+                    type="tel"
+                    value={editFormData.emergencyPhone}
+                    onChange={(e) => setEditFormData({ ...editFormData, emergencyPhone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isUpdatingStudent}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
+              >
+                {isUpdatingStudent ? 'Saving Changes...' : 'Update Student Profile'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* DIGITAL STUDENT ID CARD MODAL */}
       {showIdCardModal && selectedIdCardStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 text-slate-900 overflow-y-auto">
@@ -1107,7 +1319,7 @@ export default function StudentsPage() {
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div>
-                <div className="flex items-center space-x-2 text-teal-600 font-bold text-xs uppercase mb-1">
+                <div className="flex items-center space-x-2 font-bold text-xs uppercase mb-1" style={{ color: academyInfo?.primaryColor || '#f97316' }}>
                   <CreditCard className="w-4 h-4" />
                   <span>Official Student Identifier</span>
                 </div>
@@ -1120,7 +1332,8 @@ export default function StudentsPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => window.print()}
-                  className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-teal-600/20 transition flex items-center space-x-2 cursor-pointer"
+                  style={{ backgroundColor: academyInfo?.primaryColor || '#f97316' }}
+                  className="hover:opacity-90 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   <span>Print / Save as PDF</span>
@@ -1129,45 +1342,59 @@ export default function StudentsPage() {
             </div>
 
             {/* Printable ID Card Container (Front & Back Cards) */}
-            <div id="printable-id-card" className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center py-4 bg-slate-100 p-6 rounded-3xl border border-slate-200">
+            <div id="printable-id-card" className="grid grid-cols-1 lg:grid-cols-2 gap-6 justify-items-center py-4 bg-slate-100 p-5 md:p-6 rounded-3xl border border-slate-200">
               
               {/* FRONT PAGE CARD */}
-              <div className="w-[360px] h-[230px] bg-white rounded-2xl border-2 border-teal-700 overflow-hidden shadow-xl flex flex-col justify-between relative text-slate-800">
+              <div 
+                className="w-[350px] min-h-[220px] bg-white rounded-2xl border-2 overflow-hidden shadow-xl flex flex-col justify-between relative text-slate-800 shrink-0"
+                style={{ borderColor: academyInfo?.primaryColor || '#f97316' }}
+              >
                 {/* Header Banner */}
-                <div className="bg-teal-800 text-white p-2.5 px-3 flex items-center space-x-2.5 border-b-2 border-teal-900">
-                  <div className="w-9 h-9 rounded-full bg-white/10 p-1 flex items-center justify-center border border-white/20 shrink-0">
+                <div 
+                  className="text-white p-2 px-3 flex items-center space-x-2 border-b-2"
+                  style={{ 
+                    backgroundColor: academyInfo?.primaryColor || '#f97316',
+                    borderColor: 'rgba(0,0,0,0.15)'
+                  }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/20 p-1 flex items-center justify-center border border-white/30 shrink-0">
                     {academyInfo?.logoUrl ? (
                       <img src={academyInfo.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
                     ) : (
-                      <GraduationCap className="w-5 h-5 text-yellow-400" />
+                      <GraduationCap className="w-4 h-4 text-yellow-300" />
                     )}
                   </div>
                   <div className="leading-tight overflow-hidden">
                     <h3 className="font-black uppercase text-[11px] tracking-wide text-yellow-300 truncate">
-                      {academyInfo?.name || 'BRIGHT MINDS COACHING ACADEMY'}
+                      {academyInfo?.name || 'CHOPRA ACADEMY'}
                     </h3>
-                    <p className="text-[8px] text-teal-100 font-medium truncate">{academyInfo?.address || 'Quality Coaching & Academic ERP'}</p>
+                    <p className="text-[8px] text-white/90 font-medium truncate">{academyInfo?.address || 'Academic & Coaching ERP'}</p>
                   </div>
                 </div>
 
                 {/* Sub-Header Title Banner */}
-                <div className="bg-teal-700 text-white text-center py-1 font-black uppercase text-[10px] tracking-widest">
+                <div 
+                  className="text-white text-center py-0.5 font-black uppercase text-[9.5px] tracking-widest shadow-xs"
+                  style={{ backgroundColor: academyInfo?.primaryColor || '#f97316', filter: 'brightness(0.88)' }}
+                >
                   STUDENT ID CARD
                 </div>
 
                 {/* Card Body */}
-                <div className="p-3 px-4 flex items-start justify-between flex-1 gap-2 bg-gradient-to-b from-teal-50/30 to-white">
+                <div className="p-3 px-3.5 flex items-start justify-between flex-1 gap-2 bg-gradient-to-b from-slate-50 to-white">
                   {/* Student Text Fields */}
-                  <div className="space-y-1 text-[10px] text-slate-800 flex-1 leading-tight">
+                  <div className="space-y-1 text-[9.5px] text-slate-800 flex-1 leading-tight">
                     <div className="pb-0.5">
-                      <span className="font-extrabold text-slate-900 text-xs block truncate uppercase">
+                      <span className="font-black text-slate-900 text-[11px] block truncate uppercase">
                         NAME: {selectedIdCardStudent.name}
                       </span>
                     </div>
 
                     <div className="flex items-center space-x-1">
                       <span className="font-bold text-slate-600">ROLL NO:</span>
-                      <span className="font-mono font-extrabold text-teal-800">{selectedIdCardStudent.rollNo || selectedIdCardStudent.studentCode}</span>
+                      <span className="font-mono font-extrabold" style={{ color: academyInfo?.primaryColor || '#f97316' }}>
+                        {selectedIdCardStudent.rollNo || selectedIdCardStudent.studentCode}
+                      </span>
                     </div>
 
                     <div className="flex items-center space-x-1">
@@ -1179,7 +1406,7 @@ export default function StudentsPage() {
 
                     <div className="flex items-center space-x-1">
                       <span className="font-bold text-slate-600">BATCH:</span>
-                      <span className="font-bold text-slate-800 truncate max-w-[150px]">
+                      <span className="font-bold text-slate-800 truncate max-w-[140px]">
                         {selectedIdCardStudent.classBatchId?.batchName || `Std ${selectedIdCardStudent.standard}th Batch`}
                       </span>
                     </div>
@@ -1190,66 +1417,100 @@ export default function StudentsPage() {
                     </div>
                   </div>
 
-                  {/* Student Photo & Signature */}
+                  {/* Student Photo & Principal Signature */}
                   <div className="flex flex-col items-center shrink-0 space-y-1">
-                    <div className="w-[72px] h-[85px] rounded-lg bg-slate-100 border-2 border-teal-700 overflow-hidden shadow-sm flex items-center justify-center">
+                    <div 
+                      className="w-[68px] h-[78px] rounded-lg bg-slate-100 border-2 overflow-hidden shadow-sm flex items-center justify-center"
+                      style={{ borderColor: academyInfo?.primaryColor || '#f97316' }}
+                    >
                       {selectedIdCardStudent.photoUrl ? (
                         <img src={selectedIdCardStudent.photoUrl} alt="Photo" className="w-full h-full object-cover" />
                       ) : (
-                        <User className="w-10 h-10 text-slate-400" />
+                        <User className="w-9 h-9 text-slate-400" />
                       )}
                     </div>
                     <div className="text-[7px] font-bold text-slate-600 border-t border-slate-300 pt-0.5 w-full text-center">
-                      <span className="font-serif italic block text-[9px] text-slate-800 leading-none">Rahul Sharma</span>
-                      <span className="uppercase text-[6px] tracking-tighter text-slate-500 font-sans">PRINCIPAL'S SIGNATURE</span>
+                      <span className="font-serif italic block text-[9px] text-slate-900 leading-none truncate max-w-[80px]">
+                        {academyInfo?.directorName || 'Sandeep Chopra'}
+                      </span>
+                      <span className="uppercase text-[5.5px] tracking-tighter text-slate-500 font-sans block">PRINCIPAL'S SIGNATURE</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer Bar */}
-                <div className="bg-teal-900 text-teal-100 p-1 px-3 flex items-center justify-between text-[8px] font-bold">
-                  <span className="bg-teal-800 text-white px-2 py-0.5 rounded text-[7px] tracking-wider uppercase font-black">ISSUED BY ACADEMY</span>
-                  <span className="font-mono">{academyInfo?.phone || '+91 9876543210'}</span>
+                <div 
+                  className="text-white p-1 px-3 flex items-center justify-between text-[7.5px] font-bold border-t"
+                  style={{ 
+                    backgroundColor: academyInfo?.primaryColor || '#f97316',
+                    filter: 'brightness(0.75)',
+                    borderColor: 'rgba(0,0,0,0.15)'
+                  }}
+                >
+                  <span 
+                    className="text-white px-2 py-0.5 rounded text-[6.5px] tracking-wider uppercase font-black"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.25)' }}
+                  >
+                    ISSUED BY ACADEMY
+                  </span>
+                  <span className="font-mono text-[7px]">{academyInfo?.phone || '+91 9821979149'}</span>
                 </div>
               </div>
 
               {/* BACK PAGE CARD */}
-              <div className="w-[360px] h-[230px] bg-white rounded-2xl border-2 border-teal-700 overflow-hidden shadow-xl flex flex-col justify-between relative text-slate-800">
+              <div 
+                className="w-[350px] min-h-[220px] bg-white rounded-2xl border-2 overflow-hidden shadow-xl flex flex-col justify-between relative text-slate-800 shrink-0"
+                style={{ borderColor: academyInfo?.primaryColor || '#f97316' }}
+              >
                 {/* Back Header */}
-                <div className="bg-teal-800 text-white p-2 px-3 text-center border-b-2 border-teal-900">
+                <div 
+                  className="text-white p-1.5 px-3 text-center border-b-2"
+                  style={{ 
+                    backgroundColor: academyInfo?.primaryColor || '#f97316',
+                    borderColor: 'rgba(0,0,0,0.15)'
+                  }}
+                >
                   <h4 className="font-extrabold uppercase text-[10px] tracking-wider text-yellow-300">
                     EMERGENCY CONTACT INFORMATION
                   </h4>
-                  <p className="text-[8px] text-teal-100 font-bold uppercase tracking-widest">IMPORTANT DETAILS</p>
+                  <p className="text-[7.5px] text-white/90 font-bold uppercase tracking-widest">IMPORTANT DETAILS</p>
                 </div>
 
                 {/* Back Details Grid */}
-                <div className="p-3 px-4 space-y-1.5 text-[9.5px] leading-tight flex-1 bg-gradient-to-b from-teal-50/20 to-white">
-                  <div className="flex items-center space-x-1.5 border-b border-slate-100 pb-1">
+                <div className="p-2.5 px-3.5 space-y-1 text-[9px] leading-tight flex-1 bg-gradient-to-b from-slate-50 to-white">
+                  <div className="flex items-center space-x-1.5 border-b border-slate-100 pb-0.5">
                     <span className="font-extrabold text-slate-900 uppercase">BLOOD GROUP:</span>
-                    <span className="font-mono font-black text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                    <span className="font-mono font-black text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 text-[8.5px]">
                       {selectedIdCardStudent.bloodGroup || 'B+'}
                     </span>
                   </div>
 
-                  <div className="border-b border-slate-100 pb-1">
+                  <div className="border-b border-slate-100 pb-0.5">
                     <span className="font-extrabold text-slate-900 uppercase">EMERGENCY CONTACT NAME: </span>
                     <span className="font-bold text-slate-700">{selectedIdCardStudent.emergencyContactName || selectedIdCardStudent.parentName}</span>
                   </div>
 
-                  <div className="border-b border-slate-100 pb-1">
+                  <div className="border-b border-slate-100 pb-0.5">
                     <span className="font-extrabold text-slate-900 uppercase">EMERGENCY PHONE NO: </span>
                     <span className="font-mono font-bold text-slate-800">{selectedIdCardStudent.emergencyPhone || selectedIdCardStudent.parentPhone}</span>
                   </div>
 
-                  <div className="border-b border-slate-100 pb-1 truncate">
+                  <div className="border-b border-slate-100 pb-0.5 truncate">
                     <span className="font-extrabold text-slate-900 uppercase">ADDRESS: </span>
-                    <span className="font-medium text-slate-700">{selectedIdCardStudent.address || academyInfo?.address || 'Pune, Maharashtra'}</span>
+                    <span className="font-bold text-slate-800">{selectedIdCardStudent.address || 'Address Not Provided'}</span>
                   </div>
 
                   {/* Instructions Box */}
-                  <div className="bg-teal-50/80 border border-teal-200 p-2 rounded-xl text-[8px] space-y-0.5 text-teal-950">
-                    <span className="font-black uppercase tracking-wider block text-teal-900">INSTRUCTIONS:</span>
+                  <div 
+                    className="p-1.5 rounded-xl text-[7.5px] space-y-0.5 border"
+                    style={{ 
+                      borderColor: `${academyInfo?.primaryColor || '#f97316'}40`,
+                      backgroundColor: `${academyInfo?.primaryColor || '#f97316'}10`
+                    }}
+                  >
+                    <span className="font-black uppercase tracking-wider block" style={{ color: academyInfo?.primaryColor || '#f97316' }}>
+                      INSTRUCTIONS:
+                    </span>
                     <ol className="list-decimal list-inside space-y-0.5 font-medium leading-tight text-slate-700">
                       <li>This card is non-transferable.</li>
                       <li>Loss of card must be reported immediately.</li>
@@ -1260,7 +1521,14 @@ export default function StudentsPage() {
                 </div>
 
                 {/* Back Footer Bar */}
-                <div className="bg-teal-900 text-teal-200 p-1 px-3 text-center text-[7.5px] font-bold">
+                <div 
+                  className="text-white p-1 px-3 text-center text-[7px] font-bold border-t"
+                  style={{ 
+                    backgroundColor: academyInfo?.primaryColor || '#f97316',
+                    filter: 'brightness(0.75)',
+                    borderColor: 'rgba(0,0,0,0.15)'
+                  }}
+                >
                   <span>PROHIT EDUCARE ERP • DIGITAL ACADEMY IDENTIFICATION</span>
                 </div>
               </div>
