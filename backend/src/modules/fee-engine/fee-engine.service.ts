@@ -78,6 +78,41 @@ export class FeeEngineService {
     return this.feeStructureModel.find({ academyId }).sort({ standard: 1 }).exec();
   }
 
+  async updateFeeStructure(
+    id: string,
+    dto: { standard?: number; medium?: string; stream?: string; name?: string; totalAmount?: number; installmentsCount?: number; startDate?: Date },
+  ) {
+    const academyId = this.tenantContextService.academyId;
+    const existing = await this.feeStructureModel.findOne({ _id: id, academyId }).exec();
+    if (!existing) throw new NotFoundException('Fee structure not found');
+
+    const totalAmount = dto.totalAmount ?? existing.totalAmount;
+    const installmentsCount = dto.installmentsCount ?? existing.installmentsCount;
+    const breakdown = this.generateInstallmentBreakdown(totalAmount, installmentsCount, dto.startDate ? new Date(dto.startDate) : new Date());
+
+    const updated = await this.feeStructureModel
+      .findOneAndUpdate(
+        { _id: id, academyId },
+        {
+          ...dto,
+          totalAmount,
+          installmentsCount,
+          installmentBreakdown: breakdown,
+        },
+        { new: true },
+      )
+      .exec();
+
+    return updated;
+  }
+
+  async deleteFeeStructure(id: string) {
+    const academyId = this.tenantContextService.academyId;
+    const res = await this.feeStructureModel.deleteOne({ _id: id, academyId }).exec();
+    if (res.deletedCount === 0) throw new NotFoundException('Fee structure not found');
+    return { message: 'Fee structure deleted successfully' };
+  }
+
   async assignFeeStructureToStudent(studentId: string, feeStructureId: string) {
     const academyId = this.tenantContextService.academyId;
     const student = await this.studentModel.findOne({ _id: studentId, academyId }).exec();

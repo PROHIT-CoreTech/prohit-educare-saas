@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Delete, Param, UseGuards } from '@nestjs/common';
 import { FeeEngineService } from './fee-engine.service';
 import { AcademyAuthGuard } from '../../common/guards/academy-auth.guard';
 import { SubscriptionActiveGuard } from '../../common/guards/subscription-active.guard';
@@ -16,6 +16,19 @@ export class FeeEngineController {
   @Get('structures')
   async getFeeStructures() {
     return this.feeEngineService.getFeeStructures();
+  }
+
+  @Put('structures/:id')
+  async updateFeeStructure(
+    @Param('id') id: string,
+    @Body() body: { standard?: number; medium?: string; stream?: string; name?: string; totalAmount?: number; installmentsCount?: number; startDate?: Date },
+  ) {
+    return this.feeEngineService.updateFeeStructure(id, body);
+  }
+
+  @Delete('structures/:id')
+  async deleteFeeStructure(@Param('id') id: string) {
+    return this.feeEngineService.deleteFeeStructure(id);
   }
 
   @Post('assign-structure')

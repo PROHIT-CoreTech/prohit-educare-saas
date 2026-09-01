@@ -28,6 +28,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const [feeStructures, setFeeStructures] = useState<any[]>([]);
   const [showFeeModal, setShowFeeModal] = useState(false);
+  const [editingFeeId, setEditingFeeId] = useState<string | null>(null);
   const [feeForm, setFeeForm] = useState({
     standard: 10,
     medium: 'english',
@@ -39,6 +40,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const [facultyList, setFacultyList] = useState<any[]>([]);
   const [showFacultyModal, setShowFacultyModal] = useState(false);
+  const [editingFacultyId, setEditingFacultyId] = useState<string | null>(null);
   const [facultySearch, setFacultySearch] = useState('');
   const [facultyForm, setFacultyForm] = useState({
     name: '',
@@ -46,8 +48,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     email: '',
     subject: '',
     qualification: '',
-    assignedStandards: [] as number[],
+    assignedStandards: [] as string[],
+    status: 'ACTIVE',
   });
+
+  const availableStandardOptions = [
+    '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th',
+    '10th Eng', '10th Mar', '11th Sci', '11th Com', '11th Arts',
+    '12th Sci', '12th Com', '12th Arts', '13th', '14th', '15th',
+  ];
 
   useEffect(() => {
     fetchAcademy();
@@ -113,44 +122,107 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     } catch (e) {}
   };
 
-  const handleCreateFeeStructure = async (e: React.FormEvent) => {
+  const handleOpenNewFeeModal = () => {
+    setEditingFeeId(null);
+    setFeeForm({
+      standard: 10,
+      medium: 'english',
+      stream: 'science',
+      name: 'Annual Tuition Fee',
+      totalAmount: 35000,
+      installmentsCount: 1,
+    });
+    setShowFeeModal(true);
+  };
+
+  const handleOpenEditFeeModal = (fs: any) => {
+    setEditingFeeId(fs._id);
+    setFeeForm({
+      standard: fs.standard || 10,
+      medium: fs.medium || 'english',
+      stream: fs.stream || 'science',
+      name: fs.name || 'Annual Tuition Fee',
+      totalAmount: fs.totalAmount || 35000,
+      installmentsCount: fs.installmentsCount || 1,
+    });
+    setShowFeeModal(true);
+  };
+
+  const handleSaveFeeStructure = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.post('/fee-engine/structures', {
-        ...feeForm,
-        installmentsCount: 1,
-      });
+      if (editingFeeId) {
+        await apiClient.put(`/fee-engine/structures/${editingFeeId}`, feeForm);
+      } else {
+        await apiClient.post('/fee-engine/structures', feeForm);
+      }
       setShowFeeModal(false);
       fetchFeeStructures();
-      setFeeForm({
-        standard: 10,
-        medium: 'english',
-        stream: 'science',
-        name: 'Annual Tuition Fee',
-        totalAmount: 35000,
-        installmentsCount: 1,
-      });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to save fee structure');
     }
   };
 
-  const handleCreateFaculty = async (e: React.FormEvent) => {
+  const handleDeleteFeeStructure = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this fee structure?')) return;
+    try {
+      await apiClient.delete(`/fee-engine/structures/${id}`);
+      fetchFeeStructures();
+    } catch (err: any) {
+      alert('Failed to delete fee structure');
+    }
+  };
+
+  const handleOpenNewFacultyModal = () => {
+    setEditingFacultyId(null);
+    setFacultyForm({
+      name: '',
+      phone: '',
+      email: '',
+      subject: '',
+      qualification: '',
+      assignedStandards: [],
+      status: 'ACTIVE',
+    });
+    setShowFacultyModal(true);
+  };
+
+  const handleOpenEditFacultyModal = (f: any) => {
+    setEditingFacultyId(f._id);
+    setFacultyForm({
+      name: f.name || '',
+      phone: f.phone || '',
+      email: f.email || '',
+      subject: f.subject || '',
+      qualification: f.qualification || '',
+      assignedStandards: (f.assignedStandards || []).map((s: any) => String(s)),
+      status: f.status || 'ACTIVE',
+    });
+    setShowFacultyModal(true);
+  };
+
+  const handleSaveFaculty = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.post('/faculty', facultyForm);
+      if (editingFacultyId) {
+        await apiClient.put(`/faculty/${editingFacultyId}`, facultyForm);
+      } else {
+        await apiClient.post('/faculty', facultyForm);
+      }
       setShowFacultyModal(false);
       fetchFaculty();
-      setFacultyForm({
-        name: '',
-        phone: '',
-        email: '',
-        subject: '',
-        qualification: '',
-        assignedStandards: [],
-      });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to save faculty profile');
+    }
+  };
+
+  const handleToggleFacultyStatus = async (f: any) => {
+    const nextStatus = f.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    try {
+      await apiClient.put(`/faculty/${f._id}`, { status: nextStatus });
+      fetchFaculty();
+    } catch (err: any) {
+      alert('Failed to update faculty status');
     }
   };
 
@@ -550,7 +622,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               <p className="text-xs text-slate-500 font-medium">Configure base total fees standard-wise for Standards 1st through 15th</p>
             </div>
             <button
-              onClick={() => setShowFeeModal(true)}
+              onClick={handleOpenNewFeeModal}
               className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-1.5 transition"
             >
               <Plus className="w-4 h-4" />
@@ -565,7 +637,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               </div>
             ) : (
               feeStructures.map((fs) => (
-                <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3">
+                <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3 relative group">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-1.5">
                       <span className="bg-orange-50 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-xl border border-orange-200">
@@ -576,6 +648,23 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                           ? fs.medium === 'semi_english' ? 'Semi-English' : fs.medium === 'marathi' ? 'Marathi' : fs.medium === 'hindi' ? 'Hindi' : 'English'
                           : fs.stream !== 'none' ? fs.stream : 'General'}
                       </span>
+                    </div>
+
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => handleOpenEditFeeModal(fs)}
+                        className="text-slate-400 hover:text-orange-600 p-1.5 rounded-lg transition"
+                        title="Edit Fee Structure"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFeeStructure(fs._id)}
+                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition"
+                        title="Delete Fee Structure"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
@@ -608,7 +697,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </div>
 
             <button
-              onClick={() => setShowFacultyModal(true)}
+              onClick={handleOpenNewFacultyModal}
               className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-1.5 transition self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
@@ -621,7 +710,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
                 <tr>
                   <th className="p-4">Faculty Name</th>
-                  <th className="p-4">Subject Specialization</th>
+                  <th className="p-4">Subject</th>
+                  <th className="p-4">Status</th>
                   <th className="p-4">Contact Phone & Email</th>
                   <th className="p-4">Qualification</th>
                   <th className="p-4">Assigned Standards</th>
@@ -631,7 +721,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               <tbody className="divide-y divide-slate-200 text-xs">
                 {filteredFaculty.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">
+                    <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
                       No faculty members found matching your search.
                     </td>
                   </tr>
@@ -644,6 +734,19 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                           {f.subject}
                         </span>
                       </td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => handleToggleFacultyStatus(f)}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition ${
+                            f.status === 'ACTIVE'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                          }`}
+                          title="Click to toggle status"
+                        >
+                          {f.status || 'ACTIVE'}
+                        </button>
+                      </td>
                       <td className="p-4 font-mono text-slate-800">
                         <div>{f.phone}</div>
                         <span className="text-[10px] text-slate-500 block font-sans">{f.email || 'N/A'}</span>
@@ -651,21 +754,34 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                       <td className="p-4 text-slate-700 font-medium">{f.qualification || 'M.Sc / B.Ed'}</td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
-                          {f.assignedStandards?.map((std: number) => (
-                            <span key={std} className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-slate-200">
-                              Std {std}
-                            </span>
-                          )) || <span className="text-slate-500 text-[10px]">All Standards</span>}
+                          {f.assignedStandards && f.assignedStandards.length > 0 ? (
+                            f.assignedStandards.map((std: string) => (
+                              <span key={std} className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-slate-200">
+                                {std.includes('Std') ? std : `Std ${std}`}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-slate-500 text-[10px]">All Standards</span>
+                          )}
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        <button
-                          onClick={() => handleDeleteFaculty(f._id)}
-                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition"
-                          title="Delete Faculty Profile"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end space-x-1">
+                          <button
+                            onClick={() => handleOpenEditFacultyModal(f)}
+                            className="text-slate-400 hover:text-orange-600 p-1.5 rounded-lg transition"
+                            title="Edit Faculty Profile"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFaculty(f._id)}
+                            className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition"
+                            title="Delete Faculty Profile"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -800,16 +916,18 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         </div>
       )}
 
-      {/* CREATE FEE STRUCTURE MODAL */}
+      {/* CREATE / EDIT FEE STRUCTURE MODAL */}
       {showFeeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <button onClick={() => setShowFeeModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
-            <h2 className="text-xl font-black text-slate-900">Configure Standard Fee Structure</h2>
+            <h2 className="text-xl font-black text-slate-900">
+              {editingFeeId ? 'Edit Standard Fee Structure' : 'Configure Standard Fee Structure'}
+            </h2>
 
-            <form onSubmit={handleCreateFeeStructure} className="space-y-4">
+            <form onSubmit={handleSaveFeeStructure} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1 - 15)</label>
                 <select
@@ -875,39 +993,56 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Total Base Fee Amount (₹)</label>
-                <input
-                  type="number"
-                  min={1000}
-                  required
-                  value={feeForm.totalAmount}
-                  onChange={(e) => setFeeForm({ ...feeForm, totalAmount: Number(e.target.value) })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-mono font-bold"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Total Base Fee Amount (₹)</label>
+                  <input
+                    type="number"
+                    min={1000}
+                    required
+                    value={feeForm.totalAmount}
+                    onChange={(e) => setFeeForm({ ...feeForm, totalAmount: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Installments Count</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    required
+                    value={feeForm.installmentsCount}
+                    onChange={(e) => setFeeForm({ ...feeForm, installmentsCount: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-mono font-bold"
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
               >
-                Save Fee Structure
+                {editingFeeId ? 'Update Fee Structure' : 'Save Fee Structure'}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* CREATE FACULTY MODAL */}
+      {/* CREATE / EDIT FACULTY MODAL */}
       {showFacultyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg w-full relative shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <button onClick={() => setShowFacultyModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
               ✕
             </button>
-            <h2 className="text-xl font-black text-slate-900">Add Faculty Profile</h2>
+            <h2 className="text-xl font-black text-slate-900">
+              {editingFacultyId ? 'Edit Faculty Profile' : 'Add Faculty Profile'}
+            </h2>
 
-            <form onSubmit={handleCreateFaculty} className="space-y-4">
+            <form onSubmit={handleSaveFaculty} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty Full Name *</label>
                 <input
@@ -945,16 +1080,30 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Subject Specialization *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter subject specialization"
-                  value={facultyForm.subject}
-                  onChange={(e) => setFacultyForm({ ...facultyForm, subject: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Subject Specialization *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter subject specialization"
+                    value={facultyForm.subject}
+                    onChange={(e) => setFacultyForm({ ...facultyForm, subject: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty Status</label>
+                  <select
+                    value={facultyForm.status}
+                    onChange={(e) => setFacultyForm({ ...facultyForm, status: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -968,11 +1117,49 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 />
               </div>
 
+              {/* Multi-Select Assigned Standards */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                  Assigned Standards (Multi-Select)
+                </label>
+                <div className="flex flex-wrap gap-1.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl max-h-36 overflow-y-auto">
+                  {availableStandardOptions.map((std) => {
+                    const isSelected = facultyForm.assignedStandards.includes(std);
+                    return (
+                      <button
+                        key={std}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setFacultyForm({
+                              ...facultyForm,
+                              assignedStandards: facultyForm.assignedStandards.filter((s) => s !== std),
+                            });
+                          } else {
+                            setFacultyForm({
+                              ...facultyForm,
+                              assignedStandards: [...facultyForm.assignedStandards, std],
+                            });
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-extrabold border transition ${
+                          isSelected
+                            ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-orange-300'
+                        }`}
+                      >
+                        {isSelected ? `✓ Std ${std}` : `+ Std ${std}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
               >
-                Save Faculty Profile
+                {editingFacultyId ? 'Update Faculty Profile' : 'Save Faculty Profile'}
               </button>
             </form>
           </div>

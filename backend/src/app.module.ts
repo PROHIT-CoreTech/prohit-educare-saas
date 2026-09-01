@@ -11,6 +11,8 @@ import { ExamMarksModule } from './modules/exam-marks/exam-marks.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FacultyModule } from './modules/faculty/faculty.module';
+import { RosterModule } from './modules/roster/roster.module';
+import { FacultyAttendanceModule } from './modules/faculty-attendance/faculty-attendance.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { FacultyModule } from './modules/faculty/faculty.module';
     ExamMarksModule,
     ReportsModule,
     FacultyModule,
+    RosterModule,
+    FacultyAttendanceModule,
   ],
 })
 export class AppModule {}

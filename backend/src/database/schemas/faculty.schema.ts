@@ -23,8 +23,8 @@ export class Faculty {
   @Prop({ required: false, trim: true })
   qualification?: string;
 
-  @Prop({ type: [Number], default: [] })
-  assignedStandards: number[];
+  @Prop({ type: [String], default: [] })
+  assignedStandards: string[];
 
   @Prop({ required: true, enum: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' })
   status: string;
