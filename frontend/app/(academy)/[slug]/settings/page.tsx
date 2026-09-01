@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
@@ -52,11 +52,63 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     status: 'ACTIVE',
   });
 
+  const [selectedFeeCategory, setSelectedFeeCategory] = useState<string>('all');
+
   const availableStandardOptions = [
     '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th',
     '10th Eng', '10th Mar', '11th Sci', '11th Com', '11th Arts',
     '12th Sci', '12th Com', '12th Arts', '13th', '14th', '15th',
   ];
+
+  const feeCategories = useMemo(() => {
+    return [
+      {
+        id: 'primary',
+        title: 'Primary School',
+        subtitle: 'Standards 1st through 5th (Foundational Education)',
+        badge: '1st - 5th',
+        gradient: 'from-amber-500 to-orange-500',
+        badgeStyle: 'bg-amber-50 text-amber-800 border-amber-200',
+        items: feeStructures.filter((f) => f.standard >= 1 && f.standard <= 5),
+      },
+      {
+        id: 'middle',
+        title: 'Middle School',
+        subtitle: 'Standards 6th through 8th (Secondary Prep)',
+        badge: '6th - 8th',
+        gradient: 'from-blue-500 to-cyan-500',
+        badgeStyle: 'bg-blue-50 text-blue-800 border-blue-200',
+        items: feeStructures.filter((f) => f.standard >= 6 && f.standard <= 8),
+      },
+      {
+        id: 'secondary',
+        title: 'High School / Board Batches',
+        subtitle: 'Standards 9th & 10th (SSC / State Board Prep)',
+        badge: '9th - 10th',
+        gradient: 'from-emerald-500 to-teal-500',
+        badgeStyle: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        items: feeStructures.filter((f) => f.standard >= 9 && f.standard <= 10),
+      },
+      {
+        id: 'higher_secondary',
+        title: 'Junior College (11th - 12th)',
+        subtitle: 'Higher Secondary Streams (Science, Commerce & Arts)',
+        badge: '11th - 12th',
+        gradient: 'from-purple-500 to-indigo-500',
+        badgeStyle: 'bg-purple-50 text-purple-800 border-purple-200',
+        items: feeStructures.filter((f) => f.standard >= 11 && f.standard <= 12),
+      },
+      {
+        id: 'degree',
+        title: 'Undergraduate & Degree',
+        subtitle: 'Standards 13th through 15th (FY / SY / TY Degree & Diploma)',
+        badge: '13th - 15th',
+        gradient: 'from-rose-500 to-pink-500',
+        badgeStyle: 'bg-rose-50 text-rose-800 border-rose-200',
+        items: feeStructures.filter((f) => f.standard >= 13 && f.standard <= 15),
+      },
+    ];
+  }, [feeStructures]);
 
   useEffect(() => {
     fetchAcademy();
@@ -644,68 +696,178 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
       {/* TAB 1: STANDARD-WISE FEE STRUCTURES */}
       {activeTab === 'fee-structure' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        <div className="space-y-8">
+          {/* Header & Main CTA */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-extrabold text-slate-900">Standard Fee Structures</h2>
-              <p className="text-xs text-slate-500 font-medium">Configure base total fees standard-wise for Standards 1st through 15th</p>
+              <h2 className="text-xl font-extrabold text-slate-900 flex items-center space-x-2">
+                <CreditCard className="w-5 h-5 text-orange-500" />
+                <span>Standard Fee Structures</span>
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Base annual tuition fee catalog organized by academic tiers (Std 1st through 15th)
+              </p>
             </div>
             <button
               onClick={handleOpenNewFeeModal}
-              className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-1.5 transition"
+              className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-1.5 transition self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
               <span>Configure Fee Structure</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {feeStructures.length === 0 ? (
-              <div className="col-span-3 bg-white border border-slate-200 p-8 rounded-3xl text-center text-slate-500 text-sm font-medium shadow-sm">
-                No standard fee structures configured yet. Click &quot;Configure Fee Structure&quot; to set up base tuition fees for Std 1st - 15th.
-              </div>
-            ) : (
-              feeStructures.map((fs) => (
-                <div key={fs._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3 relative group">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1.5">
-                      <span className="bg-orange-50 text-orange-700 text-xs font-extrabold px-3 py-1 rounded-xl border border-orange-200">
-                        Std {fs.standard}th
-                      </span>
-                      <span className="bg-slate-100 text-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-xl border border-slate-200 uppercase">
-                        {fs.standard <= 10
-                          ? fs.medium === 'semi_english' ? 'Semi-English' : fs.medium === 'marathi' ? 'Marathi' : fs.medium === 'hindi' ? 'Hindi' : 'English'
-                          : fs.stream !== 'none' ? fs.stream : 'General'}
-                      </span>
+          {/* Category Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-2 bg-white border border-slate-200 p-2 rounded-2xl shadow-xs text-xs">
+            <button
+              onClick={() => setSelectedFeeCategory('all')}
+              className={`px-3.5 py-1.5 rounded-xl font-extrabold transition ${
+                selectedFeeCategory === 'all'
+                  ? 'bg-orange-500 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              All Tiers ({feeStructures.length})
+            </button>
+
+            {feeCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedFeeCategory(cat.id)}
+                className={`px-3.5 py-1.5 rounded-xl font-bold transition flex items-center space-x-1.5 ${
+                  selectedFeeCategory === cat.id
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <span>{cat.title.split(' ')[0]}</span>
+                <span className="bg-slate-200/80 text-slate-800 text-[10px] px-1.5 py-0.2 rounded-md font-mono">
+                  {cat.items.length}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Categorized Fee Groups */}
+          <div className="space-y-8">
+            {feeCategories
+              .filter((cat) => selectedFeeCategory === 'all' || selectedFeeCategory === cat.id)
+              .map((category) => (
+                <div key={category.id} className="space-y-4">
+                  {/* Category Header */}
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${category.gradient} shadow-xs`} />
+                      <div>
+                        <h3 className="text-base font-extrabold text-slate-900 flex items-center space-x-2">
+                          <span>{category.title}</span>
+                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${category.badgeStyle}`}>
+                            {category.badge}
+                          </span>
+                        </h3>
+                        <p className="text-[11px] text-slate-500 font-medium">{category.subtitle}</p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={() => handleOpenEditFeeModal(fs)}
-                        className="text-slate-400 hover:text-orange-600 p-1.5 rounded-lg transition"
-                        title="Edit Fee Structure"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFeeStructure(fs._id)}
-                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition"
-                        title="Delete Fee Structure"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <span className="text-xs font-bold text-slate-400 font-mono">
+                      {category.items.length} {category.items.length === 1 ? 'Structure' : 'Structures'}
+                    </span>
                   </div>
 
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900">{fs.name}</h3>
-                    <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">
-                      ₹{fs.totalAmount?.toLocaleString('en-IN')}
+                  {/* Category Cards Grid */}
+                  {category.items.length === 0 ? (
+                    <div className="bg-slate-50/60 border border-dashed border-slate-200 p-6 rounded-2xl text-center space-y-2">
+                      <p className="text-xs font-semibold text-slate-500">
+                        No fee structures configured for {category.title}.
+                      </p>
+                      <button
+                        onClick={handleOpenNewFeeModal}
+                        className="text-xs font-bold text-orange-600 hover:text-orange-700 transition"
+                      >
+                        + Configure structure for this tier
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      {category.items.map((fs) => {
+                        const stream = fs.stream?.toLowerCase();
+                        const medium = fs.medium?.toLowerCase();
+
+                        const streamBadgeClass =
+                          stream === 'science'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : stream === 'commerce'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : stream === 'arts'
+                            ? 'bg-purple-50 text-purple-700 border-purple-200'
+                            : 'bg-slate-100 text-slate-700 border-slate-200';
+
+                        return (
+                          <div
+                            key={fs._id}
+                            className="bg-white border border-slate-200 hover:border-orange-300 p-6 rounded-3xl shadow-sm hover:shadow-md transition space-y-4 relative group"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <span className="bg-orange-50 text-orange-700 text-xs font-black px-3 py-1 rounded-xl border border-orange-200 font-mono">
+                                  Std {fs.standard}th
+                                </span>
+
+                                <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${streamBadgeClass}`}>
+                                  {fs.standard <= 10
+                                    ? medium === 'semi_english'
+                                      ? 'Semi-English'
+                                      : medium === 'marathi'
+                                      ? 'Marathi'
+                                      : medium === 'hindi'
+                                      ? 'Hindi'
+                                      : 'English'
+                                    : fs.stream !== 'none'
+                                    ? fs.stream
+                                    : 'General'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center space-x-1 opacity-80 group-hover:opacity-100 transition">
+                                <button
+                                  onClick={() => handleOpenEditFeeModal(fs)}
+                                  className="text-slate-400 hover:text-orange-600 p-1.5 rounded-lg transition hover:bg-orange-50"
+                                  title="Edit Fee Structure"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteFeeStructure(fs._id)}
+                                  className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition hover:bg-rose-50"
+                                  title="Delete Fee Structure"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div>
+                              <h4 className="text-sm font-bold text-slate-800">{fs.name}</h4>
+                              <div className="text-3xl font-black text-slate-900 mt-1 font-mono tracking-tight">
+                                ₹{fs.totalAmount?.toLocaleString('en-IN')}
+                              </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                              <span className="text-slate-400 font-medium">Installment Rule:</span>
+                              <span className="font-extrabold text-orange-600 bg-orange-50/60 px-2.5 py-0.5 rounded-md border border-orange-100">
+                                {fs.installmentsCount > 1
+                                  ? `${fs.installmentsCount} Term Installments`
+                                  : 'Full Payment (Lump Sum)'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              ))
-            )}
+              ))}
           </div>
         </div>
       )}
