@@ -24,7 +24,7 @@ export class AcademiesService {
     if (RESERVED_SLUGS.includes(cleanSlug)) {
       return { available: false, reason: `'${cleanSlug}' is a reserved subdomain` };
     }
-    const existing = await this.academyModel.findOne({ slug: cleanSlug }).exec();
+    const existing = await this.academyModel.findOne({ slug: cleanSlug }).lean().exec();
     if (existing) {
       return { available: false, reason: `'${cleanSlug}' is already taken` };
     }

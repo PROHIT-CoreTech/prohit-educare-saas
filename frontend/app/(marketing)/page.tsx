@@ -59,7 +59,7 @@ export default function MarketingPage() {
             ? `http://${res.data.academy.slug}.localhost:3000/dashboard`
             : `https://${res.data.academy.slug}.educare.prohitcoretech.com/dashboard`;
           window.location.href = targetHost;
-        }, 1500);
+        }, 200);
       }
     } catch (err: any) {
       setSignupMessage(err.response?.data?.message || 'Signup failed. Please try again.');
