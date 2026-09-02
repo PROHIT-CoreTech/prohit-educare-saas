@@ -223,7 +223,7 @@ export default function MarketingPage() {
               <div className="relative flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 w-full overflow-hidden">
                 <input
                   type="text"
-                  placeholder="e.g. chopra"
+                  placeholder="e.g. myacademy"
                   value={slug}
                   onChange={(e) => {
                     const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -349,7 +349,7 @@ export default function MarketingPage() {
               <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0" />
               <span className="text-[11px] sm:text-xs font-mono font-bold text-slate-500 pl-1 truncate">
-                chopra.educare.prohitcoretech.com/{activeTab === 'idcard' ? 'students' : activeTab === 'fees' ? 'fees' : activeTab === 'timetable' ? 'academics' : 'dashboard'}
+                demo-academy.educare.prohitcoretech.com/{activeTab === 'idcard' ? 'students' : activeTab === 'fees' ? 'fees' : activeTab === 'timetable' ? 'academics' : 'dashboard'}
               </span>
             </div>
 
@@ -358,7 +358,7 @@ export default function MarketingPage() {
               <div className="space-y-4 sm:space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs">
                   <div>
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">Student Master Directory & ID Card Studio</h3>
+                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">Student Master Directory &amp; ID Card Studio</h3>
                     <p className="text-[11px] sm:text-xs text-slate-500 font-medium">Manage student roster, photo uploads, blood group records, and single-click PDF ID card exports.</p>
                   </div>
                   <div className="flex items-center space-x-2 shrink-0">
@@ -376,7 +376,7 @@ export default function MarketingPage() {
                       <div className="flex items-center space-x-2">
                         <GraduationCap className="w-4 h-4 text-yellow-300" />
                         <div>
-                          <h4 className="font-black text-[10px] uppercase text-yellow-300">CHOPRA ACADEMY</h4>
+                          <h4 className="font-black text-[10px] uppercase text-yellow-300">EXCELLENCE ACADEMY</h4>
                           <p className="text-[7px] text-orange-100 font-medium">Dahisar, Mumbai</p>
                         </div>
                       </div>
@@ -399,8 +399,8 @@ export default function MarketingPage() {
                         <div className="w-[58px] sm:w-[62px] h-[68px] sm:h-[72px] rounded-lg bg-slate-100 border-2 border-orange-500 overflow-hidden flex items-center justify-center">
                           <Users className="w-7 h-7 text-slate-400" />
                         </div>
-                        <span className="text-[6px] font-serif italic text-slate-800 mt-0.5">Sandeep Chopra</span>
-                        <span className="text-[5px] uppercase font-sans text-slate-500">PRINCIPAL'S SIGNATURE</span>
+                        <span className="text-[6px] font-serif italic text-slate-800 mt-0.5">Authorized Signatory</span>
+                        <span className="text-[5px] uppercase font-sans text-slate-500">PRINCIPAL&apos;S SIGNATURE</span>
                       </div>
                     </div>
 
@@ -968,7 +968,7 @@ export default function MarketingPage() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Chopra International Academy"
+                      placeholder="e.g. Excellence Academy"
                       value={signupForm.name}
                       onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-bold text-sm"
@@ -981,7 +981,7 @@ export default function MarketingPage() {
                       <input
                         type="text"
                         required
-                        placeholder="chopra"
+                        placeholder="e.g. excellence"
                         value={signupForm.slug}
                         onChange={(e) => {
                           const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -1296,7 +1296,7 @@ export default function MarketingPage() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Prof. Sandeep Chopra"
+                      placeholder="e.g. Prof. Rajesh Sharma"
                       value={signupForm.adminName}
                       onChange={(e) => setSignupForm({ ...signupForm, adminName: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-bold text-sm"
@@ -1308,7 +1308,7 @@ export default function MarketingPage() {
                     <input
                       type="email"
                       required
-                      placeholder="admin@chopraacademy.com"
+                      placeholder="admin@youracademy.com"
                       value={signupForm.adminEmail}
                       onChange={(e) => setSignupForm({ ...signupForm, adminEmail: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-bold text-sm"
