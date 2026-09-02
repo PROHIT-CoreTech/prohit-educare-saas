@@ -458,8 +458,8 @@ export default function FeeEnginePage() {
                   </div>
                   <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs text-slate-600 font-mono space-y-1 text-left">
                     <p><span className="font-bold text-slate-800">Product Support:</span> PROHIT CoreTech</p>
-                    <p><span className="font-bold text-slate-800">Phone:</span> +91 9821979149</p>
-                    <p><span className="font-bold text-slate-800">Email:</span> support@prohitcoretech.com</p>
+                    <p><span className="font-bold text-slate-800">Phone:</span> +91 9561042069 / +91 97739 69033</p>
+                    <p><span className="font-bold text-slate-800">Email:</span> info@prohitcoretech.com</p>
                   </div>
                   <button
                     onClick={() => {

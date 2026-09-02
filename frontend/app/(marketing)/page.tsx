@@ -406,7 +406,7 @@ export default function MarketingPage() {
 
                     <div className="bg-orange-950 text-white p-1 px-3 flex items-center justify-between text-[7px] font-bold">
                       <span className="bg-orange-800 px-1.5 py-0.5 rounded text-[6px] uppercase">ISSUED BY ACADEMY</span>
-                      <span className="font-mono">+91 9821979149</span>
+                      <span className="font-mono">+91 9561042069</span>
                     </div>
                   </div>
 

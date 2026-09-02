@@ -352,7 +352,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   };
 
   const handleRenewSubscription = async (planKey: string, amount: number) => {
-    alert('🚫 Online Payment Disabled (Offline Sales Mode)\n\nOnline subscription payment gateway is currently disabled. Please contact Product Support (+91 9821979149 / support@prohitcoretech.com) to renew or upgrade your academy license offline via Cash or Bank Transfer.');
+    alert('🚫 Online Payment Disabled (Offline Sales Mode)\n\nOnline subscription payment gateway is currently disabled. Please contact Product Support (+91 9561042069 / +91 97739 69033 / info@prohitcoretech.com) to renew or upgrade your academy license offline via Cash or Bank Transfer.');
   };
 
   const filteredFaculty = facultyList.filter(
