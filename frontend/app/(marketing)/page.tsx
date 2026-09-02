@@ -531,48 +531,6 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* FEATURE HIGHLIGHTS GRID */}
-      <section className="py-16 sm:py-24 z-10 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900">Engineered for High-Growth Coaching Academies</h2>
-            <p className="text-slate-600 mt-2 sm:mt-3 text-sm sm:text-lg font-medium">Comprehensive tools designed to eliminate financial friction, manual errors, and record confusion.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl sm:rounded-3xl hover:border-orange-300 transition shadow-md">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center mb-5 sm:mb-6">
-                <CreditCard className="w-6 h-6 sm:w-7 sm:h-7" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mb-2 sm:mb-3">Atomic FIFO Fee Engine</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">
-                Payments automatically settle overdue & pending installments in strict FIFO order inside MongoDB session transactions. Overpayments convert into advance credits seamlessly.
-              </p>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl sm:rounded-3xl hover:border-orange-300 transition shadow-md">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center mb-5 sm:mb-6">
-                <Shield className="w-6 h-6 sm:w-7 sm:h-7" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mb-2 sm:mb-3">Strict Tenant Isolation</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">
-                Request-scoped TenantContextService and TenantScopedRepository enforce zero cross-tenant data leakage. All access is verified strictly from JWT tokens.
-              </p>
-            </div>
-
-            <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl sm:rounded-3xl hover:border-orange-300 transition shadow-md">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center mb-5 sm:mb-6">
-                <Zap className="w-6 h-6 sm:w-7 sm:h-7" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mb-2 sm:mb-3">Digital Student ID Cards &amp; Receipts</h3>
-              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">
-                Generate high-resolution printable ID cards (Front &amp; Back) and HTML5 Canvas fee receipt cards for 2-click sharing on WhatsApp.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CORE OPERATIONAL BENEFIT PILLARS SECTION */}
       <section id="features" className="py-16 sm:py-24 relative bg-slate-900 text-white overflow-hidden">
         {/* Glow Effects */}
@@ -583,30 +541,30 @@ export default function MarketingPage() {
           <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
             <div className="inline-flex items-center space-x-2 bg-orange-500/10 border border-orange-500/30 px-4 py-1.5 rounded-full text-orange-400 text-xs font-black uppercase tracking-widest mb-4">
               <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
-              <span>Comprehensive SaaS Feature Pillars</span>
+              <span>Core Application Features &amp; Benefits</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
               Everything Your Academy Needs to Scale Without Chaos
             </h2>
             <p className="text-slate-400 mt-4 text-sm sm:text-lg font-medium leading-relaxed">
-              Purpose-built for coaching institutes, junior colleges, and schools across India. Replaces disconnected tools with one intelligent ERP.
+              Purpose-built for coaching institutes, junior colleges, and schools across India. Replaces disconnected tools with one easy-to-use platform.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {/* Feature 1: Automated FIFO Fee Engine */}
+            {/* Feature 1: Automated Fee Collection & Receipts */}
             <div className="bg-slate-800/80 border border-slate-700/80 hover:border-orange-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
               <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
                 <CreditCard className="w-6 h-6" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-orange-400 transition">
-                Automated FIFO Fee Engine &amp; Receipts
+                Automated Fee Collection &amp; Receipts
               </h3>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
-                Eliminate manual fee tracking. Automatically allocates cash and online payments against oldest pending installments (FIFO) with 1st–15th stream support and instant PDF receipts.
+                Automatically tracks cash and online fee payments against pending monthly installments. Generates instant PDF receipts for parents and students.
               </p>
               <div className="pt-2 flex items-center text-xs font-bold text-orange-400">
-                <span>Zero Financial Leakage Guarantee</span>
+                <span>Clear Fee Tracking &amp; Reminders</span>
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </div>
             </div>
@@ -617,13 +575,13 @@ export default function MarketingPage() {
                 <GraduationCap className="w-6 h-6" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-blue-400 transition">
-                Multi-Level &amp; Multi-Board Accreditation
+                Multi-School Level &amp; Board Support
               </h3>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
-                Flexibly manage Primary School, Mid Primary, High School, Jr. College (Science, Commerce &amp; Arts), and Under Graduate programs across SSC, CBSE, ICSE, IB, and HSC boards simultaneously.
+                Flexibly manage Primary, High School, Jr. College (Science, Commerce &amp; Arts), and Degree programs across SSC, CBSE, ICSE, IB, and HSC boards.
               </p>
               <div className="pt-2 flex items-center text-xs font-bold text-blue-400">
-                <span>Multi-Select Offerings Support</span>
+                <span>Multi-Category Selection</span>
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </div>
             </div>
@@ -634,13 +592,13 @@ export default function MarketingPage() {
                 <Calendar className="w-6 h-6" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-purple-400 transition">
-                Smart Timetable &amp; Lecture Roster
+                Timetable &amp; Faculty Lecture Schedules
               </h3>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
-                Day-wise faculty timetable grid across Standards 1st–15th. Supports bulk CSV timetable upload/download, slot conflict detection, and weekly schedule publishing.
+                Day-wise faculty timetable grid across Standards 1st–15th. Upload schedules in bulk with CSV support and avoid class slot overlaps.
               </p>
               <div className="pt-2 flex items-center text-xs font-bold text-purple-400">
-                <span>Includes CSV Bulk Importer</span>
+                <span>CSV Timetable Import</span>
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </div>
             </div>
