@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Lock, Mail, Building2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
-import { apiClient } from '../../../../lib/api';
+import { apiClient } from '@/lib/api';
+import loginBg from '@/public/login_bg_classroom.jpg';
 
 export default function AcademyLoginPage({ params }: { params: { slug: string } }) {
   const [email, setEmail] = useState('');
@@ -43,44 +45,17 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-900 relative overflow-hidden bg-slate-950">
-      {/* Rich Ambient Gradient Mesh Background (100% Reliable, No 404 image dependencies) */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-orange-950/40 to-slate-950 z-0 pointer-events-none" />
+      {/* Real Smart Classroom Background Image (Next.js Bundled Asset) */}
+      <Image
+        src={loginBg}
+        alt="Classroom Background"
+        fill
+        priority
+        className="object-cover z-0 pointer-events-none"
+      />
 
-      {/* Ambient Spotlights */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed -bottom-40 -right-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Pure SVG Smart Classroom & Tech Mesh Illustration */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-30 select-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f97316" stopOpacity="0.4" />
-              <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4" />
-            </linearGradient>
-            <pattern id="eduGrid" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#eduGrid)" />
-          
-          {/* Smartboard Outline */}
-          <rect x="5%" y="10%" width="35%" height="45%" rx="16" fill="none" stroke="url(#gridGrad)" strokeWidth="2" strokeDasharray="8 4" />
-          
-          {/* Geometric Edu-Nodes */}
-          <circle cx="20%" cy="30%" r="140" fill="none" stroke="rgba(249,115,22,0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
-          <circle cx="75%" cy="65%" r="220" fill="none" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5" />
-          <line x1="20%" y1="30%" x2="75%" y2="65%" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-          <circle cx="45%" cy="80%" r="180" fill="none" stroke="rgba(139,92,246,0.4)" strokeWidth="1" />
-        </svg>
-
-        {/* Floating Math Symbols */}
-        <div className="absolute top-16 left-20 text-orange-400 text-6xl font-serif opacity-70">∑</div>
-        <div className="absolute top-1/3 right-24 text-cyan-400 text-7xl font-mono opacity-70">π</div>
-        <div className="absolute bottom-1/4 left-16 text-purple-400 text-6xl font-serif opacity-70">∫</div>
-        <div className="absolute bottom-16 right-1/3 text-orange-400 text-4xl font-mono opacity-70">E = mc²</div>
-      </div>
+      {/* Light Backdrop Overlay */}
+      <div className="fixed inset-0 bg-slate-950/25 z-0 pointer-events-none" />
 
       {/* Floating Crisp White Glassmorphism Card */}
       <div className="bg-white/95 backdrop-blur-2xl border border-white/80 p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-2xl space-y-6 relative z-10">

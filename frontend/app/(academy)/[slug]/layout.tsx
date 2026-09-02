@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Users, CreditCard, BookOpen, BarChart3, LogOut, 
   ShieldAlert, ShieldCheck, Sparkles, AlertCircle, Settings, Menu, X 
 } from 'lucide-react';
-import { apiClient } from '../../../lib/api';
+import { apiClient } from '@/lib/api';
+import dashboardBg from '@/public/dashboard_bg_edu_tech.jpg';
 
 export default function AcademyLayout({
   children,
@@ -90,35 +92,17 @@ export default function AcademyLayout({
 
   return (
     <div className="min-h-screen text-slate-900 flex flex-col font-sans relative bg-slate-100 overflow-x-hidden">
-      {/* Pure CSS & Ambient Spotlights Background (100% Bulletproof, Zero 404 image dependencies) */}
-      <div className="fixed inset-0 bg-gradient-to-br from-amber-100/40 via-slate-100/60 to-cyan-100/40 z-0 pointer-events-none" />
-      <div className="fixed -top-40 -left-40 w-[600px] h-[600px] bg-orange-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed top-1/3 -right-40 w-[600px] h-[600px] bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed -bottom-40 left-1/3 w-[600px] h-[600px] bg-purple-400/15 rounded-full blur-3xl pointer-events-none" />
+      {/* Real Educational Tech Background Image (Next.js Bundled Asset) */}
+      <Image
+        src={dashboardBg}
+        alt="Dashboard Background"
+        fill
+        priority
+        className="object-cover z-0 pointer-events-none opacity-85 fixed"
+      />
 
-      {/* Pure SVG Geometric Tech Grid & Math Symbol Watermarks */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-35 select-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <defs>
-            <pattern id="layoutGrid" width="80" height="80" patternUnits="userSpaceOnUse">
-              <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(249,115,22,0.08)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#layoutGrid)" />
-          
-          <circle cx="15%" cy="25%" r="180" fill="none" stroke="rgba(249,115,22,0.25)" strokeWidth="1.5" strokeDasharray="6 4" />
-          <circle cx="85%" cy="60%" r="240" fill="none" stroke="rgba(6,182,212,0.25)" strokeWidth="1.5" />
-          <line x1="15%" y1="25%" x2="85%" y2="60%" stroke="rgba(148,163,184,0.2)" strokeWidth="1" />
-        </svg>
-
-        {/* Floating Math Symbols */}
-        <div className="absolute top-12 left-10 text-orange-600 text-6xl font-serif font-bold animate-pulse">∑</div>
-        <div className="absolute top-1/4 right-20 text-cyan-600 text-7xl font-mono font-bold">π</div>
-        <div className="absolute bottom-1/3 left-1/4 text-teal-600 text-6xl font-serif font-bold">∫</div>
-        <div className="absolute bottom-20 right-1/3 text-orange-500 text-5xl font-mono">E = mc²</div>
-        <div className="absolute top-1/3 left-1/3 text-indigo-500 text-6xl font-serif">∞</div>
-        <div className="absolute bottom-12 left-16 text-cyan-500 text-5xl font-mono">Δx</div>
-      </div>
+      {/* Soft Ambient Overlay */}
+      <div className="fixed inset-0 bg-white/20 z-0 pointer-events-none" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Impersonation Banner */}
