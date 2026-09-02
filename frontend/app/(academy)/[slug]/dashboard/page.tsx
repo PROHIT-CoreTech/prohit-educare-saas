@@ -67,10 +67,10 @@ export default function TenantDashboardPage() {
           {overview && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* 1. Total Admissions */}
-              <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3">
+              <div className="glass-light-card p-6 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase text-slate-500 tracking-wider">Total Admissions</span>
-                  <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600">
+                  <span className="text-xs font-extrabold uppercase text-slate-600 tracking-wider">Total Admissions</span>
+                  <div className="w-9 h-9 rounded-xl bg-orange-50/90 border border-orange-200 flex items-center justify-center text-orange-600 shadow-xs">
                     <Users className="w-4 h-4" />
                   </div>
                 </div>
@@ -79,34 +79,34 @@ export default function TenantDashboardPage() {
               </div>
 
               {/* 2. Daily Collection */}
-              <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3">
+              <div className="glass-light-card p-6 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase text-slate-500 tracking-wider">Daily Collection</span>
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <span className="text-xs font-extrabold uppercase text-slate-600 tracking-wider">Daily Collection</span>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50/90 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xs">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-3xl font-black text-emerald-600 font-mono">₹{(overview.dailyCollection || 0).toLocaleString('en-IN')}</p>
-                <span className="text-xs text-emerald-700 font-medium block">Today&apos;s settled receipts</span>
+                <span className="text-xs text-emerald-700 font-semibold block">Today&apos;s settled receipts</span>
               </div>
 
               {/* 3. Monthly Fees Collection */}
-              <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3">
+              <div className="glass-light-card p-6 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase text-slate-500 tracking-wider">Monthly Fees Collection</span>
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <span className="text-xs font-extrabold uppercase text-slate-600 tracking-wider">Monthly Fees Collection</span>
+                  <div className="w-9 h-9 rounded-xl bg-blue-50/90 border border-blue-200 flex items-center justify-center text-blue-600 shadow-xs">
                     <CreditCard className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-3xl font-black text-slate-900 font-mono">₹{(overview.monthlyCollection || 0).toLocaleString('en-IN')}</p>
-                <span className="text-xs text-slate-500 block">Current month settled</span>
+                <span className="text-xs text-slate-600 font-medium block">Current month settled</span>
               </div>
 
               {/* 4. Monthly Fees Collection Pending */}
-              <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3">
+              <div className="glass-light-card p-6 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase text-slate-500 tracking-wider">Monthly Fees Pending</span>
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                  <span className="text-xs font-extrabold uppercase text-slate-600 tracking-wider">Monthly Fees Pending</span>
+                  <div className="w-9 h-9 rounded-xl bg-amber-50/90 border border-amber-200 flex items-center justify-center text-amber-600 shadow-xs">
                     <Clock className="w-4 h-4" />
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export default function TenantDashboardPage() {
           )}
 
           {/* Schedule Overview Section: Today's Lectures & Upcoming Schedule */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+          <div className="glass-light-card rounded-3xl p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
                 <div className="flex items-center space-x-2">

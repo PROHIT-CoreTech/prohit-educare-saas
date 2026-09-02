@@ -89,50 +89,57 @@ export default function AcademyLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      {/* Impersonation Banner */}
-      {isImpersonating && (
-        <div className="bg-amber-400 text-slate-950 font-bold px-3 py-1.5 text-center text-xs flex items-center justify-center space-x-2 shadow-sm">
-          <ShieldAlert className="w-4 h-4 text-slate-950 shrink-0" />
-          <span className="truncate">Platform Admin Impersonation Session Active for {academy?.name || params.slug}</span>
-        </div>
-      )}
+    <div
+      className="min-h-screen text-slate-900 flex flex-col font-sans relative bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url('/dashboard_bg_edu_tech.jpg')` }}
+    >
+      {/* Soft Ambient White Glass Overlay */}
+      <div className="absolute inset-0 bg-slate-100/75 backdrop-blur-xs pointer-events-none" />
 
-      {/* Unauthenticated Banner */}
-      {unauthenticated && (
-        <div className="bg-rose-600 text-white font-bold px-3 py-2 text-center text-xs flex flex-col sm:flex-row items-center justify-between shadow-md gap-2">
-          <div className="flex items-center space-x-2 mx-auto">
-            <AlertCircle className="w-4 h-4 text-white shrink-0" />
-            <span className="truncate">You are not logged in. Please sign in to manage data.</span>
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Impersonation Banner */}
+        {isImpersonating && (
+          <div className="bg-amber-400 text-slate-950 font-bold px-3 py-1.5 text-center text-xs flex items-center justify-center space-x-2 shadow-sm">
+            <ShieldAlert className="w-4 h-4 text-slate-950 shrink-0" />
+            <span className="truncate">Platform Admin Impersonation Session Active for {academy?.name || params.slug}</span>
           </div>
-          <Link
-            href="/login"
-            className="bg-white text-rose-600 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition shrink-0"
-          >
-            Sign In Now
-          </Link>
-        </div>
-      )}
+        )}
 
-      {/* Subscription / Trial Expiration Banner */}
-      {subscription && (subscription.isTrialExpired || subscription.subscriptionStatus === 'EXPIRED') && (
-        <div className="bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold px-3 py-2 text-center text-xs flex flex-col sm:flex-row items-center justify-between shadow-md gap-2">
-          <div className="flex items-center space-x-2 mx-auto">
-            <AlertCircle className="w-4 h-4 animate-bounce text-yellow-200 shrink-0" />
-            <span className="truncate">Trial / Subscription expired! Renew now to maintain access.</span>
+        {/* Unauthenticated Banner */}
+        {unauthenticated && (
+          <div className="bg-rose-600 text-white font-bold px-3 py-2 text-center text-xs flex flex-col sm:flex-row items-center justify-between shadow-md gap-2">
+            <div className="flex items-center space-x-2 mx-auto">
+              <AlertCircle className="w-4 h-4 text-white shrink-0" />
+              <span className="truncate">You are not logged in. Please sign in to manage data.</span>
+            </div>
+            <Link
+              href="/login"
+              className="bg-white text-rose-600 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition shrink-0"
+            >
+              Sign In Now
+            </Link>
           </div>
-          <Link
-            href="/settings"
-            className="bg-white text-orange-600 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition shrink-0 inline-flex items-center space-x-1"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Renew Now</span>
-          </Link>
-        </div>
-      )}
+        )}
 
-      {/* Top Tenant Navigation */}
-      <header className="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-40 shadow-xs">
+        {/* Subscription / Trial Expiration Banner */}
+        {subscription && (subscription.isTrialExpired || subscription.subscriptionStatus === 'EXPIRED') && (
+          <div className="bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold px-3 py-2 text-center text-xs flex flex-col sm:flex-row items-center justify-between shadow-md gap-2">
+            <div className="flex items-center space-x-2 mx-auto">
+              <AlertCircle className="w-4 h-4 animate-bounce text-yellow-200 shrink-0" />
+              <span className="truncate">Trial / Subscription expired! Renew now to maintain access.</span>
+            </div>
+            <Link
+              href="/settings"
+              className="bg-white text-orange-600 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition shrink-0 inline-flex items-center space-x-1"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Renew Now</span>
+            </Link>
+          </div>
+        )}
+
+        {/* Top Tenant Navigation */}
+        <header className="border-b border-white/60 bg-white/85 backdrop-blur-md sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3 overflow-hidden">
             {academy?.logoUrl ? (
@@ -266,6 +273,7 @@ export default function AcademyLayout({
           );
         })}
       </nav>
+      </div>
     </div>
   );
 }
