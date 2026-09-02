@@ -46,12 +46,21 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
       className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-900 relative bg-cover bg-center bg-no-repeat overflow-hidden"
       style={{ backgroundImage: `url('/login_bg_classroom.jpg')` }}
     >
-      {/* Ambient Backdrop Overlay */}
-      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs" />
-      <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/70 via-slate-900/30 to-orange-950/40" />
+      {/* Light Ambient Overlay for High Readability */}
+      <div className="absolute inset-0 bg-slate-900/25 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/50 via-transparent to-orange-950/20 pointer-events-none" />
 
-      {/* Glassmorphic Login Floating Container */}
-      <div className="bg-white/92 backdrop-blur-2xl border border-white/60 p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-2xl space-y-6 relative z-10">
+      {/* Floating Geometric Wireframe & Math Nodes Overlay */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20%" cy="30%" r="200" fill="none" stroke="rgba(249,115,22,0.4)" strokeWidth="1.5" strokeDasharray="6 6" />
+          <circle cx="80%" cy="70%" r="300" fill="none" stroke="rgba(56,189,248,0.4)" strokeWidth="1.5" />
+          <path d="M 100 100 L 300 400 L 600 200 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* Floating Crisp White Glassmorphism Card */}
+      <div className="bg-white/95 backdrop-blur-xl border border-white/80 p-8 sm:p-10 rounded-3xl max-w-md w-full shadow-2xl space-y-6 relative z-10">
         <div className="flex items-center space-x-3.5">
           {academyLogo ? (
             <img
