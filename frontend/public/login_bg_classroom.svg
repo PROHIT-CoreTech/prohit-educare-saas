@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
+  <defs>
+    <!-- Dark Ambient Background Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="70%" fx="30%" fy="30%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="40%" stop-color="#0f172a" />
+      <stop offset="80%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#030712" />
+    </radialGradient>
+
+    <!-- Warm Spotlight Glow -->
+    <radialGradient id="warmSpotlight" cx="20%" cy="20%" r="50%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.35" />
+      <stop offset="60%" stop-color="#f97316" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Cyan Ambient Spotlight -->
+    <radialGradient id="cyanSpotlight" cx="80%" cy="70%" r="60%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3" />
+      <stop offset="70%" stop-color="#06b6d4" stop-opacity="0.03" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Smartboard Gradient -->
+    <linearGradient id="boardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e1b4b" />
+    </linearGradient>
+
+    <!-- Glowing Line Gradients -->
+    <linearGradient id="cyanOrangeLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f97316" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <!-- Base Layer -->
+  <rect width="100%" height="100%" fill="url(#bgGrad)" />
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Ambient Glows -->
+  <rect width="100%" height="100%" fill="url(#warmSpotlight)" />
+  <rect width="100%" height="100%" fill="url(#cyanSpotlight)" />
+
+  <!-- Smartboard Frame (Left Wall Perspective) -->
+  <g transform="matrix(0.92 0 -0.05 0.95 100 80)">
+    <rect x="0" y="0" width="750" height="480" rx="24" fill="url(#boardGrad)" stroke="url(#cyanOrangeLine)" stroke-width="4" filter="drop-shadow(0 20px 30px rgba(0,0,0,0.6))" />
+    <!-- Header UI Bar -->
+    <rect x="20" y="20" width="710" height="40" rx="10" fill="rgba(255,255,255,0.06)" />
+    <circle cx="45" cy="40" r="6" fill="#ef4444" />
+    <circle cx="65" cy="40" r="6" fill="#f59e0b" />
+    <circle cx="85" cy="40" r="6" fill="#10b981" />
+    <text x="110" y="45" fill="rgba(255,255,255,0.6)" font-family="sans-serif" font-size="14" font-weight="bold">PROHIT EDUCARE - SMARTBOARD ANALYTICS</text>
+
+    <!-- Dashboard Visual Widgets inside Board -->
+    <rect x="40" y="80" width="320" height="180" rx="16" fill="rgba(249,115,22,0.1)" stroke="rgba(249,115,22,0.3)" stroke-width="1.5" />
+    <path d="M 60 220 Q 120 120, 180 170 T 300 110 T 340 140" fill="none" stroke="#f97316" stroke-width="3" />
+    <circle cx="300" cy="110" r="5" fill="#ffffff" />
+
+    <rect x="380" y="80" width="330" height="180" rx="16" fill="rgba(6,182,212,0.1)" stroke="rgba(6,182,212,0.3)" stroke-width="1.5" />
+    <circle cx="460" cy="170" r="45" fill="none" stroke="#06b6d4" stroke-width="8" stroke-dasharray="200 80" />
+    <circle cx="590" cy="170" r="45" fill="none" stroke="#8b5cf6" stroke-width="8" stroke-dasharray="180 100" />
+
+    <rect x="40" y="280" width="670" height="160" rx="16" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+    <line x1="80" y1="360" x2="670" y2="360" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4 4" />
+    <rect x="90" y="320" width="24" height="80" rx="6" fill="#f97316" opacity="0.8" />
+    <rect x="140" y="300" width="24" height="100" rx="6" fill="#06b6d4" opacity="0.8" />
+    <rect x="190" y="340" width="24" height="60" rx="6" fill="#8b5cf6" opacity="0.8" />
+    <rect x="240" y="290" width="24" height="110" rx="6" fill="#10b981" opacity="0.8" />
+  </g>
+
+  <!-- Bookshelf / Library Storage Shapes (Right Perspective) -->
+  <g transform="translate(1450, 120)">
+    <rect x="0" y="0" width="380" height="840" rx="20" fill="rgba(30, 41, 59, 0.4)" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
+    <!-- Shelves -->
+    <line x1="0" y1="210" x2="380" y2="210" stroke="rgba(249,115,22,0.4)" stroke-width="4" />
+    <line x1="0" y1="420" x2="380" y2="420" stroke="rgba(6,182,212,0.4)" stroke-width="4" />
+    <line x1="0" y1="630" x2="380" y2="630" stroke="rgba(139,92,246,0.4)" stroke-width="4" />
+
+    <!-- Books on Shelf 1 -->
+    <rect x="30" y="70" width="30" height="140" rx="4" fill="#f97316" />
+    <rect x="65" y="90" width="25" height="120" rx="4" fill="#06b6d4" />
+    <rect x="95" y="60" width="35" height="150" rx="4" fill="#8b5cf6" />
+    <rect x="135" y="80" width="28" height="130" rx="4" fill="#10b981" />
+
+    <!-- Books on Shelf 2 -->
+    <rect x="40" y="280" width="40" height="140" rx="4" fill="#3b82f6" />
+    <rect x="85" y="300" width="30" height="120" rx="4" fill="#ec4899" />
+    <rect x="120" y="270" width="35" height="150" rx="4" fill="#f59e0b" />
+  </g>
+
+  <!-- Floating Mathematical & Educational Vector Wireframes -->
+  <g font-family="serif" font-weight="bold" opacity="0.35">
+    <text x="180" y="720" fill="#f97316" font-size="90">∑</text>
+    <text x="450" y="850" fill="#06b6d4" font-size="110">π</text>
+    <text x="900" y="950" fill="#8b5cf6" font-size="100">∫</text>
+    <text x="1280" y="780" fill="#f97316" font-size="70" font-family="monospace">E = mc²</text>
+    <text x="1150" y="250" fill="#10b981" font-size="95">∞</text>
+    <text x="850" y="180" fill="#06b6d4" font-size="65" font-family="monospace">Δx</text>
+  </g>
+
+  <!-- Connected Network Orbit Rings -->
+  <circle cx="350" cy="800" r="160" fill="none" stroke="rgba(249,115,22,0.25)" stroke-width="2" stroke-dasharray="8 6" />
+  <circle cx="1200" cy="820" r="220" fill="none" stroke="rgba(6,182,212,0.25)" stroke-width="2" />
+  <line x1="350" y1="800" x2="1200" y2="820" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+</svg>

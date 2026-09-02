@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Lock, Mail, Building2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import loginBg from '@/public/login_bg_classroom.jpg';
+import loginBg from '@/public/login_bg_classroom.svg';
 
 export default function AcademyLoginPage({ params }: { params: { slug: string } }) {
   const [email, setEmail] = useState('');

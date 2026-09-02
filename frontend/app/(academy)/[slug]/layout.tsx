@@ -9,7 +9,7 @@ import {
   ShieldAlert, ShieldCheck, Sparkles, AlertCircle, Settings, Menu, X 
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import dashboardBg from '@/public/dashboard_bg_edu_tech.jpg';
+import dashboardBg from '@/public/dashboard_bg_edu_tech.svg';
 
 export default function AcademyLayout({
   children,
