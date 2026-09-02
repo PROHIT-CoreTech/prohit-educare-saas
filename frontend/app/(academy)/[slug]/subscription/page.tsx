@@ -64,6 +64,7 @@ export default function SubscriptionPage() {
   const [checkoutModal, setCheckoutModal] = useState<any>(null);
   const [processing, setProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<string>('');
+  const [showOfflineNoticeModal, setShowOfflineNoticeModal] = useState<boolean>(false);
 
   useEffect(() => {
     fetchSubscription();
@@ -83,27 +84,7 @@ export default function SubscriptionPage() {
 
   const handleInitiateRenewal = async (planId: string) => {
     const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId) || SUBSCRIPTION_PLANS[1];
-    setProcessing(true);
-    setPaymentSuccess('');
-    try {
-      const res = await apiClient.post('/billing/renew-subscription', {
-        plan: plan.id,
-        amount: plan.annualPrice,
-      });
-
-      setCheckoutModal({
-        orderId: res.data.orderId,
-        amount: res.data.orderAmount,
-        plan: plan.id,
-        planName: plan.name,
-        environment: res.data.environment || 'SANDBOX',
-        sessionId: res.data.paymentSessionId,
-      });
-    } catch (err: any) {
-      alert('Order creation failed: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setProcessing(false);
-    }
+    setShowOfflineNoticeModal(true);
   };
 
   const handleConfirmPayment = async () => {
@@ -269,68 +250,50 @@ export default function SubscriptionPage() {
               <button
                 onClick={() => handleInitiateRenewal(plan.id)}
                 disabled={processing}
-                className={`w-full font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm ${
+                className={`w-full font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm cursor-pointer ${
                   plan.popular
                     ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>{subscription?.subscriptionStatus === 'EXPIRED' ? 'Activate Subscription' : 'Renew / Upgrade via Cashfree'}</span>
+                <span>{subscription?.subscriptionStatus === 'EXPIRED' ? 'Activate Subscription' : 'Renew / Activate License (Offline Mode)'}</span>
               </button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Cashfree Payment Gateway Modal */}
-      {checkoutModal && (
+      {/* Offline Sales Mode Notice Modal */}
+      {showOfflineNoticeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-md w-full relative shadow-2xl space-y-6 text-center">
-            <button onClick={() => setCheckoutModal(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl space-y-5 text-center">
+            <button
+              onClick={() => setShowOfflineNoticeModal(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-base cursor-pointer"
+            >
               ✕
             </button>
-
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
-              <CreditCard className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+              <AlertCircle className="w-7 h-7" />
             </div>
-
             <div>
-              <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Cashfree Payment Gateway</span>
-              <h2 className="text-xl font-extrabold text-slate-900 mt-1">Complete Subscription Renewal</h2>
-              <p className="text-xs text-slate-500 font-mono mt-1">Order Session ID: {checkoutModal.orderId}</p>
+              <h3 className="text-lg font-black text-slate-900">Online Gateway Disabled (Offline Sales Mode)</h3>
+              <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">
+                Online payment gateway renewal is currently disabled for offline sales mode. Please contact Product Owner or your Account Manager to renew or upgrade your academy license.
+              </p>
             </div>
-
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2">
-              <div className="flex justify-between text-xs font-medium">
-                <span className="text-slate-500">Selected Tier:</span>
-                <span className="font-bold text-slate-900">{checkoutModal.planName}</span>
-              </div>
-              <div className="flex justify-between text-xs font-medium">
-                <span className="text-slate-500">Billing Cycle:</span>
-                <span className="font-bold text-slate-800">Annual (1 Year License)</span>
-              </div>
-              <div className="flex justify-between text-sm border-t border-slate-200 pt-2 font-black">
-                <span className="text-slate-900">Total Amount:</span>
-                <span className="text-emerald-700 font-mono">₹{checkoutModal.amount.toLocaleString('en-IN')}</span>
-              </div>
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs text-slate-600 font-mono space-y-1 text-left">
+              <p><span className="font-bold text-slate-800">Product Support:</span> PROHIT CoreTech</p>
+              <p><span className="font-bold text-slate-800">Phone:</span> +91 9821979149</p>
+              <p><span className="font-bold text-slate-800">Email:</span> support@prohitcoretech.com</p>
             </div>
-
-            {paymentSuccess ? (
-              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-emerald-700 font-bold text-xs flex items-center justify-center space-x-2">
-                <Check className="w-4 h-4" />
-                <span>{paymentSuccess}</span>
-              </div>
-            ) : (
-              <button
-                onClick={handleConfirmPayment}
-                disabled={processing}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center space-x-2 text-sm"
-              >
-                <Zap className="w-4 h-4 fill-white" />
-                <span>{processing ? 'Processing Cashfree Payment...' : 'Pay ₹' + checkoutModal.amount.toLocaleString('en-IN') + ' & Activate'}</span>
-              </button>
-            )}
+            <button
+              onClick={() => setShowOfflineNoticeModal(false)}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md transition text-xs cursor-pointer"
+            >
+              Understand &amp; Close
+            </button>
           </div>
         </div>
       )}

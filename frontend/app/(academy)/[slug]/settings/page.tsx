@@ -352,30 +352,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   };
 
   const handleRenewSubscription = async (planKey: string, amount: number) => {
-    setRenewingPlan(planKey);
-    setRenewalError('');
-
-    try {
-      const res = await apiClient.post('/billing/renew-subscription', { plan: planKey });
-      const { paymentSessionId, orderId } = res.data;
-
-      const windowRef = window as any;
-      if (windowRef.Cashfree) {
-        const cashfree = windowRef.Cashfree({ mode: 'sandbox' });
-        cashfree.checkout({
-          paymentSessionId,
-          returnUrl: `${window.location.origin}/${params.slug}/settings`,
-        });
-      } else {
-        await apiClient.post('/billing/verify-renewal', { orderId, plan: planKey });
-        alert(`Successfully upgraded to ${planKey} Plan!`);
-        fetchSubscription();
-      }
-    } catch (err: any) {
-      setRenewalError(err.response?.data?.message || 'Failed to initiate Cashfree payment');
-    } finally {
-      setRenewingPlan(null);
-    }
+    alert('🚫 Online Payment Disabled (Offline Sales Mode)\n\nOnline subscription payment gateway is currently disabled. Please contact Product Support (+91 9821979149 / support@prohitcoretech.com) to renew or upgrade your academy license offline via Cash or Bank Transfer.');
   };
 
   const filteredFaculty = facultyList.filter(

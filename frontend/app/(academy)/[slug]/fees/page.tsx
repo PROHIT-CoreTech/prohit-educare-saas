@@ -11,9 +11,10 @@ export default function FeeEnginePage() {
   const [feeSummary, setFeeSummary] = useState<any>(null);
   const [loadingSummary, setLoadingSummary] = useState<boolean>(false);
   const [amountToPay, setAmountToPay] = useState<number>(0);
-  const [paymentMode, setPaymentMode] = useState<string>('UPI');
+  const [paymentMode, setPaymentMode] = useState<string>('CASH');
   const [transactionRef, setTransactionRef] = useState<string>('');
   const [processing, setProcessing] = useState(false);
+  const [showOnlineDisabledAlert, setShowOnlineDisabledAlert] = useState(false);
 
   const [receiptData, setReceiptData] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -392,13 +393,20 @@ export default function FeeEnginePage() {
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Payment Mode</label>
                 <select
                   value={paymentMode}
-                  onChange={(e) => setPaymentMode(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value === 'ONLINE_GATEWAY') {
+                      setShowOnlineDisabledAlert(true);
+                      return;
+                    }
+                    setPaymentMode(e.target.value);
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
                 >
-                  <option value="UPI">UPI / GPay / PhonePe</option>
-                  <option value="CASH">Cash Payment</option>
-                  <option value="BANK_TRANSFER">Bank Transfer / NEFT / IMPS</option>
-                  <option value="CHEQUE">Cheque</option>
+                  <option value="CASH">Cash Payment (Offline)</option>
+                  <option value="BANK_TRANSFER">Bank Transfer / NEFT / IMPS (Offline)</option>
+                  <option value="CHEQUE">Cheque (Offline)</option>
+                  <option value="UPI">UPI Transfer (Manual Verification)</option>
+                  <option value="ONLINE_GATEWAY">⚡ Online Gateway Payment (Disabled)</option>
                 </select>
               </div>
 
@@ -416,7 +424,7 @@ export default function FeeEnginePage() {
               <button
                 onClick={handleRecordPayment}
                 disabled={processing || amountToPay <= 0}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center space-x-2"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center space-x-2 cursor-pointer"
               >
                 {processing ? (
                   <span>Recording Payment...</span>
@@ -428,6 +436,43 @@ export default function FeeEnginePage() {
                 )}
               </button>
             </div>
+
+            {/* Offline Sales Mode - Online Payment Disabled Modal Alert */}
+            {showOnlineDisabledAlert && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl space-y-5 text-center">
+                  <button
+                    onClick={() => setShowOnlineDisabledAlert(false)}
+                    className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-base cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                  <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+                    <AlertCircle className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900">Online Payment Gateway Disabled</h3>
+                    <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">
+                      Online payment gateway integration is currently disabled for offline sales mode. Please collect fee payments via <span className="font-bold text-slate-900">Cash, Cheque, or Direct Bank Transfer</span>, or contact the Product Owner / Administrator to activate online payments.
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs text-slate-600 font-mono space-y-1 text-left">
+                    <p><span className="font-bold text-slate-800">Product Support:</span> PROHIT CoreTech</p>
+                    <p><span className="font-bold text-slate-800">Phone:</span> +91 9821979149</p>
+                    <p><span className="font-bold text-slate-800">Email:</span> support@prohitcoretech.com</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowOnlineDisabledAlert(false);
+                      setPaymentMode('CASH');
+                    }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md transition text-xs cursor-pointer"
+                  >
+                    Switch to Offline Cash / Bank Mode
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Generated Receipt Modal Card */}
             {receiptData && (
