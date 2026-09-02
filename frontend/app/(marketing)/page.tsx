@@ -19,6 +19,7 @@ export default function MarketingPage() {
   const [showModal, setShowModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<'idcard' | 'fees' | 'timetable' | 'dashboard'>('idcard');
+  const [onboardingStep, setOnboardingStep] = useState<number>(1);
 
   const [signupForm, setSignupForm] = useState({
     name: '',
@@ -28,6 +29,7 @@ export default function MarketingPage() {
     adminPassword: '',
     phone: '',
     logoUrl: '',
+    primaryColor: '#f97316',
     institutionType: 'High School',
     institutionTypes: ['High School'] as string[],
     educationBoard: 'SSC / State Board',
@@ -658,281 +660,475 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* SIGNUP TRIAL MODAL - MOBILE RESPONSIVE */}
+      {/* SIGNUP TRIAL MODAL - 4-STEP ONBOARDING WIZARD */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-3 sm:p-4 text-slate-900 overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full relative shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-xl w-full relative shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto">
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => {
+                setShowModal(false);
+                setOnboardingStep(1);
+              }}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
             >
               ✕
             </button>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900">Create Your Academy Tenant</h2>
-              <p className="text-slate-500 text-xs font-medium mt-1">Launch your branded SaaS portal with a 14-day free trial. No credit card required.</p>
+
+            {/* Stepper Header & Progress Bar */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-orange-100 text-orange-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Step {onboardingStep} of 4
+                    </span>
+                    <span className="text-xs font-bold text-slate-500">14-Day Free Trial Setup</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+                    {onboardingStep === 1 && '1. Academy Identity & Subdomain'}
+                    {onboardingStep === 2 && '2. Academic Offerings & Boards'}
+                    {onboardingStep === 3 && '3. Branding & Portal Identity'}
+                    {onboardingStep === 4 && '4. Administrator Account & Launch'}
+                  </h2>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+                <div
+                  className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${(onboardingStep / 4) * 100}%` }}
+                />
+              </div>
+
+              {/* Step Navigation Dots */}
+              <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-bold text-slate-500">
+                <span className={onboardingStep >= 1 ? 'text-orange-600 font-extrabold' : ''}>1. Identity</span>
+                <span className={onboardingStep >= 2 ? 'text-orange-600 font-extrabold' : ''}>2. Offerings</span>
+                <span className={onboardingStep >= 3 ? 'text-orange-600 font-extrabold' : ''}>3. Branding</span>
+                <span className={onboardingStep >= 4 ? 'text-orange-600 font-extrabold' : ''}>4. Launch</span>
+              </div>
             </div>
 
-            <form onSubmit={handleSignup} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Academy Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Chopra Academy"
-                  value={signupForm.name}
-                  onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-medium text-xs sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Subdomain Slug *</label>
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 overflow-hidden">
-                  <input
-                    type="text"
-                    required
-                    placeholder="chopra"
-                    value={signupForm.slug}
-                    onChange={(e) =>
-                      setSignupForm({
-                        ...signupForm,
-                        slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-                      })
-                    }
-                    className="w-full bg-transparent text-slate-900 focus:outline-none font-bold text-xs sm:text-sm min-w-0"
-                  />
-                  <span className="text-slate-500 text-[10px] sm:text-xs font-mono font-semibold shrink-0">.educare.prohitcoretech.com</span>
-                </div>
-              </div>
-
-              {/* Multi-Select Institution Types Offered */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Academic Levels Offered * (Select All That Apply)
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                  {[
-                    'Primary School',
-                    'Mid Primary',
-                    'High School',
-                    'Jr. College (Science)',
-                    'Jr. College (Commerce)',
-                    'Jr. College (Arts)',
-                    'Under Graduate (UG)',
-                    'Other / Coaching',
-                  ].map((level) => {
-                    const isChecked = signupForm.institutionTypes?.includes(level);
-                    return (
-                      <label
-                        key={level}
-                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
-                          isChecked
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            let updated = [...(signupForm.institutionTypes || [])];
-                            if (e.target.checked) {
-                              if (!updated.includes(level)) updated.push(level);
-                            } else {
-                              updated = updated.filter((item) => item !== level);
-                            }
-                            if (updated.length === 0) updated = ['High School'];
-                            setSignupForm({
-                              ...signupForm,
-                              institutionTypes: updated,
-                              institutionType: updated[0],
-                            });
-                          }}
-                          className="hidden"
-                        />
-                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
-                          {isChecked ? '✓' : ''}
-                        </span>
-                        <span className="truncate">{level}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Multi-Select Education Boards Offered */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Education Boards Offered * (Select All That Apply)
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                  {[
-                    'SSC / State Board',
-                    'CBSE',
-                    'ICSE / ICSC',
-                    'IB / International',
-                    'HSC State Board',
-                    'University Board',
-                    'Other / N/A',
-                  ].map((board) => {
-                    const isChecked = signupForm.educationBoards?.includes(board);
-                    return (
-                      <label
-                        key={board}
-                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
-                          isChecked
-                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            let updated = [...(signupForm.educationBoards || [])];
-                            if (e.target.checked) {
-                              if (!updated.includes(board)) updated.push(board);
-                            } else {
-                              updated = updated.filter((item) => item !== board);
-                            }
-                            if (updated.length === 0) updated = ['SSC / State Board'];
-                            setSignupForm({
-                              ...signupForm,
-                              educationBoards: updated,
-                              educationBoard: updated[0],
-                            });
-                          }}
-                          className="hidden"
-                        />
-                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
-                          {isChecked ? '✓' : ''}
-                        </span>
-                        <span className="truncate">{board}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Academy Logo Section */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                  <span>Academy Logo (Optional)</span>
-                  <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Base64</span>
-                </label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
+            <form onSubmit={handleSignup} className="space-y-4">
+              {/* STEP 1: ACADEMY IDENTITY & SUBDOMAIN */}
+              {onboardingStep === 1 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Official Academy Name *</label>
                     <input
                       type="text"
-                      placeholder="Paste Logo URL (e.g. https://...)"
-                      value={signupForm.logoUrl}
-                      onChange={(e) => setSignupForm({ ...signupForm, logoUrl: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-orange-500 focus:outline-none font-medium min-w-0"
+                      required
+                      placeholder="e.g. Chopra International Academy"
+                      value={signupForm.name}
+                      onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-bold text-sm"
                     />
-                    <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
-                      <Upload className="w-3.5 h-3.5 text-orange-500" />
-                      <span>Upload</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setSignupForm({ ...signupForm, logoUrl: reader.result as string });
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
                   </div>
 
-                  {signupForm.logoUrl && (
-                    <div className="flex items-center space-x-3 p-2 bg-orange-50 border border-orange-200 rounded-xl">
-                      <img
-                        src={signupForm.logoUrl}
-                        alt="Academy Logo Preview"
-                        className="w-8 h-8 object-contain rounded-lg border border-slate-200 bg-white p-0.5 shrink-0"
-                        onError={(e: any) => { e.target.style.display = 'none'; }}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Custom Subdomain Slug *</label>
+                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 overflow-hidden">
+                      <input
+                        type="text"
+                        required
+                        placeholder="chopra"
+                        value={signupForm.slug}
+                        onChange={(e) => {
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                          setSlug(val);
+                          setSignupForm({ ...signupForm, slug: val });
+                        }}
+                        className="w-full bg-transparent text-slate-900 focus:outline-none font-extrabold text-sm min-w-0"
                       />
-                      <div className="text-xs">
-                        <span className="font-bold text-orange-800 block">Academy Logo Attached</span>
-                        <span className="text-[10px] text-slate-500 font-mono">Displayed on receipts & ID cards</span>
-                      </div>
+                      <span className="text-slate-500 text-xs font-mono font-bold shrink-0">.educare.prohitcoretech.com</span>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Admin Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Prof. Sandeep Chopra"
-                  value={signupForm.adminName}
-                  onChange={(e) => setSignupForm({ ...signupForm, adminName: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-medium text-xs sm:text-sm"
-                />
-              </div>
+                    {/* Slug Live Availability Indicator */}
+                    {slug && (
+                      <div className="mt-2 text-xs font-bold flex items-center space-x-1.5">
+                        {loadingCheck ? (
+                          <span className="text-slate-500 animate-pulse">Checking availability...</span>
+                        ) : slugStatus.checked ? (
+                          slugStatus.available ? (
+                            <span className="text-emerald-600 flex items-center space-x-1">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500 inline" />
+                              <span>Subdomain is available! https://{slug}.educare.prohitcoretech.com</span>
+                            </span>
+                          ) : (
+                            <span className="text-rose-600 flex items-center space-x-1">
+                              <XCircle className="w-4 h-4 text-rose-500 inline" />
+                              <span>{slugStatus.reason || 'Subdomain is already taken.'}</span>
+                            </span>
+                          )
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Admin Email *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="admin@chopraacademy.com"
-                  value={signupForm.adminEmail}
-                  onChange={(e) => setSignupForm({ ...signupForm, adminEmail: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-medium text-xs sm:text-sm"
-                />
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Academy Phone Number (Optional)</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +91 9876543210"
+                      value={signupForm.phone}
+                      onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-semibold text-xs sm:text-sm"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Password *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={6}
-                    placeholder="Enter password"
-                    value={signupForm.adminPassword}
-                    onChange={(e) => setSignupForm({ ...signupForm, adminPassword: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:border-orange-500 focus:outline-none pr-10 font-medium text-xs sm:text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4 text-orange-500" /> : <Eye className="w-4 h-4 text-slate-400" />}
-                  </button>
-                </div>
-              </div>
-
-              {signupMessage && (
-                <div
-                  className={`text-xs p-3 rounded-xl font-bold ${
-                    String(signupMessage).startsWith('Success')
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}
-                >
-                  {String(signupMessage)}
+                  <div className="pt-2 flex items-center justify-end">
+                    <button
+                      type="button"
+                      disabled={!signupForm.name || !signupForm.slug || (slugStatus.checked && !slugStatus.available)}
+                      onClick={() => setOnboardingStep(2)}
+                      className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-xs sm:text-sm flex items-center space-x-2 cursor-pointer"
+                    >
+                      <span>Next: Offerings &amp; Boards</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-500/20 transition text-xs sm:text-sm cursor-pointer"
-              >
-                {submitting ? 'Creating Academy Tenant...' : 'Launch Academy SaaS Now'}
-              </button>
+              {/* STEP 2: ACADEMIC OFFERINGS & BOARDS */}
+              {onboardingStep === 2 && (
+                <div className="space-y-4">
+                  {/* Multi-Select Academic Levels Offered */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">
+                      Academic Levels Offered * (Select All That Apply)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                      {[
+                        'Primary School',
+                        'Mid Primary',
+                        'High School',
+                        'Jr. College (Science)',
+                        'Jr. College (Commerce)',
+                        'Jr. College (Arts)',
+                        'Under Graduate (UG)',
+                        'Other / Coaching',
+                      ].map((level) => {
+                        const isChecked = signupForm.institutionTypes?.includes(level);
+                        return (
+                          <label
+                            key={level}
+                            className={`flex items-center space-x-1.5 p-2 rounded-xl border text-xs font-bold cursor-pointer transition ${
+                              isChecked
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                let updated = [...(signupForm.institutionTypes || [])];
+                                if (e.target.checked) {
+                                  if (!updated.includes(level)) updated.push(level);
+                                } else {
+                                  updated = updated.filter((item) => item !== level);
+                                }
+                                if (updated.length === 0) updated = ['High School'];
+                                setSignupForm({
+                                  ...signupForm,
+                                  institutionTypes: updated,
+                                  institutionType: updated[0],
+                                });
+                              }}
+                              className="hidden"
+                            />
+                            <span className="w-3.5 h-3.5 rounded border border-current flex items-center justify-center text-[10px]">
+                              {isChecked ? '✓' : ''}
+                            </span>
+                            <span className="truncate">{level}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Multi-Select Education Boards Offered */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">
+                      Education Boards Offered * (Select All That Apply)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                      {[
+                        'SSC / State Board',
+                        'CBSE',
+                        'ICSE / ICSC',
+                        'IB / International',
+                        'HSC State Board',
+                        'University Board',
+                        'Other / N/A',
+                      ].map((board) => {
+                        const isChecked = signupForm.educationBoards?.includes(board);
+                        return (
+                          <label
+                            key={board}
+                            className={`flex items-center space-x-1.5 p-2 rounded-xl border text-xs font-bold cursor-pointer transition ${
+                              isChecked
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                let updated = [...(signupForm.educationBoards || [])];
+                                if (e.target.checked) {
+                                  if (!updated.includes(board)) updated.push(board);
+                                } else {
+                                  updated = updated.filter((item) => item !== board);
+                                }
+                                if (updated.length === 0) updated = ['SSC / State Board'];
+                                setSignupForm({
+                                  ...signupForm,
+                                  educationBoards: updated,
+                                  educationBoard: updated[0],
+                                });
+                              }}
+                              className="hidden"
+                            />
+                            <span className="w-3.5 h-3.5 rounded border border-current flex items-center justify-center text-[10px]">
+                              {isChecked ? '✓' : ''}
+                            </span>
+                            <span className="truncate">{board}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setOnboardingStep(1)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs sm:text-sm cursor-pointer"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOnboardingStep(3)}
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-xs sm:text-sm flex items-center space-x-2 cursor-pointer"
+                    >
+                      <span>Next: Branding &amp; Color</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: BRANDING & IDENTITY */}
+              {onboardingStep === 3 && (
+                <div className="space-y-4">
+                  {/* Primary Brand Theme Color Picker */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">Primary Theme Accent Color</label>
+                    <div className="flex flex-wrap items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                      {[
+                        { name: 'Orange', hex: '#f97316' },
+                        { name: 'Royal Blue', hex: '#2563eb' },
+                        { name: 'Emerald', hex: '#059669' },
+                        { name: 'Purple', hex: '#7c3aed' },
+                        { name: 'Crimson', hex: '#e11d48' },
+                      ].map((color) => (
+                        <button
+                          key={color.hex}
+                          type="button"
+                          onClick={() => setSignupForm({ ...signupForm, primaryColor: color.hex })}
+                          className={`flex items-center space-x-2 p-2 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                            signupForm.primaryColor === color.hex
+                              ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          <span className="w-4 h-4 rounded-full border border-slate-300 shrink-0" style={{ backgroundColor: color.hex }} />
+                          <span>{color.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Logo Upload Section */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                      <span>Academy Logo (Optional)</span>
+                      <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Base64</span>
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Paste Logo URL (e.g. https://...)"
+                          value={signupForm.logoUrl}
+                          onChange={(e) => setSignupForm({ ...signupForm, logoUrl: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:border-orange-500 focus:outline-none font-medium min-w-0"
+                        />
+                        <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
+                          <Upload className="w-3.5 h-3.5 text-orange-500" />
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setSignupForm({ ...signupForm, logoUrl: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+
+                      {/* Live Brand Card Preview */}
+                      <div className="p-3 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl shadow-sm flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          {signupForm.logoUrl ? (
+                            <img
+                              src={signupForm.logoUrl}
+                              alt="Logo Preview"
+                              className="w-10 h-10 object-contain rounded-xl bg-white p-1 border border-slate-700 shrink-0"
+                              onError={(e: any) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white font-black flex items-center justify-center text-sm shadow-sm shrink-0">
+                              {signupForm.name ? signupForm.name.slice(0, 2).toUpperCase() : 'PA'}
+                            </div>
+                          )}
+                          <div>
+                            <span className="font-extrabold text-sm block">{signupForm.name || 'Your Academy Portal'}</span>
+                            <span className="text-[10px] text-slate-400 font-mono block">https://{signupForm.slug || 'demo'}.educare.prohitcoretech.com</span>
+                          </div>
+                        </div>
+                        <span
+                          className="w-4 h-4 rounded-full border border-white/40 shadow-xs"
+                          style={{ backgroundColor: signupForm.primaryColor || '#f97316' }}
+                          title="Selected Accent Theme"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setOnboardingStep(2)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs sm:text-sm cursor-pointer"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOnboardingStep(4)}
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-xs sm:text-sm flex items-center space-x-2 cursor-pointer"
+                    >
+                      <span>Next: Admin Account</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: ADMINISTRATOR ACCOUNT & LAUNCH */}
+              {onboardingStep === 4 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Super Admin Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Prof. Sandeep Chopra"
+                      value={signupForm.adminName}
+                      onChange={(e) => setSignupForm({ ...signupForm, adminName: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-bold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Super Admin Email *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="admin@chopraacademy.com"
+                      value={signupForm.adminEmail}
+                      onChange={(e) => setSignupForm({ ...signupForm, adminEmail: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none font-bold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Account Password *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        minLength={6}
+                        placeholder="Enter password (min 6 characters)"
+                        value={signupForm.adminPassword}
+                        onChange={(e) => setSignupForm({ ...signupForm, adminPassword: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:border-orange-500 focus:outline-none pr-10 font-bold text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 transition"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4 text-orange-500" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Summary Card Before Launch */}
+                  <div className="bg-orange-50/70 border border-orange-200 p-3.5 rounded-2xl space-y-1 text-xs">
+                    <span className="font-extrabold text-orange-950 block text-sm">Tenant Setup Summary:</span>
+                    <div className="text-orange-900 space-y-0.5 font-medium">
+                      <p>• Subdomain: <span className="font-bold font-mono">https://{signupForm.slug || 'demo'}.educare.prohitcoretech.com</span></p>
+                      <p>• Offerings: <span className="font-bold">{signupForm.institutionTypes?.join(', ')}</span></p>
+                      <p>• Boards: <span className="font-bold">{signupForm.educationBoards?.join(', ')}</span></p>
+                    </div>
+                  </div>
+
+                  {signupMessage && (
+                    <div
+                      className={`text-xs p-3 rounded-xl font-bold ${
+                        String(signupMessage).startsWith('Success')
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}
+                    >
+                      {String(signupMessage)}
+                    </div>
+                  )}
+
+                  <div className="pt-2 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setOnboardingStep(3)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs sm:text-sm cursor-pointer"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting || !signupForm.adminName || !signupForm.adminEmail || !signupForm.adminPassword}
+                      className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-black px-6 py-3.5 rounded-xl shadow-lg shadow-orange-500/20 transition text-xs sm:text-sm cursor-pointer flex items-center space-x-2"
+                    >
+                      <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+                      <span>{submitting ? 'Creating Academy Tenant...' : '🚀 Launch Academy SaaS Now'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
