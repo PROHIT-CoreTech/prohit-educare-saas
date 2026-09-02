@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Shield, Zap, CreditCard, Sparkles, CheckCircle2, XCircle, ArrowRight, 
   BookOpen, Users, BarChart3, Check, ShieldAlert, Eye, EyeOff, Upload, 
@@ -20,6 +20,64 @@ export default function MarketingPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<'idcard' | 'fees' | 'timetable' | 'dashboard'>('idcard');
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
+
+  // Metrics Count-Up Animation State & Refs
+  const metricsRef = useRef<HTMLDivElement>(null);
+  const [hasAnimatedMetrics, setHasAnimatedMetrics] = useState(false);
+  const [metricAccuracy, setMetricAccuracy] = useState('99.8%');
+  const [metricSpeed, setMetricSpeed] = useState('10x');
+  const [metricCompliance, setMetricCompliance] = useState('100%');
+  const [metricSetup, setMetricSetup] = useState('< 60 Secs');
+
+  useEffect(() => {
+    const node = metricsRef.current;
+    if (!node || hasAnimatedMetrics) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setHasAnimatedMetrics(true);
+          observer.disconnect();
+
+          const duration = 2000;
+          const startTime = performance.now();
+
+          const animate = (now: number) => {
+            const elapsed = Math.min(now - startTime, duration);
+            const progress = elapsed / duration;
+            // Ease-out cubic curve for smooth decelerating finish
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+
+            // 1. Accuracy: 0 to 99.8 (preserve 1 decimal place, keep %)
+            const accuracyVal = (easeOut * 99.8).toFixed(1);
+            setMetricAccuracy(`${accuracyVal}%`);
+
+            // 2. Speed: 0 to 10 (keep x)
+            const speedVal = Math.round(easeOut * 10);
+            setMetricSpeed(`${speedVal}x`);
+
+            // 3. Compliance: 0 to 100 (keep %)
+            const complianceVal = Math.round(easeOut * 100);
+            setMetricCompliance(`${complianceVal}%`);
+
+            // 4. Setup: 0 to 60 (keep < and Secs)
+            const setupVal = Math.round(easeOut * 60);
+            setMetricSetup(`< ${setupVal} Secs`);
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            }
+          };
+
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasAnimatedMetrics]);
 
   const [signupForm, setSignupForm] = useState({
     name: '',
@@ -727,29 +785,29 @@ export default function MarketingPage() {
       </section>
 
       {/* OPERATIONAL ROI & METRICS IMPACT BAR */}
-      <section className="py-14 sm:py-20 relative bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white shadow-inner">
+      <section ref={metricsRef} className="py-14 sm:py-20 relative bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-orange-400/40">
             <div className="p-4 space-y-1">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">99.8%</span>
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricAccuracy}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Fee Collection Accuracy</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Zero uncollected or unrecorded installments</span>
             </div>
 
             <div className="p-4 space-y-1 pt-6 md:pt-4">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">10x</span>
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricSpeed}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Faster Student Enrollment</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Admission &amp; ID Card generation under 2 mins</span>
             </div>
 
             <div className="p-4 space-y-1 pt-6 md:pt-4">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">100%</span>
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricCompliance}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Multi-Board Compliance</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Full support for SSC, CBSE, ICSE, IB &amp; HSC</span>
             </div>
 
             <div className="p-4 space-y-1 pt-6 md:pt-4">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">&lt; 60 Secs</span>
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricSetup}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Instant Tenant Setup</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Custom subdomain setup with 14-day free trial</span>
             </div>
