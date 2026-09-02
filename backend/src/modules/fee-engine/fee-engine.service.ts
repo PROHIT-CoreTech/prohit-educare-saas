@@ -46,7 +46,7 @@ export class FeeEngineService {
     return breakdown;
   }
 
-  async createFeeStructure(dto: { standard: number; medium?: string; stream?: string; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
+  async createFeeStructure(dto: { standard: number; medium?: string; stream?: string; board?: string; name: string; totalAmount: number; installmentsCount: number; startDate?: Date }) {
     const academyId = this.tenantContextService.academyId;
     const breakdown = this.generateInstallmentBreakdown(dto.totalAmount, dto.installmentsCount, dto.startDate ? new Date(dto.startDate) : new Date());
 
@@ -55,6 +55,7 @@ export class FeeEngineService {
       standard: dto.standard,
       medium: dto.medium || (dto.standard >= 11 ? 'english' : 'english'),
       stream: dto.stream || (dto.standard >= 11 ? 'science' : 'none'),
+      board: dto.board || '',
       name: dto.name,
       totalAmount: dto.totalAmount,
       installmentsCount: dto.installmentsCount,
@@ -80,7 +81,7 @@ export class FeeEngineService {
 
   async updateFeeStructure(
     id: string,
-    dto: { standard?: number; medium?: string; stream?: string; name?: string; totalAmount?: number; installmentsCount?: number; startDate?: Date },
+    dto: { standard?: number; medium?: string; stream?: string; board?: string; name?: string; totalAmount?: number; installmentsCount?: number; startDate?: Date },
   ) {
     const academyId = this.tenantContextService.academyId;
     const existing = await this.feeStructureModel.findOne({ _id: id, academyId }).exec();

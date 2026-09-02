@@ -528,9 +528,21 @@ export default function StudentsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Student Roster</h1>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Student Roster</h1>
+            {academyInfo?.institutionType && (
+              <span className="bg-blue-100 text-blue-900 border border-blue-300 px-2.5 py-0.5 rounded-md text-xs font-black">
+                {academyInfo.institutionType}
+              </span>
+            )}
+            {academyInfo?.educationBoard && (
+              <span className="bg-purple-100 text-purple-900 border border-purple-300 px-2.5 py-0.5 rounded-md text-xs font-black">
+                {academyInfo.educationBoard}
+              </span>
+            )}
+          </div>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Manage student enrollments, March - April standard promotions & active/inactive statuses
+            Enrollments, standard promotions & active student records configured for {academyInfo?.name || 'Academy'} ({academyInfo?.institutionType || 'High School'} - {academyInfo?.educationBoard || 'State Board'})
           </p>
         </div>
 

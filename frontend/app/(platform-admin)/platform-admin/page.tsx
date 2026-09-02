@@ -34,6 +34,8 @@ export default function PlatformAdminPage() {
     adminPassword: '',
     phone: '',
     logoUrl: '',
+    institutionType: 'High School',
+    educationBoard: 'SSC / State Board',
     plan: 'PROFESSIONAL',
     subscriptionStatus: 'ACTIVE',
     paymentMode: 'CASH',
@@ -156,6 +158,8 @@ export default function PlatformAdminPage() {
           adminPassword: '',
           phone: '',
           logoUrl: '',
+          institutionType: 'High School',
+          educationBoard: 'SSC / State Board',
           plan: 'PROFESSIONAL',
           subscriptionStatus: 'ACTIVE',
           paymentMode: 'CASH',
@@ -430,6 +434,7 @@ export default function PlatformAdminPage() {
                   <tr>
                     <th className="px-6 py-4 whitespace-nowrap">Academy Name</th>
                     <th className="px-6 py-4 whitespace-nowrap">Subdomain</th>
+                    <th className="px-6 py-4 whitespace-nowrap">Type & Board</th>
                     <th className="px-6 py-4 whitespace-nowrap">Status</th>
                     <th className="px-6 py-4 text-right whitespace-nowrap">Master Admin Tools</th>
                   </tr>
@@ -437,7 +442,7 @@ export default function PlatformAdminPage() {
                 <tbody className="divide-y divide-slate-200">
                   {filteredAcademies.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-slate-500 font-medium">
+                      <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
                         No academy tenants found matching your filter criteria.
                       </td>
                     </tr>
@@ -453,6 +458,16 @@ export default function PlatformAdminPage() {
                             <span className="bg-orange-50 text-orange-700 border border-orange-200 px-3 py-1 rounded-xl text-xs font-mono font-bold inline-flex items-center space-x-1">
                               <span>{ac.slug}.educare.prohitcoretech.com</span>
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="space-y-1">
+                              <span className="bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded-lg text-xs font-bold inline-block">
+                                {ac.institutionType || 'High School'}
+                              </span>
+                              <span className="bg-purple-50 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-lg text-xs font-bold block w-fit">
+                                {ac.educationBoard || 'SSC / State Board'}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
@@ -719,6 +734,46 @@ export default function PlatformAdminPage() {
                     />
                     <span className="text-slate-500 font-mono">.educare.prohitcoretech.com</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Institution Type & Board Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Institution Type *</label>
+                  <select
+                    required
+                    value={offlineForm.institutionType}
+                    onChange={(e) => setOfflineForm({ ...offlineForm, institutionType: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  >
+                    <option value="Primary School">Primary School (1st - 5th)</option>
+                    <option value="Mid Primary">Mid Primary (6th - 8th)</option>
+                    <option value="High School">High School (9th - 10th)</option>
+                    <option value="Jr. College (Science)">Jr. College (Science)</option>
+                    <option value="Jr. College (Commerce)">Jr. College (Commerce)</option>
+                    <option value="Jr. College (Arts)">Jr. College (Arts)</option>
+                    <option value="Under Graduate (UG)">Under Graduate (UG)</option>
+                    <option value="Other / Coaching">Other / Coaching</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Education Board *</label>
+                  <select
+                    required
+                    value={offlineForm.educationBoard}
+                    onChange={(e) => setOfflineForm({ ...offlineForm, educationBoard: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  >
+                    <option value="SSC / State Board">SSC / State Board</option>
+                    <option value="CBSE">CBSE (Central Board)</option>
+                    <option value="ICSE / ICSC">ICSE / ICSC</option>
+                    <option value="IB / International">IB / International</option>
+                    <option value="HSC State Board">HSC State Board (Jr. College)</option>
+                    <option value="University Board">University Board (UG)</option>
+                    <option value="Other / N/A">Other / N/A</option>
+                  </select>
                 </div>
               </div>
 

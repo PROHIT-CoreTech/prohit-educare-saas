@@ -46,6 +46,8 @@ export class AcademiesService {
       slug,
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
       primaryColor: dto.primaryColor || '#f97316',
+      institutionType: dto.institutionType || 'High School',
+      educationBoard: dto.educationBoard || 'SSC / State Board',
       subscriptionStatus: 'TRIAL',
       trialEndsAt,
     });
@@ -82,6 +84,8 @@ export class AcademiesService {
         slug: academy.slug,
         logoUrl: academy.logoUrl,
         primaryColor: academy.primaryColor,
+        institutionType: academy.institutionType,
+        educationBoard: academy.educationBoard,
         subscriptionStatus: academy.subscriptionStatus,
         trialEndsAt: academy.trialEndsAt,
       },
@@ -111,6 +115,8 @@ export class AcademiesService {
     address?: string;
     logoUrl?: string;
     primaryColor?: string;
+    institutionType?: string;
+    educationBoard?: string;
   }) {
     const academyId = this.tenantContextService.academyId;
     const updated = await this.academyModel

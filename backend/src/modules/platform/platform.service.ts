@@ -142,6 +142,15 @@ export class PlatformService {
     return academy;
   }
 
+  async updateAcademyCategory(id: string, dto: { institutionType?: string; educationBoard?: string }) {
+    const academy = await this.academyModel.findById(id).exec();
+    if (!academy) throw new NotFoundException('Academy not found');
+    if (dto.institutionType) academy.institutionType = dto.institutionType;
+    if (dto.educationBoard) academy.educationBoard = dto.educationBoard;
+    await academy.save();
+    return academy;
+  }
+
   /**
    * Master Admin Offline Academy Tenant Registration
    */
@@ -155,6 +164,8 @@ export class PlatformService {
       phone?: string;
       logoUrl?: string;
       primaryColor?: string;
+      institutionType?: string;
+      educationBoard?: string;
       plan?: string;
       subscriptionStatus?: string;
       paymentMode?: string;
@@ -183,6 +194,8 @@ export class PlatformService {
       slug: cleanSlug,
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
       primaryColor: dto.primaryColor || '#f97316',
+      institutionType: dto.institutionType || 'High School',
+      educationBoard: dto.educationBoard || 'SSC / State Board',
       subscriptionStatus: status,
       trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       subscriptionEndsAt: status === 'ACTIVE' ? subEndsAt : undefined,

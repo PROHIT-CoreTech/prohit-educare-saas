@@ -41,6 +41,8 @@ export class PlatformController {
       adminEmail: string;
       adminPassword?: string;
       phone?: string;
+      institutionType?: string;
+      educationBoard?: string;
       plan?: string;
       subscriptionStatus?: string;
       paymentMode?: string;
@@ -61,6 +63,15 @@ export class PlatformController {
   @Patch('academies/:id/status')
   async updateAcademyStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.platformService.updateAcademyStatus(id, status);
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Patch('academies/:id/category')
+  async updateAcademyCategory(
+    @Param('id') id: string,
+    @Body() body: { institutionType?: string; educationBoard?: string },
+  ) {
+    return this.platformService.updateAcademyCategory(id, body);
   }
 
   @UseGuards(PlatformAuthGuard)

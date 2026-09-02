@@ -18,8 +18,11 @@ export default function FeeEnginePage() {
   const [receiptData, setReceiptData] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  const [academyInfo, setAcademyInfo] = useState<any>(null);
+
   useEffect(() => {
     fetchStudents();
+    apiClient.get('/academies/my-academy').then((res) => setAcademyInfo(res.data)).catch(() => {});
   }, []);
 
   const fetchStudents = async () => {
@@ -228,8 +231,22 @@ export default function FeeEnginePage() {
   return (
     <div className="space-y-8 font-sans text-slate-900">
       <div className="border-b border-slate-200 pb-5">
-        <h1 className="text-2xl font-extrabold text-slate-900">Atomic FIFO Fee Collection Engine</h1>
-        <p className="text-sm text-slate-500 font-medium mt-0.5">Record payments with sequential schedule allocation and instant receipt cards</p>
+        <div className="flex items-center space-x-2">
+          <h1 className="text-2xl font-extrabold text-slate-900">Atomic FIFO Fee Collection Engine</h1>
+          {academyInfo?.institutionType && (
+            <span className="bg-blue-100 text-blue-900 border border-blue-300 px-2.5 py-0.5 rounded-md text-xs font-black">
+              {academyInfo.institutionType}
+            </span>
+          )}
+          {academyInfo?.educationBoard && (
+            <span className="bg-purple-100 text-purple-900 border border-purple-300 px-2.5 py-0.5 rounded-md text-xs font-black">
+              {academyInfo.educationBoard}
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-slate-500 font-medium mt-0.5">
+          Sequential schedule allocation & instant receipt cards tailored for {academyInfo?.name || 'Academy'} ({academyInfo?.institutionType || 'High School'} - {academyInfo?.educationBoard || 'State Board'})
+        </p>
       </div>
 
       {/* Student Selector */}

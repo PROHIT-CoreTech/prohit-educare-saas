@@ -23,6 +23,9 @@ export class FeeStructure {
   @Prop({ required: false, enum: ['science', 'commerce', 'arts', 'none'], default: 'none' })
   stream: string;
 
+  @Prop({ required: false, default: '' })
+  board?: string;
+
   @Prop({ required: true, trim: true })
   name: string;
 

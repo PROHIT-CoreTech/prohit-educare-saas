@@ -22,6 +22,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     address: '',
     logoUrl: '',
     primaryColor: '#f97316',
+    institutionType: 'High School',
+    educationBoard: 'SSC / State Board',
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -33,10 +35,22 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     standard: 10,
     medium: 'english',
     stream: 'science',
+    board: '',
     name: 'Annual Tuition Fee',
     totalAmount: 35000,
     installmentsCount: 1,
   });
+
+  useEffect(() => {
+    if (academyInfo?.institutionType) {
+      const inst = academyInfo.institutionType;
+      if (inst.includes('Primary School')) setSelectedFeeCategory('primary');
+      else if (inst.includes('Mid Primary')) setSelectedFeeCategory('middle');
+      else if (inst.includes('High School')) setSelectedFeeCategory('secondary');
+      else if (inst.includes('Jr. College')) setSelectedFeeCategory('higher_secondary');
+      else if (inst.includes('Under Graduate')) setSelectedFeeCategory('degree');
+    }
+  }, [academyInfo]);
 
   const [facultyList, setFacultyList] = useState<any[]>([]);
   const [showFacultyModal, setShowFacultyModal] = useState(false);
@@ -134,6 +148,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         address: res.data.address || '',
         logoUrl: res.data.logoUrl || '',
         primaryColor: res.data.primaryColor || '#f97316',
+        institutionType: res.data.institutionType || 'High School',
+        educationBoard: res.data.educationBoard || 'SSC / State Board',
       });
     } catch (e) {}
   };
@@ -181,11 +197,35 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleOpenNewFeeModal = () => {
     setEditingFeeId(null);
+    const inst = academyInfo?.institutionType || '';
+    const defaultStd = inst.includes('Primary School')
+      ? 5
+      : inst.includes('Mid Primary')
+      ? 8
+      : inst.includes('High School')
+      ? 10
+      : inst.includes('Jr. College')
+      ? 12
+      : inst.includes('Under Graduate')
+      ? 15
+      : 10;
+
+    const defaultStream = inst.includes('Science')
+      ? 'science'
+      : inst.includes('Commerce')
+      ? 'commerce'
+      : inst.includes('Arts')
+      ? 'arts'
+      : 'none';
+
+    const board = academyInfo?.educationBoard || 'SSC / State Board';
+
     setFeeForm({
-      standard: 10,
+      standard: defaultStd,
       medium: 'english',
-      stream: 'science',
-      name: 'Annual Tuition Fee',
+      stream: defaultStream,
+      board: board,
+      name: `Annual Tuition Fee (${board})`,
       totalAmount: 35000,
       installmentsCount: 1,
     });
@@ -198,6 +238,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       standard: fs.standard || 10,
       medium: fs.medium || 'english',
       stream: fs.stream || 'science',
+      board: fs.board || academyInfo?.educationBoard || 'SSC / State Board',
       name: fs.name || 'Annual Tuition Fee',
       totalAmount: fs.totalAmount || 35000,
       installmentsCount: fs.installmentsCount || 1,
@@ -496,6 +537,20 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               </div>
 
               <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Institution Type</span>
+                <span className="text-base font-extrabold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 inline-block">
+                  {academyInfo?.institutionType || 'High School'}
+                </span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Education Board</span>
+                <span className="text-base font-extrabold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200 inline-block">
+                  {academyInfo?.educationBoard || 'SSC / State Board'}
+                </span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Primary Brand Color</span>
                 <div className="flex items-center space-x-2">
                   <span
@@ -592,6 +647,57 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                 />
+              </div>
+
+              {/* Privilege Notice for Existing Academy Profile Edits */}
+              <div className="bg-blue-50/80 border border-blue-200 p-3 rounded-xl flex items-start space-x-2 text-blue-900 text-xs">
+                <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-extrabold block text-blue-950">Super Admin Category & Board Edit Privilege</span>
+                  <span className="text-[11px] text-blue-800 leading-snug block mt-0.5 font-medium">
+                    Existing academies can update their Institution Type or Education Board anytime. Changes immediately update your fee structure default tiers, standard filters, and student admission batch presets.
+                  </span>
+                </div>
+              </div>
+
+              {/* Institution Type & Board Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Institution Type *</label>
+                  <select
+                    required
+                    value={profileForm.institutionType}
+                    onChange={(e) => setProfileForm({ ...profileForm, institutionType: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  >
+                    <option value="Primary School">Primary School (1st - 5th)</option>
+                    <option value="Mid Primary">Mid Primary (6th - 8th)</option>
+                    <option value="High School">High School (9th - 10th)</option>
+                    <option value="Jr. College (Science)">Jr. College (Science)</option>
+                    <option value="Jr. College (Commerce)">Jr. College (Commerce)</option>
+                    <option value="Jr. College (Arts)">Jr. College (Arts)</option>
+                    <option value="Under Graduate (UG)">Under Graduate (UG)</option>
+                    <option value="Other / Coaching">Other / Coaching</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Education Board *</label>
+                  <select
+                    required
+                    value={profileForm.educationBoard}
+                    onChange={(e) => setProfileForm({ ...profileForm, educationBoard: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                  >
+                    <option value="SSC / State Board">SSC / State Board</option>
+                    <option value="CBSE">CBSE (Central Board)</option>
+                    <option value="ICSE / ICSC">ICSE / ICSC</option>
+                    <option value="IB / International">IB / International</option>
+                    <option value="HSC State Board">HSC State Board (Jr. College)</option>
+                    <option value="University Board">University Board (UG)</option>
+                    <option value="Other / N/A">Other / N/A</option>
+                  </select>
+                </div>
               </div>
 
               {/* Logo Upload / URL */}
@@ -736,6 +842,29 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </button>
           </div>
 
+          {/* Tenant Institution Category & Board Context Banner */}
+          <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border border-orange-200 p-4.5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+                <Sparkles className="w-5 h-5 text-yellow-300" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-extrabold text-slate-900 text-sm">{academyInfo?.name || 'Academy'} Fee Engine Context:</span>
+                  <span className="bg-blue-100 text-blue-900 border border-blue-300 px-2.5 py-0.5 rounded-md text-xs font-black">
+                    {academyInfo?.institutionType || 'High School'}
+                  </span>
+                  <span className="bg-purple-100 text-purple-900 border border-purple-300 px-2.5 py-0.5 rounded-md text-xs font-black">
+                    {academyInfo?.educationBoard || 'SSC / State Board'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium mt-0.5">
+                  Fee structures, standards, and payment plans are tailored for {academyInfo?.institutionType || 'High School'} ({academyInfo?.educationBoard || 'State Board'}).
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Category Filter Tabs */}
           <div className="flex flex-wrap items-center gap-2 bg-white border border-slate-200 p-2 rounded-2xl shadow-xs text-xs">
             <button
@@ -844,6 +973,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                                     : fs.stream !== 'none'
                                     ? fs.stream
                                     : 'General'}
+                                </span>
+
+                                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200">
+                                  {fs.board || academyInfo?.educationBoard || 'SSC / State Board'}
                                 </span>
                               </div>
 
@@ -1209,6 +1342,23 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   </select>
                 </div>
               )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Education Board Context</label>
+                <select
+                  value={feeForm.board || academyInfo?.educationBoard || 'SSC / State Board'}
+                  onChange={(e) => setFeeForm({ ...feeForm, board: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold text-xs"
+                >
+                  <option value="SSC / State Board">SSC / State Board</option>
+                  <option value="CBSE">CBSE (Central Board)</option>
+                  <option value="ICSE / ICSC">ICSE / ICSC</option>
+                  <option value="IB / International">IB / International</option>
+                  <option value="HSC State Board">HSC State Board (Jr. College)</option>
+                  <option value="University Board">University Board (UG)</option>
+                  <option value="Other / N/A">Other / N/A</option>
+                </select>
+              </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Structure Name</label>

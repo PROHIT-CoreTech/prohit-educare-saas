@@ -28,6 +28,8 @@ export default function MarketingPage() {
     adminPassword: '',
     phone: '',
     logoUrl: '',
+    institutionType: 'High School',
+    educationBoard: 'SSC / State Board',
   });
   const [signupMessage, setSignupMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -688,6 +690,46 @@ export default function MarketingPage() {
                     className="w-full bg-transparent text-slate-900 focus:outline-none font-bold text-xs sm:text-sm min-w-0"
                   />
                   <span className="text-slate-500 text-[10px] sm:text-xs font-mono font-semibold shrink-0">.educare.prohitcoretech.com</span>
+                </div>
+              </div>
+
+              {/* Institution Type & Board Selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Institution Type *</label>
+                  <select
+                    required
+                    value={signupForm.institutionType}
+                    onChange={(e) => setSignupForm({ ...signupForm, institutionType: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-semibold text-xs sm:text-sm"
+                  >
+                    <option value="Primary School">Primary School (1st - 5th)</option>
+                    <option value="Mid Primary">Mid Primary (6th - 8th)</option>
+                    <option value="High School">High School (9th - 10th)</option>
+                    <option value="Jr. College (Science)">Jr. College (Science)</option>
+                    <option value="Jr. College (Commerce)">Jr. College (Commerce)</option>
+                    <option value="Jr. College (Arts)">Jr. College (Arts)</option>
+                    <option value="Under Graduate (UG)">Under Graduate (UG)</option>
+                    <option value="Other / Coaching">Other / Coaching</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Board Selection *</label>
+                  <select
+                    required
+                    value={signupForm.educationBoard}
+                    onChange={(e) => setSignupForm({ ...signupForm, educationBoard: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-semibold text-xs sm:text-sm"
+                  >
+                    <option value="SSC / State Board">SSC / State Board</option>
+                    <option value="CBSE">CBSE (Central Board)</option>
+                    <option value="ICSE / ICSC">ICSE / ICSC</option>
+                    <option value="IB / International">IB / International</option>
+                    <option value="HSC State Board">HSC State Board (Jr. College)</option>
+                    <option value="University Board">University Board (UG)</option>
+                    <option value="Other / N/A">Other / N/A</option>
+                  </select>
                 </div>
               </div>
 
