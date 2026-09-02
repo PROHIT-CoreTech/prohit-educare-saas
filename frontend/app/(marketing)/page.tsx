@@ -789,25 +789,25 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-orange-400/40">
             <div className="p-4 space-y-1">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricAccuracy}</span>
+              <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight font-mono block whitespace-nowrap">{metricAccuracy}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Fee Collection Accuracy</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Zero uncollected or unrecorded installments</span>
             </div>
 
             <div className="p-4 space-y-1 pt-6 md:pt-4">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricSpeed}</span>
+              <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight font-mono block whitespace-nowrap">{metricSpeed}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Faster Student Enrollment</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Admission &amp; ID Card generation under 2 mins</span>
             </div>
 
             <div className="p-4 space-y-1 pt-6 md:pt-4">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricCompliance}</span>
+              <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight font-mono block whitespace-nowrap">{metricCompliance}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Multi-Board Compliance</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Full support for SSC, CBSE, ICSE, IB &amp; HSC</span>
             </div>
 
             <div className="p-4 space-y-1 pt-6 md:pt-4">
-              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">{metricSetup}</span>
+              <span className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight font-mono block whitespace-nowrap">{metricSetup}</span>
               <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Instant Tenant Setup</span>
               <span className="text-[11px] text-orange-200/80 font-medium block">Custom subdomain setup with 14-day free trial</span>
             </div>
