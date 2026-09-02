@@ -29,7 +29,9 @@ export default function MarketingPage() {
     phone: '',
     logoUrl: '',
     institutionType: 'High School',
+    institutionTypes: ['High School'] as string[],
     educationBoard: 'SSC / State Board',
+    educationBoards: ['SSC / State Board'] as string[],
   });
   const [signupMessage, setSignupMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -59,7 +61,12 @@ export default function MarketingPage() {
     setSubmitting(true);
     setSignupMessage('');
     try {
-      const res = await apiClient.post('/academies/signup', signupForm);
+      const payload = {
+        ...signupForm,
+        institutionType: signupForm.institutionTypes?.[0] || signupForm.institutionType || 'High School',
+        educationBoard: signupForm.educationBoards?.[0] || signupForm.educationBoard || 'SSC / State Board',
+      };
+      const res = await apiClient.post('/academies/signup', payload);
       if (res.data.token) {
         localStorage.setItem('prohit_auth_token', res.data.token);
         setSignupMessage('Success! Redirecting to your academy dashboard...');
@@ -71,7 +78,13 @@ export default function MarketingPage() {
         }, 200);
       }
     } catch (err: any) {
-      setSignupMessage(err.response?.data?.message || 'Signup failed. Please try again.');
+      const rawMsg = err.response?.data?.message;
+      const msgStr = Array.isArray(rawMsg)
+        ? rawMsg.join(', ')
+        : typeof rawMsg === 'string'
+        ? rawMsg
+        : 'Signup failed. Please try again.';
+      setSignupMessage(msgStr);
     } finally {
       setSubmitting(false);
     }
@@ -693,43 +706,112 @@ export default function MarketingPage() {
                 </div>
               </div>
 
-              {/* Institution Type & Board Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Institution Type *</label>
-                  <select
-                    required
-                    value={signupForm.institutionType}
-                    onChange={(e) => setSignupForm({ ...signupForm, institutionType: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-semibold text-xs sm:text-sm"
-                  >
-                    <option value="Primary School">Primary School (1st - 5th)</option>
-                    <option value="Mid Primary">Mid Primary (6th - 8th)</option>
-                    <option value="High School">High School (9th - 10th)</option>
-                    <option value="Jr. College (Science)">Jr. College (Science)</option>
-                    <option value="Jr. College (Commerce)">Jr. College (Commerce)</option>
-                    <option value="Jr. College (Arts)">Jr. College (Arts)</option>
-                    <option value="Under Graduate (UG)">Under Graduate (UG)</option>
-                    <option value="Other / Coaching">Other / Coaching</option>
-                  </select>
+              {/* Multi-Select Institution Types Offered */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Academic Levels Offered * (Select All That Apply)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                  {[
+                    'Primary School',
+                    'Mid Primary',
+                    'High School',
+                    'Jr. College (Science)',
+                    'Jr. College (Commerce)',
+                    'Jr. College (Arts)',
+                    'Under Graduate (UG)',
+                    'Other / Coaching',
+                  ].map((level) => {
+                    const isChecked = signupForm.institutionTypes?.includes(level);
+                    return (
+                      <label
+                        key={level}
+                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let updated = [...(signupForm.institutionTypes || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(level)) updated.push(level);
+                            } else {
+                              updated = updated.filter((item) => item !== level);
+                            }
+                            if (updated.length === 0) updated = ['High School'];
+                            setSignupForm({
+                              ...signupForm,
+                              institutionTypes: updated,
+                              institutionType: updated[0],
+                            });
+                          }}
+                          className="hidden"
+                        />
+                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
+                          {isChecked ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{level}</span>
+                      </label>
+                    );
+                  })}
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Board Selection *</label>
-                  <select
-                    required
-                    value={signupForm.educationBoard}
-                    onChange={(e) => setSignupForm({ ...signupForm, educationBoard: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:border-orange-500 focus:outline-none font-semibold text-xs sm:text-sm"
-                  >
-                    <option value="SSC / State Board">SSC / State Board</option>
-                    <option value="CBSE">CBSE (Central Board)</option>
-                    <option value="ICSE / ICSC">ICSE / ICSC</option>
-                    <option value="IB / International">IB / International</option>
-                    <option value="HSC State Board">HSC State Board (Jr. College)</option>
-                    <option value="University Board">University Board (UG)</option>
-                    <option value="Other / N/A">Other / N/A</option>
-                  </select>
+              {/* Multi-Select Education Boards Offered */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Education Boards Offered * (Select All That Apply)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                  {[
+                    'SSC / State Board',
+                    'CBSE',
+                    'ICSE / ICSC',
+                    'IB / International',
+                    'HSC State Board',
+                    'University Board',
+                    'Other / N/A',
+                  ].map((board) => {
+                    const isChecked = signupForm.educationBoards?.includes(board);
+                    return (
+                      <label
+                        key={board}
+                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let updated = [...(signupForm.educationBoards || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(board)) updated.push(board);
+                            } else {
+                              updated = updated.filter((item) => item !== board);
+                            }
+                            if (updated.length === 0) updated = ['SSC / State Board'];
+                            setSignupForm({
+                              ...signupForm,
+                              educationBoards: updated,
+                              educationBoard: updated[0],
+                            });
+                          }}
+                          className="hidden"
+                        />
+                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
+                          {isChecked ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{board}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -835,12 +917,12 @@ export default function MarketingPage() {
               {signupMessage && (
                 <div
                   className={`text-xs p-3 rounded-xl font-bold ${
-                    signupMessage.startsWith('Success')
+                    String(signupMessage).startsWith('Success')
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : 'bg-rose-50 text-rose-700 border border-rose-200'
                   }`}
                 >
-                  {signupMessage}
+                  {String(signupMessage)}
                 </div>
               )}
 

@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsArray, MinLength, Matches } from 'class-validator';
 
 export class SignupAcademyDto {
   @IsString()
@@ -23,12 +23,15 @@ export class SignupAcademyDto {
   @MinLength(6)
   adminPassword: string;
 
+  @IsOptional()
   @IsString()
   phone?: string;
 
+  @IsOptional()
   @IsString()
   logoUrl?: string;
 
+  @IsOptional()
   @IsString()
   primaryColor?: string;
 
@@ -37,6 +40,16 @@ export class SignupAcademyDto {
   institutionType?: string;
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  institutionTypes?: string[];
+
+  @IsOptional()
   @IsString()
   educationBoard?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  educationBoards?: string[];
 }

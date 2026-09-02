@@ -23,7 +23,9 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     logoUrl: '',
     primaryColor: '#f97316',
     institutionType: 'High School',
+    institutionTypes: ['High School'] as string[],
     educationBoard: 'SSC / State Board',
+    educationBoards: ['SSC / State Board'] as string[],
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -42,13 +44,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   });
 
   useEffect(() => {
-    if (academyInfo?.institutionType) {
-      const inst = academyInfo.institutionType;
-      if (inst.includes('Primary School')) setSelectedFeeCategory('primary');
-      else if (inst.includes('Mid Primary')) setSelectedFeeCategory('middle');
-      else if (inst.includes('High School')) setSelectedFeeCategory('secondary');
-      else if (inst.includes('Jr. College')) setSelectedFeeCategory('higher_secondary');
-      else if (inst.includes('Under Graduate')) setSelectedFeeCategory('degree');
+    if (academyInfo?.institutionType || (academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0)) {
+      const types = academyInfo.institutionTypes && academyInfo.institutionTypes.length > 0
+        ? academyInfo.institutionTypes.join(' ')
+        : academyInfo.institutionType || '';
+      if (types.includes('Primary School')) setSelectedFeeCategory('primary');
+      else if (types.includes('Mid Primary')) setSelectedFeeCategory('middle');
+      else if (types.includes('High School')) setSelectedFeeCategory('secondary');
+      else if (types.includes('Jr. College')) setSelectedFeeCategory('higher_secondary');
+      else if (types.includes('Under Graduate')) setSelectedFeeCategory('degree');
     }
   }, [academyInfo]);
 
@@ -140,6 +144,14 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     try {
       const res = await apiClient.get('/academies/my-academy');
       setAcademyInfo(res.data);
+      const types = Array.isArray(res.data.institutionTypes) && res.data.institutionTypes.length > 0
+        ? res.data.institutionTypes
+        : [res.data.institutionType || 'High School'];
+
+      const boards = Array.isArray(res.data.educationBoards) && res.data.educationBoards.length > 0
+        ? res.data.educationBoards
+        : [res.data.educationBoard || 'SSC / State Board'];
+
       setProfileForm({
         name: res.data.name || '',
         directorName: res.data.directorName || '',
@@ -148,8 +160,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         address: res.data.address || '',
         logoUrl: res.data.logoUrl || '',
         primaryColor: res.data.primaryColor || '#f97316',
-        institutionType: res.data.institutionType || 'High School',
-        educationBoard: res.data.educationBoard || 'SSC / State Board',
+        institutionType: types[0],
+        institutionTypes: types,
+        educationBoard: boards[0],
+        educationBoards: boards,
       });
     } catch (e) {}
   };
@@ -537,17 +551,31 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               </div>
 
               <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Institution Type</span>
-                <span className="text-base font-extrabold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 inline-block">
-                  {academyInfo?.institutionType || 'High School'}
-                </span>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Academic Levels Offered</span>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {(academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0
+                    ? academyInfo.institutionTypes
+                    : [academyInfo?.institutionType || 'High School']
+                  ).map((typeItem: string) => (
+                    <span key={typeItem} className="text-xs font-extrabold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 inline-block">
+                      {typeItem}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Education Board</span>
-                <span className="text-base font-extrabold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200 inline-block">
-                  {academyInfo?.educationBoard || 'SSC / State Board'}
-                </span>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Education Boards Offered</span>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {(academyInfo?.educationBoards && academyInfo.educationBoards.length > 0
+                    ? academyInfo.educationBoards
+                    : [academyInfo?.educationBoard || 'SSC / State Board']
+                  ).map((boardItem: string) => (
+                    <span key={boardItem} className="text-xs font-extrabold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 inline-block">
+                      {boardItem}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-1">
@@ -649,54 +677,123 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 />
               </div>
 
-              {/* Privilege Notice for Existing Academy Profile Edits */}
-              <div className="bg-blue-50/80 border border-blue-200 p-3 rounded-xl flex items-start space-x-2 text-blue-900 text-xs">
+              {/* Academic Levels & Education Boards Banner Notice */}
+              <div className="bg-blue-50/80 border border-blue-200 p-3.5 rounded-2xl flex items-start space-x-2.5 text-blue-900 text-xs shadow-xs">
                 <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-extrabold block text-blue-950">Super Admin Category & Board Edit Privilege</span>
+                  <span className="font-extrabold block text-blue-950 text-sm">Academic Levels & Education Boards Offered</span>
                   <span className="text-[11px] text-blue-800 leading-snug block mt-0.5 font-medium">
-                    Existing academies can update their Institution Type or Education Board anytime. Changes immediately update your fee structure default tiers, standard filters, and student admission batch presets.
+                    You can select multiple academic levels (e.g. High School + Jr. College) and multiple education boards (e.g. SSC + CBSE). Your fee catalog and admission presets will automatically adapt.
                   </span>
                 </div>
               </div>
 
-              {/* Institution Type & Board Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Institution Type *</label>
-                  <select
-                    required
-                    value={profileForm.institutionType}
-                    onChange={(e) => setProfileForm({ ...profileForm, institutionType: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
-                  >
-                    <option value="Primary School">Primary School (1st - 5th)</option>
-                    <option value="Mid Primary">Mid Primary (6th - 8th)</option>
-                    <option value="High School">High School (9th - 10th)</option>
-                    <option value="Jr. College (Science)">Jr. College (Science)</option>
-                    <option value="Jr. College (Commerce)">Jr. College (Commerce)</option>
-                    <option value="Jr. College (Arts)">Jr. College (Arts)</option>
-                    <option value="Under Graduate (UG)">Under Graduate (UG)</option>
-                    <option value="Other / Coaching">Other / Coaching</option>
-                  </select>
+              {/* Multi-Select Academic Levels Offered */}
+              <div className="space-y-2">
+                <label className="block font-bold text-slate-700 uppercase">
+                  Academic Levels Offered * (Select All That Apply)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                  {[
+                    'Primary School',
+                    'Mid Primary',
+                    'High School',
+                    'Jr. College (Science)',
+                    'Jr. College (Commerce)',
+                    'Jr. College (Arts)',
+                    'Under Graduate (UG)',
+                    'Other / Coaching',
+                  ].map((level) => {
+                    const isChecked = profileForm.institutionTypes?.includes(level);
+                    return (
+                      <label
+                        key={level}
+                        className={`flex items-center space-x-2 p-2 rounded-xl border text-xs font-bold cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let updated = [...(profileForm.institutionTypes || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(level)) updated.push(level);
+                            } else {
+                              updated = updated.filter((item) => item !== level);
+                            }
+                            if (updated.length === 0) updated = ['High School'];
+                            setProfileForm({
+                              ...profileForm,
+                              institutionTypes: updated,
+                              institutionType: updated[0],
+                            });
+                          }}
+                          className="hidden"
+                        />
+                        <span className="w-3.5 h-3.5 rounded border border-current flex items-center justify-center text-[10px]">
+                          {isChecked ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{level}</span>
+                      </label>
+                    );
+                  })}
                 </div>
+              </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Education Board *</label>
-                  <select
-                    required
-                    value={profileForm.educationBoard}
-                    onChange={(e) => setProfileForm({ ...profileForm, educationBoard: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
-                  >
-                    <option value="SSC / State Board">SSC / State Board</option>
-                    <option value="CBSE">CBSE (Central Board)</option>
-                    <option value="ICSE / ICSC">ICSE / ICSC</option>
-                    <option value="IB / International">IB / International</option>
-                    <option value="HSC State Board">HSC State Board (Jr. College)</option>
-                    <option value="University Board">University Board (UG)</option>
-                    <option value="Other / N/A">Other / N/A</option>
-                  </select>
+              {/* Multi-Select Education Boards Offered */}
+              <div className="space-y-2">
+                <label className="block font-bold text-slate-700 uppercase">
+                  Education Boards Offered * (Select All That Apply)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
+                  {[
+                    'SSC / State Board',
+                    'CBSE',
+                    'ICSE / ICSC',
+                    'IB / International',
+                    'HSC State Board',
+                    'University Board',
+                    'Other / N/A',
+                  ].map((board) => {
+                    const isChecked = profileForm.educationBoards?.includes(board);
+                    return (
+                      <label
+                        key={board}
+                        className={`flex items-center space-x-2 p-2 rounded-xl border text-xs font-bold cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let updated = [...(profileForm.educationBoards || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(board)) updated.push(board);
+                            } else {
+                              updated = updated.filter((item) => item !== board);
+                            }
+                            if (updated.length === 0) updated = ['SSC / State Board'];
+                            setProfileForm({
+                              ...profileForm,
+                              educationBoards: updated,
+                              educationBoard: updated[0],
+                            });
+                          }}
+                          className="hidden"
+                        />
+                        <span className="w-3.5 h-3.5 rounded border border-current flex items-center justify-center text-[10px]">
+                          {isChecked ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{board}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

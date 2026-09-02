@@ -41,13 +41,27 @@ export class AcademiesService {
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
+    const rawTypes: string[] = Array.isArray(dto.institutionTypes) && dto.institutionTypes.length > 0
+      ? dto.institutionTypes
+      : dto.institutionType
+      ? [dto.institutionType]
+      : ['High School'];
+
+    const rawBoards: string[] = Array.isArray(dto.educationBoards) && dto.educationBoards.length > 0
+      ? dto.educationBoards
+      : dto.educationBoard
+      ? [dto.educationBoard]
+      : ['SSC / State Board'];
+
     const academy = await this.academyModel.create({
       name: dto.name,
       slug,
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
       primaryColor: dto.primaryColor || '#f97316',
-      institutionType: dto.institutionType || 'High School',
-      educationBoard: dto.educationBoard || 'SSC / State Board',
+      institutionType: rawTypes[0],
+      institutionTypes: rawTypes,
+      educationBoard: rawBoards[0],
+      educationBoards: rawBoards,
       subscriptionStatus: 'TRIAL',
       trialEndsAt,
     });
@@ -85,7 +99,9 @@ export class AcademiesService {
         logoUrl: academy.logoUrl,
         primaryColor: academy.primaryColor,
         institutionType: academy.institutionType,
+        institutionTypes: academy.institutionTypes,
         educationBoard: academy.educationBoard,
+        educationBoards: academy.educationBoards,
         subscriptionStatus: academy.subscriptionStatus,
         trialEndsAt: academy.trialEndsAt,
       },
@@ -116,11 +132,22 @@ export class AcademiesService {
     logoUrl?: string;
     primaryColor?: string;
     institutionType?: string;
+    institutionTypes?: string[];
     educationBoard?: string;
+    educationBoards?: string[];
   }) {
     const academyId = this.tenantContextService.academyId;
+    const updateData: any = { ...dto };
+
+    if (Array.isArray(dto.institutionTypes) && dto.institutionTypes.length > 0) {
+      updateData.institutionType = dto.institutionTypes[0];
+    }
+    if (Array.isArray(dto.educationBoards) && dto.educationBoards.length > 0) {
+      updateData.educationBoard = dto.educationBoards[0];
+    }
+
     const updated = await this.academyModel
-      .findByIdAndUpdate(academyId, dto, { new: true })
+      .findByIdAndUpdate(academyId, updateData, { new: true })
       .exec();
     if (!updated) {
       throw new NotFoundException('Academy not found');

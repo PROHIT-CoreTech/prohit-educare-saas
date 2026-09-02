@@ -32,8 +32,14 @@ export class Academy {
   @Prop({ default: 'High School' })
   institutionType?: string;
 
+  @Prop({ type: [String], default: ['High School'] })
+  institutionTypes?: string[];
+
   @Prop({ default: 'SSC / State Board' })
   educationBoard?: string;
+
+  @Prop({ type: [String], default: ['SSC / State Board'] })
+  educationBoards?: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'SubscriptionPlan', required: false })
   planId?: Types.ObjectId;

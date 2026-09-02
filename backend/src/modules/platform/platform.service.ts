@@ -142,11 +142,26 @@ export class PlatformService {
     return academy;
   }
 
-  async updateAcademyCategory(id: string, dto: { institutionType?: string; educationBoard?: string }) {
+  async updateAcademyCategory(id: string, dto: { institutionType?: string; institutionTypes?: string[]; educationBoard?: string; educationBoards?: string[] }) {
     const academy = await this.academyModel.findById(id).exec();
     if (!academy) throw new NotFoundException('Academy not found');
-    if (dto.institutionType) academy.institutionType = dto.institutionType;
-    if (dto.educationBoard) academy.educationBoard = dto.educationBoard;
+    
+    if (Array.isArray(dto.institutionTypes) && dto.institutionTypes.length > 0) {
+      academy.institutionTypes = dto.institutionTypes;
+      academy.institutionType = dto.institutionTypes[0];
+    } else if (dto.institutionType) {
+      academy.institutionType = dto.institutionType;
+      academy.institutionTypes = [dto.institutionType];
+    }
+
+    if (Array.isArray(dto.educationBoards) && dto.educationBoards.length > 0) {
+      academy.educationBoards = dto.educationBoards;
+      academy.educationBoard = dto.educationBoards[0];
+    } else if (dto.educationBoard) {
+      academy.educationBoard = dto.educationBoard;
+      academy.educationBoards = [dto.educationBoard];
+    }
+
     await academy.save();
     return academy;
   }
@@ -165,7 +180,9 @@ export class PlatformService {
       logoUrl?: string;
       primaryColor?: string;
       institutionType?: string;
+      institutionTypes?: string[];
       educationBoard?: string;
+      educationBoards?: string[];
       plan?: string;
       subscriptionStatus?: string;
       paymentMode?: string;
@@ -189,13 +206,27 @@ export class PlatformService {
     const subEndsAt = new Date();
     subEndsAt.setFullYear(subEndsAt.getFullYear() + 1);
 
+    const rawTypes: string[] = Array.isArray(dto.institutionTypes) && dto.institutionTypes.length > 0
+      ? dto.institutionTypes
+      : dto.institutionType
+      ? [dto.institutionType]
+      : ['High School'];
+
+    const rawBoards: string[] = Array.isArray(dto.educationBoards) && dto.educationBoards.length > 0
+      ? dto.educationBoards
+      : dto.educationBoard
+      ? [dto.educationBoard]
+      : ['SSC / State Board'];
+
     const academy = await this.academyModel.create({
       name: dto.name.trim(),
       slug: cleanSlug,
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
       primaryColor: dto.primaryColor || '#f97316',
-      institutionType: dto.institutionType || 'High School',
-      educationBoard: dto.educationBoard || 'SSC / State Board',
+      institutionType: rawTypes[0],
+      institutionTypes: rawTypes,
+      educationBoard: rawBoards[0],
+      educationBoards: rawBoards,
       subscriptionStatus: status,
       trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       subscriptionEndsAt: status === 'ACTIVE' ? subEndsAt : undefined,

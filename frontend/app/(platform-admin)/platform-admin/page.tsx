@@ -35,7 +35,9 @@ export default function PlatformAdminPage() {
     phone: '',
     logoUrl: '',
     institutionType: 'High School',
+    institutionTypes: ['High School'] as string[],
     educationBoard: 'SSC / State Board',
+    educationBoards: ['SSC / State Board'] as string[],
     plan: 'PROFESSIONAL',
     subscriptionStatus: 'ACTIVE',
     paymentMode: 'CASH',
@@ -159,7 +161,9 @@ export default function PlatformAdminPage() {
           phone: '',
           logoUrl: '',
           institutionType: 'High School',
+          institutionTypes: ['High School'],
           educationBoard: 'SSC / State Board',
+          educationBoards: ['SSC / State Board'],
           plan: 'PROFESSIONAL',
           subscriptionStatus: 'ACTIVE',
           paymentMode: 'CASH',
@@ -168,7 +172,13 @@ export default function PlatformAdminPage() {
         setOfflineMessage('');
       }, 2000);
     } catch (err: any) {
-      setOfflineMessage(err.response?.data?.message || 'Offline registration failed');
+      const rawMsg = err.response?.data?.message;
+      const msgStr = Array.isArray(rawMsg)
+        ? rawMsg.join(', ')
+        : typeof rawMsg === 'string'
+        ? rawMsg
+        : 'Offline registration failed';
+      setOfflineMessage(msgStr);
     } finally {
       setOfflineSubmitting(false);
     }
@@ -461,12 +471,26 @@ export default function PlatformAdminPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="space-y-1">
-                              <span className="bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded-lg text-xs font-bold inline-block">
-                                {ac.institutionType || 'High School'}
-                              </span>
-                              <span className="bg-purple-50 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-lg text-xs font-bold block w-fit">
-                                {ac.educationBoard || 'SSC / State Board'}
-                              </span>
+                              <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                {(ac.institutionTypes && ac.institutionTypes.length > 0
+                                  ? ac.institutionTypes
+                                  : [ac.institutionType || 'High School']
+                                ).map((typeItem: string) => (
+                                  <span key={typeItem} className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold">
+                                    {typeItem}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                {(ac.educationBoards && ac.educationBoards.length > 0
+                                  ? ac.educationBoards
+                                  : [ac.educationBoard || 'SSC / State Board']
+                                ).map((boardItem: string) => (
+                                  <span key={boardItem} className="bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold">
+                                    {boardItem}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -737,43 +761,112 @@ export default function PlatformAdminPage() {
                 </div>
               </div>
 
-              {/* Institution Type & Board Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Institution Type *</label>
-                  <select
-                    required
-                    value={offlineForm.institutionType}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, institutionType: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
-                  >
-                    <option value="Primary School">Primary School (1st - 5th)</option>
-                    <option value="Mid Primary">Mid Primary (6th - 8th)</option>
-                    <option value="High School">High School (9th - 10th)</option>
-                    <option value="Jr. College (Science)">Jr. College (Science)</option>
-                    <option value="Jr. College (Commerce)">Jr. College (Commerce)</option>
-                    <option value="Jr. College (Arts)">Jr. College (Arts)</option>
-                    <option value="Under Graduate (UG)">Under Graduate (UG)</option>
-                    <option value="Other / Coaching">Other / Coaching</option>
-                  </select>
+              {/* Multi-Select Academic Levels Offered */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Academic Levels Offered * (Select All That Apply)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                  {[
+                    'Primary School',
+                    'Mid Primary',
+                    'High School',
+                    'Jr. College (Science)',
+                    'Jr. College (Commerce)',
+                    'Jr. College (Arts)',
+                    'Under Graduate (UG)',
+                    'Other / Coaching',
+                  ].map((level) => {
+                    const isChecked = offlineForm.institutionTypes?.includes(level);
+                    return (
+                      <label
+                        key={level}
+                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let updated = [...(offlineForm.institutionTypes || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(level)) updated.push(level);
+                            } else {
+                              updated = updated.filter((item) => item !== level);
+                            }
+                            if (updated.length === 0) updated = ['High School'];
+                            setOfflineForm({
+                              ...offlineForm,
+                              institutionTypes: updated,
+                              institutionType: updated[0],
+                            });
+                          }}
+                          className="hidden"
+                        />
+                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
+                          {isChecked ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{level}</span>
+                      </label>
+                    );
+                  })}
                 </div>
+              </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Education Board *</label>
-                  <select
-                    required
-                    value={offlineForm.educationBoard}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, educationBoard: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
-                  >
-                    <option value="SSC / State Board">SSC / State Board</option>
-                    <option value="CBSE">CBSE (Central Board)</option>
-                    <option value="ICSE / ICSC">ICSE / ICSC</option>
-                    <option value="IB / International">IB / International</option>
-                    <option value="HSC State Board">HSC State Board (Jr. College)</option>
-                    <option value="University Board">University Board (UG)</option>
-                    <option value="Other / N/A">Other / N/A</option>
-                  </select>
+              {/* Multi-Select Education Boards Offered */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Education Boards Offered * (Select All That Apply)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                  {[
+                    'SSC / State Board',
+                    'CBSE',
+                    'ICSE / ICSC',
+                    'IB / International',
+                    'HSC State Board',
+                    'University Board',
+                    'Other / N/A',
+                  ].map((board) => {
+                    const isChecked = offlineForm.educationBoards?.includes(board);
+                    return (
+                      <label
+                        key={board}
+                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let updated = [...(offlineForm.educationBoards || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(board)) updated.push(board);
+                            } else {
+                              updated = updated.filter((item) => item !== board);
+                            }
+                            if (updated.length === 0) updated = ['SSC / State Board'];
+                            setOfflineForm({
+                              ...offlineForm,
+                              educationBoards: updated,
+                              educationBoard: updated[0],
+                            });
+                          }}
+                          className="hidden"
+                        />
+                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
+                          {isChecked ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{board}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
