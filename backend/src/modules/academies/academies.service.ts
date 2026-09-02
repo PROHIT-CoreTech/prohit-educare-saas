@@ -58,6 +58,9 @@ export class AcademiesService {
       slug,
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
       primaryColor: dto.primaryColor || '#f97316',
+      directorName: dto.adminName,
+      phone: dto.phone || '',
+      email: dto.adminEmail.toLowerCase().trim(),
       institutionType: rawTypes[0],
       institutionTypes: rawTypes,
       educationBoard: rawBoards[0],
@@ -120,7 +123,14 @@ export class AcademiesService {
     if (!academy) {
       throw new NotFoundException('Academy not found');
     }
-    return academy;
+    const obj = academy.toObject();
+    if (!obj.institutionTypes || obj.institutionTypes.length === 0) {
+      obj.institutionTypes = obj.institutionType ? [obj.institutionType] : ['High School'];
+    }
+    if (!obj.educationBoards || obj.educationBoards.length === 0) {
+      obj.educationBoards = obj.educationBoard ? [obj.educationBoard] : ['SSC / State Board'];
+    }
+    return obj;
   }
 
   async updateMyAcademy(dto: {
@@ -140,10 +150,19 @@ export class AcademiesService {
     const updateData: any = { ...dto };
 
     if (Array.isArray(dto.institutionTypes) && dto.institutionTypes.length > 0) {
+      updateData.institutionTypes = dto.institutionTypes;
       updateData.institutionType = dto.institutionTypes[0];
+    } else if (dto.institutionType) {
+      updateData.institutionTypes = [dto.institutionType];
+      updateData.institutionType = dto.institutionType;
     }
+
     if (Array.isArray(dto.educationBoards) && dto.educationBoards.length > 0) {
+      updateData.educationBoards = dto.educationBoards;
       updateData.educationBoard = dto.educationBoards[0];
+    } else if (dto.educationBoard) {
+      updateData.educationBoards = [dto.educationBoard];
+      updateData.educationBoard = dto.educationBoard;
     }
 
     const updated = await this.academyModel
