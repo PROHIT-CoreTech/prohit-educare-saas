@@ -90,11 +90,21 @@ export default function AcademyLayout({
 
   return (
     <div
-      className="min-h-screen text-slate-900 flex flex-col font-sans relative bg-cover bg-center bg-fixed"
+      className="min-h-screen text-slate-900 flex flex-col font-sans relative bg-cover bg-center bg-fixed bg-no-repeat"
       style={{ backgroundImage: `url('/dashboard_bg_edu_tech.jpg')` }}
     >
-      {/* Soft Ambient White Glass Overlay */}
-      <div className="absolute inset-0 bg-slate-100/75 backdrop-blur-xs pointer-events-none" />
+      {/* Soft Translucent Ambient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-slate-50/15 to-orange-100/25 pointer-events-none" />
+
+      {/* Floating Math Symbols & Node Watermarks */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25 select-none">
+        <div className="absolute top-12 left-10 text-orange-600 text-6xl font-serif font-bold animate-pulse">∑</div>
+        <div className="absolute top-1/4 right-20 text-cyan-600 text-7xl font-mono font-bold">π</div>
+        <div className="absolute bottom-1/3 left-1/4 text-teal-600 text-6xl font-serif font-bold">∫</div>
+        <div className="absolute bottom-20 right-1/3 text-orange-500 text-5xl font-mono">E = mc²</div>
+        <div className="absolute top-1/3 left-1/3 text-indigo-500 text-6xl font-serif">∞</div>
+        <div className="absolute bottom-12 left-16 text-cyan-500 text-5xl font-mono">Δx</div>
+      </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Impersonation Banner */}
