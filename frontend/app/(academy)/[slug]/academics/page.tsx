@@ -65,16 +65,43 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
   const [attendanceDate, setAttendanceDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [attendanceList, setAttendanceList] = useState<any[]>([]);
   const [attendanceDayRoster, setAttendanceDayRoster] = useState<any[]>([]);
+  const [academyInfo, setAcademyInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const allowedStandards = useMemo(() => {
+    const types = academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0
+      ? academyInfo.institutionTypes
+      : [academyInfo?.institutionType || 'High School'];
+
+    const stds = new Set<number>();
+    types.forEach((typeStr: string) => {
+      if (typeStr.includes('Primary School')) [1, 2, 3, 4, 5].forEach((s) => stds.add(s));
+      if (typeStr.includes('Mid Primary')) [6, 7, 8].forEach((s) => stds.add(s));
+      if (typeStr.includes('High School')) [9, 10].forEach((s) => stds.add(s));
+      if (typeStr.includes('Jr. College')) [11, 12].forEach((s) => stds.add(s));
+      if (typeStr.includes('Under Graduate')) [13, 14, 15].forEach((s) => stds.add(s));
+      if (typeStr.includes('Other')) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].forEach((s) => stds.add(s));
+    });
+
+    if (stds.size === 0) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].forEach((s) => stds.add(s));
+    return Array.from(stds).sort((a, b) => a - b);
+  }, [academyInfo]);
 
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
-      await Promise.all([fetchClasses(), fetchFaculty(), fetchRoster()]);
+      await Promise.all([fetchClasses(), fetchFaculty(), fetchRoster(), fetchAcademy()]);
       setLoading(false);
     };
     loadInitialData();
   }, []);
+
+  const fetchAcademy = async () => {
+    try {
+      const res = await apiClient.get('/academies/my-academy');
+      setAcademyInfo(res.data);
+    } catch (e) {}
+  };
 
   useEffect(() => {
     if (activeSubTab === 'attendance') {
@@ -367,15 +394,27 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+  const handleOpenCreateClassModal = () => {
+    const initialStd = allowedStandards.length > 0 ? allowedStandards[0] : 10;
+    setClassForm({
+      standard: initialStd,
+      medium: initialStd >= 11 ? 'english' : 'english',
+      section: initialStd >= 11 ? 'science' : 'none',
+      batchName: '',
+    });
+    setFormError('');
+    setShowClassModal(true);
+  };
+
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8 font-sans text-slate-900">
       {authError && (
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center space-x-3">
             <AlertCircle className="w-5 h-5 text-rose-600" />
             <div>
               <p className="text-sm font-bold text-rose-900">Authentication Required</p>
-              <p className="text-xs text-rose-700">Please sign in to manage academics, roster, and attendance.</p>
+              <p className="text-xs text-rose-700">Please sign in to your academy to access academic rosters and attendance.</p>
             </div>
           </div>
           <a
@@ -383,7 +422,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
             className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shadow-sm"
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>Sign In</span>
+            <span>Sign In to Academy</span>
           </a>
         </div>
       )}
@@ -393,7 +432,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center space-x-2">
             <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 shrink-0" />
-            <span>Academics, Roster & Attendance</span>
+            <span>Academics, Roster &amp; Attendance</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
             Manage class batches, day-wise faculty timetables (Std 1st - 15th), and roster-driven daily attendance
@@ -402,8 +441,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
         {activeSubTab === 'batches' && (
           <button
-            onClick={() => setShowClassModal(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition self-start sm:self-auto shrink-0"
+            onClick={handleOpenCreateClassModal}
+            className="bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-xl shadow-md shadow-orange-500/20 flex items-center space-x-2 transition self-start sm:self-auto shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Create Class Batch</span>
@@ -1119,11 +1158,13 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
             <form onSubmit={handleCreateClass} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1 - 15)</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={15}
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Target Standard *</label>
+                  <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                    Offers: {academyInfo?.institutionTypes?.join(', ') || academyInfo?.institutionType || 'High School'}
+                  </span>
+                </div>
+                <select
                   value={classForm.standard}
                   onChange={(e) => {
                     const std = Number(e.target.value);
@@ -1134,8 +1175,14 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
                       section: std >= 11 ? 'science' : 'none',
                     });
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
-                />
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-extrabold text-sm"
+                >
+                  {allowedStandards.map((std) => (
+                    <option key={std} value={std}>
+                      Std {std}th {std <= 5 ? '(Primary School)' : std <= 8 ? '(Middle School)' : std <= 10 ? '(High School)' : std <= 12 ? '(Junior College)' : '(Undergraduate / Degree)'}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
