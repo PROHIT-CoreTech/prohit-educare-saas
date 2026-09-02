@@ -564,10 +564,236 @@ export default function MarketingPage() {
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center mb-5 sm:mb-6">
                 <Zap className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mb-2 sm:mb-3">Digital Student ID Cards & Receipts</h3>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 mb-2 sm:mb-3">Digital Student ID Cards &amp; Receipts</h3>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-medium">
-                Generate high-resolution printable ID cards (Front & Back) and HTML5 Canvas fee receipt cards for 2-click sharing on WhatsApp.
+                Generate high-resolution printable ID cards (Front &amp; Back) and HTML5 Canvas fee receipt cards for 2-click sharing on WhatsApp.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CORE OPERATIONAL BENEFIT PILLARS SECTION */}
+      <section id="features" className="py-16 sm:py-24 relative bg-slate-900 text-white overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="inline-flex items-center space-x-2 bg-orange-500/10 border border-orange-500/30 px-4 py-1.5 rounded-full text-orange-400 text-xs font-black uppercase tracking-widest mb-4">
+              <Sparkles className="w-4 h-4 text-orange-400 animate-pulse" />
+              <span>Comprehensive SaaS Feature Pillars</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+              Everything Your Academy Needs to Scale Without Chaos
+            </h2>
+            <p className="text-slate-400 mt-4 text-sm sm:text-lg font-medium leading-relaxed">
+              Purpose-built for coaching institutes, junior colleges, and schools across India. Replaces disconnected tools with one intelligent ERP.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {/* Feature 1: Automated FIFO Fee Engine */}
+            <div className="bg-slate-800/80 border border-slate-700/80 hover:border-orange-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                <CreditCard className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-orange-400 transition">
+                Automated FIFO Fee Engine &amp; Receipts
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                Eliminate manual fee tracking. Automatically allocates cash and online payments against oldest pending installments (FIFO) with 1st–15th stream support and instant PDF receipts.
+              </p>
+              <div className="pt-2 flex items-center text-xs font-bold text-orange-400">
+                <span>Zero Financial Leakage Guarantee</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </div>
+
+            {/* Feature 2: Multi-Category & Multi-Board */}
+            <div className="bg-slate-800/80 border border-slate-700/80 hover:border-blue-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-blue-400 transition">
+                Multi-Level &amp; Multi-Board Accreditation
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                Flexibly manage Primary School, Mid Primary, High School, Jr. College (Science, Commerce &amp; Arts), and Under Graduate programs across SSC, CBSE, ICSE, IB, and HSC boards simultaneously.
+              </p>
+              <div className="pt-2 flex items-center text-xs font-bold text-blue-400">
+                <span>Multi-Select Offerings Support</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </div>
+
+            {/* Feature 3: Smart Lecture Roster & Timetables */}
+            <div className="bg-slate-800/80 border border-slate-700/80 hover:border-purple-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-purple-400 transition">
+                Smart Timetable &amp; Lecture Roster
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                Day-wise faculty timetable grid across Standards 1st–15th. Supports bulk CSV timetable upload/download, slot conflict detection, and weekly schedule publishing.
+              </p>
+              <div className="pt-2 flex items-center text-xs font-bold text-purple-400">
+                <span>Includes CSV Bulk Importer</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </div>
+
+            {/* Feature 4: Roster-Driven Faculty Attendance */}
+            <div className="bg-slate-800/80 border border-slate-700/80 hover:border-emerald-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                <Clock className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition">
+                Roster-Driven Faculty Attendance
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                Track teacher attendance directly mapped to scheduled timetable slots. Mark Present, Absent, Half Day, or Leave with one tap and export monthly payroll audit logs.
+              </p>
+              <div className="pt-2 flex items-center text-xs font-bold text-emerald-400">
+                <span>Automated Payroll Readiness</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </div>
+
+            {/* Feature 5: Printable Digital Student ID Cards */}
+            <div className="bg-slate-800/80 border border-slate-700/80 hover:border-amber-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                <Award className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-amber-400 transition">
+                Printable Digital Student ID Cards
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                Auto-generate high-resolution printable Student ID cards formatted with student photo, roll number, stream, emergency contacts, QR codes, and custom brand colors.
+              </p>
+              <div className="pt-2 flex items-center text-xs font-bold text-amber-400">
+                <span>Instant PDF &amp; Canvas Export</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </div>
+
+            {/* Feature 6: Instant Subdomain SaaS Setup */}
+            <div className="bg-slate-800/80 border border-slate-700/80 hover:border-rose-500/50 p-6 sm:p-8 rounded-3xl transition duration-300 space-y-4 group">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center group-hover:scale-110 transition duration-300">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-rose-400 transition">
+                Instant Subdomain &amp; Brand Portal
+              </h3>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-medium">
+                Provision your custom portal at <span className="font-mono text-white">name.educare.prohitcoretech.com</span> in under 60 seconds with custom brand colors, logo branding, and isolated data security.
+              </p>
+              <div className="pt-2 flex items-center text-xs font-bold text-rose-400">
+                <span>14-Day Automated Free Trial</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* COMPETITIVE COMPARISON GRID SECTION */}
+      <section id="comparison" className="py-16 sm:py-24 relative bg-slate-50 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="inline-flex items-center space-x-2 bg-orange-100 px-4 py-1.5 rounded-full text-orange-800 text-xs font-black uppercase tracking-widest mb-4 border border-orange-200">
+              <Shield className="w-4 h-4 text-orange-600" />
+              <span>Why Switch to PROHIT Educare</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Replace Excel Spreadsheets &amp; Legacy Software
+            </h2>
+            <p className="text-slate-600 mt-4 text-sm sm:text-lg font-medium">
+              See how PROHIT Educare outperforms outdated manual workflows and legacy ERP tools.
+            </p>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-xl overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[650px]">
+              <thead>
+                <tr className="bg-slate-900 text-white text-xs font-extrabold uppercase tracking-wider border-b border-slate-800">
+                  <th className="p-4 sm:p-5">Feature Requirement</th>
+                  <th className="p-4 sm:p-5 text-slate-400">Excel / Paper Registers</th>
+                  <th className="p-4 sm:p-5 text-slate-400">Legacy ERP Tools</th>
+                  <th className="p-4 sm:p-5 text-orange-400 bg-slate-800/80">PROHIT Educare SaaS 🚀</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-xs sm:text-sm font-medium text-slate-700">
+                <tr className="hover:bg-slate-50 transition">
+                  <td className="p-4 sm:p-5 font-bold text-slate-900">Fee Collection &amp; Ledger</td>
+                  <td className="p-4 sm:p-5 text-rose-600">Manual calculation errors &amp; untracked cash</td>
+                  <td className="p-4 sm:p-5 text-slate-500">Rigid single fee structure</td>
+                  <td className="p-4 sm:p-5 bg-orange-50/50 text-orange-950 font-bold">Automated FIFO engine + 1st–15th stream support</td>
+                </tr>
+                <tr className="hover:bg-slate-50 transition">
+                  <td className="p-4 sm:p-5 font-bold text-slate-900">Academic Levels &amp; Boards</td>
+                  <td className="p-4 sm:p-5 text-rose-600">No built-in validation</td>
+                  <td className="p-4 sm:p-5 text-slate-500">Complex developer reconfiguration required</td>
+                  <td className="p-4 sm:p-5 bg-orange-50/50 text-orange-950 font-bold">Multi-select Primary, High School, Jr. College &amp; Boards</td>
+                </tr>
+                <tr className="hover:bg-slate-50 transition">
+                  <td className="p-4 sm:p-5 font-bold text-slate-900">Faculty Lecture Roster</td>
+                  <td className="p-4 sm:p-5 text-rose-600">Paper timetables with slot conflicts</td>
+                  <td className="p-4 sm:p-5 text-slate-500">Static non-interactive PDF upload</td>
+                  <td className="p-4 sm:p-5 bg-orange-50/50 text-orange-950 font-bold">Interactive Std 1st–15th grid + CSV bulk import</td>
+                </tr>
+                <tr className="hover:bg-slate-50 transition">
+                  <td className="p-4 sm:p-5 font-bold text-slate-900">Faculty Daily Attendance</td>
+                  <td className="p-4 sm:p-5 text-rose-600">Manual paper sign-in registers</td>
+                  <td className="p-4 sm:p-5 text-slate-500">Requires expensive hardware biometric devices</td>
+                  <td className="p-4 sm:p-5 bg-orange-50/50 text-orange-950 font-bold">Roster-driven 1-click attendance logging &amp; reports</td>
+                </tr>
+                <tr className="hover:bg-slate-50 transition">
+                  <td className="p-4 sm:p-5 font-bold text-slate-900">Student ID Card Generation</td>
+                  <td className="p-4 sm:p-5 text-rose-600">Expensive third-party print vendors</td>
+                  <td className="p-4 sm:p-5 text-slate-500">Generic unbranded templates</td>
+                  <td className="p-4 sm:p-5 bg-orange-50/50 text-orange-950 font-bold">Instant printable PDF ID cards with QR &amp; brand colors</td>
+                </tr>
+                <tr className="hover:bg-slate-50 transition">
+                  <td className="p-4 sm:p-5 font-bold text-slate-900">Setup &amp; Subdomain Provisioning</td>
+                  <td className="p-4 sm:p-5 text-rose-600">N/A (Unorganized files)</td>
+                  <td className="p-4 sm:p-5 text-slate-500">Weeks of local server IT setup</td>
+                  <td className="p-4 sm:p-5 bg-orange-50/50 text-orange-950 font-bold">Instant 60-second automated setup with custom subdomain</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* OPERATIONAL ROI & METRICS IMPACT BAR */}
+      <section className="py-14 sm:py-20 relative bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white shadow-inner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-orange-400/40">
+            <div className="p-4 space-y-1">
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">99.8%</span>
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Fee Collection Accuracy</span>
+              <span className="text-[11px] text-orange-200/80 font-medium block">Zero uncollected or unrecorded installments</span>
+            </div>
+
+            <div className="p-4 space-y-1 pt-6 md:pt-4">
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">10x</span>
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Faster Student Enrollment</span>
+              <span className="text-[11px] text-orange-200/80 font-medium block">Admission &amp; ID Card generation under 2 mins</span>
+            </div>
+
+            <div className="p-4 space-y-1 pt-6 md:pt-4">
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">100%</span>
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Multi-Board Compliance</span>
+              <span className="text-[11px] text-orange-200/80 font-medium block">Full support for SSC, CBSE, ICSE, IB &amp; HSC</span>
+            </div>
+
+            <div className="p-4 space-y-1 pt-6 md:pt-4">
+              <span className="text-3xl sm:text-5xl font-black tracking-tight font-mono block">&lt; 60 Secs</span>
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-orange-100 block">Instant Tenant Setup</span>
+              <span className="text-[11px] text-orange-200/80 font-medium block">Custom subdomain setup with 14-day free trial</span>
             </div>
           </div>
         </div>
