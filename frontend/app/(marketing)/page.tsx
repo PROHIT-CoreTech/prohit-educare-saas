@@ -165,12 +165,19 @@ export default function MarketingPage() {
               <div className="relative flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 w-full overflow-hidden">
                 <input
                   type="text"
-                  placeholder="custom subdomain"
+                  placeholder="e.g. chopra"
                   value={slug}
                   onChange={(e) => {
                     const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                     setSlug(val);
-                    setSignupForm({ ...signupForm, slug: val });
+                    setSignupForm((prev) => ({ ...prev, slug: val }));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setShowModal(true);
+                      setOnboardingStep(1);
+                    }
                   }}
                   className="bg-transparent text-slate-900 placeholder-slate-400 focus:outline-none w-full font-bold text-sm sm:text-base min-w-0"
                 />
@@ -181,10 +188,10 @@ export default function MarketingPage() {
 
               <button
                 onClick={() => {
-                  if (slugStatus.available) setShowModal(true);
+                  setShowModal(true);
+                  setOnboardingStep(1);
                 }}
-                disabled={!slugStatus.available}
-                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-sm px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-md shadow-orange-500/20 shrink-0 cursor-pointer"
+                className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-md shadow-orange-500/20 shrink-0 cursor-pointer"
               >
                 Claim Now
               </button>
