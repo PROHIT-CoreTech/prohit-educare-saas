@@ -42,13 +42,17 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-900 relative bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: `url('/login_bg_classroom.jpg')` }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 font-sans text-slate-900 relative overflow-hidden bg-slate-900">
+      {/* Explicit Fixed Classroom Background Image */}
+      <img
+        src="/login_bg_classroom.jpg"
+        alt="Classroom Background"
+        className="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"
+      />
+
       {/* Light Ambient Overlay for High Readability */}
-      <div className="absolute inset-0 bg-slate-900/25 pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-tr from-slate-950/50 via-transparent to-orange-950/20 pointer-events-none" />
+      <div className="fixed inset-0 bg-slate-950/20 z-0 pointer-events-none" />
+      <div className="fixed inset-0 bg-gradient-to-tr from-slate-950/40 via-transparent to-orange-950/20 z-0 pointer-events-none" />
 
       {/* Floating Geometric Wireframe & Math Nodes Overlay */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
