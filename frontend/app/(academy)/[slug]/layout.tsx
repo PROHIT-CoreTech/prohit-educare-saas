@@ -86,7 +86,6 @@ export default function AcademyLayout({
     { name: 'Academics', href: '/academics', icon: BookOpen },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
-    { name: 'Subscription', href: '/subscription', icon: ShieldCheck, badge: true },
   ];
 
   return (
@@ -123,7 +122,7 @@ export default function AcademyLayout({
             <span className="truncate">Trial / Subscription expired! Renew now to maintain access.</span>
           </div>
           <Link
-            href="/subscription"
+            href="/settings"
             className="bg-white text-orange-600 hover:bg-slate-100 px-3 py-1 rounded-lg font-extrabold text-[11px] shadow transition shrink-0 inline-flex items-center space-x-1"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -171,13 +170,11 @@ export default function AcademyLayout({
                   href={link.href}
                   className={`px-3 py-2 rounded-xl flex items-center space-x-2 transition ${
                     active
-                      ? link.badge
-                        ? 'bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 shadow-xs'
-                        : 'bg-orange-50 text-orange-600 font-bold border border-orange-200 shadow-xs'
+                      ? 'bg-orange-50 text-orange-600 font-bold border border-orange-200 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${link.badge ? 'text-emerald-600' : ''}`} />
+                  <Icon className="w-4 h-4" />
                   <span>{link.name}</span>
                 </Link>
               );
@@ -220,14 +217,12 @@ export default function AcademyLayout({
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-4 py-3 rounded-xl flex items-center justify-between transition font-bold text-sm ${
                     active
-                      ? link.badge
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-orange-50 text-orange-600 border border-orange-200'
+                      ? 'bg-orange-50 text-orange-600 border border-orange-200'
                       : 'text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <Icon className={`w-5 h-5 ${active ? (link.badge ? 'text-emerald-600' : 'text-orange-600') : 'text-slate-500'}`} />
+                    <Icon className={`w-5 h-5 ${active ? 'text-orange-600' : 'text-slate-500'}`} />
                     <span>{link.name}</span>
                   </div>
                   {active && <span className="w-2 h-2 rounded-full bg-orange-500" />}
