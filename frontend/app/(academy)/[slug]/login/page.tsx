@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Lock, Mail, ShieldCheck, Eye, EyeOff, Globe } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import loginBg from '@/public/login_bg_classroom.svg';
+import deskBgIllustration from '@/public/login_bg_desk_illustration.svg';
 
 export default function AcademyLoginPage({ params }: { params: { slug: string } }) {
   const [email, setEmail] = useState('');
@@ -51,44 +51,24 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
     : 'Chopra Academy';
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#EA580C] font-sans relative overflow-hidden">
-      {/* 1. LEFT SIDE: Workspace / Illustration Column (Desktop >= 1024px) */}
-      <div className="lg:col-span-6 xl:col-span-7 hidden lg:flex relative overflow-hidden bg-[#EA580C]">
-        {/* Workspace Vector Background Illustration */}
+    <div className="min-h-screen w-full grid grid-cols-1 lg:grid-cols-12 bg-[#EA580C] font-sans relative overflow-hidden">
+      {/* 1. LEFT COLUMN: Top-Down Desk Setup Vector SVG Illustration (lg:col-span-7) */}
+      <div className="lg:col-span-7 hidden lg:block relative overflow-hidden bg-[#EA580C] pointer-events-none select-none">
+        {/* Overhead Desk Setup Vector SVG (Laptop, Blue Notebook, Glasses, Pens, Coffee Cup) */}
         <Image
-          src={loginBg}
-          alt="Academy Workspace Illustration"
+          src={deskBgIllustration}
+          alt="Overhead Workspace Desk Setup"
           fill
           priority
-          className="object-cover object-left-top z-0 pointer-events-none opacity-90"
+          className="object-contain object-left-top p-6 lg:p-10 pointer-events-none"
         />
-
-        {/* Ambient Orange Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#EA580C]/30 to-[#EA580C] z-10 pointer-events-none" />
-
-        {/* Left Side Decorative Brand Watermark */}
-        <div className="relative z-20 p-12 flex flex-col justify-between h-full text-white pointer-events-none select-none">
-          <div className="flex items-center space-x-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-2xl w-fit border border-white/10 shadow-lg">
-            <div className="w-8 h-8 rounded-xl bg-white text-[#EA580C] flex items-center justify-center font-black text-lg">
-              {params.slug.charAt(0).toUpperCase()}
-            </div>
-            <span className="font-extrabold text-sm uppercase tracking-wider">{academyName}</span>
-          </div>
-
-          <div className="max-w-md space-y-3 bg-black/30 backdrop-blur-md p-6 rounded-3xl border border-white/15 shadow-2xl">
-            <h2 className="text-2xl font-black leading-tight text-white">Smart Academy ERP &amp; Governance</h2>
-            <p className="text-xs text-orange-100 font-medium leading-relaxed">
-              Automated FIFO fee collection, student ID card studio, faculty timetable rosters, and isolated multi-tenant security.
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* 2. RIGHT SIDE: Centered Pure White Login Card Container */}
-      <div className="col-span-12 lg:col-span-6 xl:col-span-5 flex items-center justify-center p-6 sm:p-8 lg:p-12 relative z-20 bg-[#EA580C]">
-        {/* Login Card Component */}
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 sm:p-10 space-y-6 text-slate-900 border border-white/40 relative">
-          {/* Header / Branding */}
+      {/* 2. RIGHT COLUMN: Centered Pure White Login Card (lg:col-span-5) */}
+      <div className="lg:col-span-5 col-span-12 flex items-center justify-center p-6 sm:p-8 lg:p-12 relative z-20 bg-[#EA580C]">
+        {/* White Login Card UI */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10 max-w-md w-full space-y-6 text-slate-900 border border-white/40 relative">
+          {/* Header & Branding Badge */}
           <div className="flex items-start space-x-4">
             {academyLogo ? (
               <img
@@ -167,7 +147,7 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
               </div>
             </div>
 
-            {/* Error Message */}
+            {/* Error Notification */}
             {error && (
               <div className="text-xs text-rose-700 bg-rose-50 p-3 rounded-xl border border-rose-200 font-semibold shadow-xs">
                 {error}

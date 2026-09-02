@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="100%" height="100%">
+  <defs>
+    <!-- Soft Drop Shadows -->
+    <filter id="deskShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.22" />
+    </filter>
+    
+    <filter id="subtleShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.15" />
+    </filter>
+
+    <!-- Laptop Screen Line Art Gradient -->
+    <linearGradient id="laptopScreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0.85" />
+    </linearGradient>
+
+    <!-- Blue Notebook Gradient -->
+    <linearGradient id="blueCoverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+
+    <!-- Coffee Crema Gradient -->
+    <radialGradient id="coffeeGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#78350f" />
+      <stop offset="70%" stop-color="#451a03" />
+      <stop offset="100%" stop-color="#292524" />
+    </radialGradient>
+  </defs>
+
+  <!-- Clean Top-Down Desk Surface (Transparent to blend with brand orange #EA580C) -->
+  
+  <!-- 1. OVERHEAD LAPTOP (Top Left / Top Center) -->
+  <g transform="translate(140, 40) rotate(-4)" filter="url(#deskShadow)">
+    <!-- Laptop Base & Hinge -->
+    <rect x="0" y="0" width="560" height="360" rx="20" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="3" />
+    <rect x="15" y="15" width="530" height="330" rx="14" fill="#0f172a" stroke="#334155" stroke-width="2" />
+    
+    <!-- Laptop Display Screen (Line-Art Code & ERP Wireframe) -->
+    <rect x="30" y="30" width="500" height="300" rx="8" fill="url(#laptopScreenGrad)" />
+    
+    <!-- Laptop Screen Header Bar -->
+    <rect x="30" y="30" width="500" height="28" rx="6" fill="#e2e8f0" />
+    <circle cx="50" cy="44" r="4.5" fill="#ef4444" />
+    <circle cx="65" cy="44" r="4.5" fill="#f59e0b" />
+    <circle cx="80" cy="44" r="4.5" fill="#10b981" />
+    <rect x="110" y="39" width="220" height="10" rx="4" fill="#cbd5e1" />
+
+    <!-- Screen UI Elements (Charts & Analytics Line Art) -->
+    <rect x="50" y="75" width="220" height="110" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+    <path d="M 70 155 L 110 120 L 150 140 L 190 95 L 240 115" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="240" cy="115" r="4" fill="#ea580c" />
+
+    <rect x="290" y="75" width="220" height="110" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+    <rect x="310" y="105" width="22" height="60" rx="4" fill="#3b82f6" />
+    <rect x="345" y="125" width="22" height="40" rx="4" fill="#ea580c" />
+    <rect x="380" y="95" width="22" height="70" rx="4" fill="#10b981" />
+    <rect x="415" y="115" width="22" height="50" rx="4" fill="#8b5cf6" />
+
+    <rect x="50" y="200" width="460" height="110" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+    <rect x="70" y="220" width="160" height="12" rx="4" fill="#94a3b8" />
+    <rect x="70" y="245" width="280" height="10" rx="3" fill="#cbd5e1" />
+    <rect x="70" y="265" width="220" height="10" rx="3" fill="#e2e8f0" />
+    
+    <!-- Trackpad Lip / Bottom Edge -->
+    <path d="M 230 360 L 330 360 L 320 372 L 240 372 Z" fill="#cbd5e1" />
+  </g>
+
+  <!-- 2. BLUE SPIRAL NOTEBOOK (Left Side) -->
+  <g transform="translate(60, 420) rotate(8)" filter="url(#deskShadow)">
+    <!-- Notebook Cover -->
+    <rect x="0" y="0" width="320" height="440" rx="14" fill="url(#blueCoverGrad)" stroke="#1e40af" stroke-width="2" />
+
+    <!-- Elastic Band / Spine Accent -->
+    <rect x="295" y="0" width="8" height="440" fill="#1e3a8a" opacity="0.4" />
+    <rect x="25" y="0" width="290" height="430" rx="8" fill="#ffffff" />
+    
+    <!-- Notebook Ruled Lines -->
+    <line x1="60" y1="50" x2="290" y2="50" stroke="#93c5fd" stroke-width="1.5" />
+    <line x1="60" y1="85" x2="290" y2="85" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="120" x2="290" y2="120" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="155" x2="290" y2="155" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="190" x2="290" y2="190" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="225" x2="290" y2="225" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="260" x2="290" y2="260" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="295" x2="290" y2="295" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="330" x2="290" y2="330" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="365" x2="290" y2="365" stroke="#bfdbfe" stroke-width="1.5" />
+    <line x1="60" y1="400" x2="290" y2="400" stroke="#bfdbfe" stroke-width="1.5" />
+    
+    <!-- Red Margin Line -->
+    <line x1="90" y1="20" x2="90" y2="420" stroke="#fca5a5" stroke-width="1.5" />
+
+    <!-- Handwritten Sketch Notes on Notebook Page -->
+    <path d="M 105 80 Q 150 70 210 82" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M 105 115 Q 160 110 250 118" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+    <path d="M 105 150 Q 140 145 190 152" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+    
+    <!-- Checkbox Items -->
+    <rect x="105" y="180" width="14" height="14" rx="3" fill="none" stroke="#2563eb" stroke-width="2" />
+    <path d="M 108 187 L 112 191 L 121 182" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M 130 188 L 240 188" stroke="#1e293b" stroke-width="2" stroke-linecap="round" />
+
+    <rect x="105" y="215" width="14" height="14" rx="3" fill="none" stroke="#2563eb" stroke-width="2" />
+    <path d="M 108 222 L 112 226 L 121 217" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M 130 223 L 260 223" stroke="#1e293b" stroke-width="2" stroke-linecap="round" />
+
+    <!-- Spiral Wire Binding Loops -->
+    <g fill="#94a3b8" stroke="#64748b" stroke-width="1">
+      <rect x="5" y="25" width="28" height="10" rx="5" />
+      <rect x="5" y="65" width="28" height="10" rx="5" />
+      <rect x="5" y="105" width="28" height="10" rx="5" />
+      <rect x="5" y="145" width="28" height="10" rx="5" />
+      <rect x="5" y="185" width="28" height="10" rx="5" />
+      <rect x="5" y="225" width="28" height="10" rx="5" />
+      <rect x="5" y="265" width="28" height="10" rx="5" />
+      <rect x="5" y="305" width="28" height="10" rx="5" />
+      <rect x="5" y="345" width="28" height="10" rx="5" />
+      <rect x="5" y="385" width="28" height="10" rx="5" />
+    </g>
+  </g>
+
+  <!-- 3. READING GLASSES (Top Right / Center) -->
+  <g transform="translate(480, 440) rotate(-18)" filter="url(#subtleShadow)">
+    <!-- Left Lens Frame -->
+    <circle cx="0" cy="0" r="42" fill="rgba(255,255,255,0.25)" stroke="#0f172a" stroke-width="4.5" />
+    <!-- Right Lens Frame -->
+    <circle cx="110" cy="0" r="42" fill="rgba(255,255,255,0.25)" stroke="#0f172a" stroke-width="4.5" />
+    
+    <!-- Bridge -->
+    <path d="M 42 0 Q 55 -12 68 0" fill="none" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" />
+
+    <!-- Temples / Arms -->
+    <path d="M -42 -5 L -85 -50 Q -95 -60 -95 -75" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round" />
+    <path d="M 152 -5 L 195 -50 Q 205 -60 205 -75" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Glass Lens Reflections -->
+    <path d="M -20 -20 Q -5 -30 10 -25" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round" />
+    <path d="M 90 -20 Q 105 -30 120 -25" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- 4. PENS & HIGHLIGHTERS (Middle Right) -->
+  <g transform="translate(420, 560) rotate(22)" filter="url(#subtleShadow)">
+    <!-- Ballpoint Pen (Orange Accent Body) -->
+    <rect x="0" y="0" width="16" height="260" rx="8" fill="#ea580c" stroke="#c2410c" stroke-width="1.5" />
+    <polygon points="0,260 8,290 16,260" fill="#0f172a" />
+    <rect x="4" y="10" width="8" height="40" rx="2" fill="#ffffff" opacity="0.6" />
+    <!-- Pen Metallic Clip -->
+    <rect x="6" y="20" width="4" height="70" rx="2" fill="#cbd5e1" />
+
+    <!-- Stylus / Cyan Pen -->
+    <g transform="translate(35, -20) rotate(-10)">
+      <rect x="0" y="0" width="14" height="270" rx="7" fill="#06b6d4" stroke="#0891b2" stroke-width="1.5" />
+      <polygon points="0,270 7,298 14,270" fill="#0f172a" />
+      <rect x="5" y="15" width="4" height="75" rx="2" fill="#ffffff" />
+    </g>
+  </g>
+
+  <!-- 5. SCATTERED METALLIC PAPERCLIPS -->
+  <g transform="translate(420, 360) rotate(35)" stroke="#64748b" stroke-width="3" fill="none" filter="url(#subtleShadow)">
+    <path d="M 0,0 L 0,40 A 10,10 0 0,0 20,40 L 20,10 A 5,5 0 0,0 10,10 L 10,30" />
+  </g>
+  
+  <g transform="translate(720, 480) rotate(-45)" stroke="#94a3b8" stroke-width="3" fill="none" filter="url(#subtleShadow)">
+    <path d="M 0,0 L 0,40 A 10,10 0 0,0 20,40 L 20,10 A 5,5 0 0,0 10,10 L 10,30" />
+  </g>
+
+  <!-- 6. COFFEE CERAMIC MUG (Bottom Left) -->
+  <g transform="translate(400, 760)" filter="url(#deskShadow)">
+    <!-- Mug Handle -->
+    <path d="M 85 20 C 135 20, 135 90, 85 90" fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" />
+    <path d="M 85 20 C 135 20, 135 90, 85 90" fill="none" stroke="#e2e8f0" stroke-width="10" stroke-linecap="round" />
+
+    <!-- Mug Ceramic Body Rim -->
+    <circle cx="45" cy="55" r="55" fill="#ffffff" stroke="#e2e8f0" stroke-width="4" />
+    <!-- Mug Inner Wall -->
+    <circle cx="45" cy="55" r="44" fill="#451a03" />
+    <!-- Coffee Crema -->
+    <circle cx="45" cy="55" r="40" fill="url(#coffeeGrad)" />
+    <!-- Latte Art / Steam Swirl -->
+    <path d="M 35 45 Q 45 35 55 45 T 45 65" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- 7. YELLOW POST-IT STICKY NOTE (Bottom Right / Middle) -->
+  <g transform="translate(540, 720) rotate(-6)" filter="url(#subtleShadow)">
+    <rect x="0" y="0" width="150" height="150" rx="4" fill="#fef08a" stroke="#fde047" stroke-width="1.5" />
+    <path d="M 20 30 Q 60 25 120 32" fill="none" stroke="#854d0e" stroke-width="2" stroke-linecap="round" />
+    <path d="M 20 60 Q 70 55 130 62" fill="none" stroke="#854d0e" stroke-width="2" stroke-linecap="round" />
+    <path d="M 20 90 Q 50 85 90 92" fill="none" stroke="#854d0e" stroke-width="2" stroke-linecap="round" />
+    <!-- Sticky Note Dog Ear Corner -->
+    <path d="M 130 150 L 150 130 L 130 130 Z" fill="#facc15" />
+  </g>
+</svg>
