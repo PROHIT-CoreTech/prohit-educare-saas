@@ -203,7 +203,8 @@ export class PlatformService {
       throw new BadRequestException(`Subdomain ${cleanSlug}.educare.prohitcoretech.com is already registered`);
     }
 
-    const status = dto.subscriptionStatus || 'ACTIVE';
+    const isTrialPlan = dto.plan === 'TRIAL' || dto.plan === 'TRIAL_14' || dto.subscriptionStatus === 'TRIAL';
+    const status = isTrialPlan ? 'TRIAL' : (dto.subscriptionStatus || 'ACTIVE');
     const subEndsAt = new Date();
     subEndsAt.setFullYear(subEndsAt.getFullYear() + 1);
 
@@ -257,10 +258,10 @@ export class PlatformService {
       details: {
         academyName: academy.name,
         academySlug: academy.slug,
-        plan: dto.plan || 'PROFESSIONAL',
-        amount: dto.plan === 'STARTER' ? 11988 : dto.plan === 'ENTERPRISE' ? 95988 : 35988,
-        paymentMode: dto.paymentMode || 'OFFLINE_CASH',
-        paymentReference: dto.paymentReference || 'N/A',
+        plan: isTrialPlan ? '14-Day Trial' : (dto.plan || 'PROFESSIONAL'),
+        amount: isTrialPlan ? 0 : dto.plan === 'STARTER' ? 11988 : dto.plan === 'ENTERPRISE' ? 95988 : 35988,
+        paymentMode: isTrialPlan ? '14_DAY_FREE_TRIAL' : (dto.paymentMode || 'OFFLINE_CASH'),
+        paymentReference: dto.paymentReference || (isTrialPlan ? '14-Day Free Trial Activated' : 'N/A'),
       },
     });
 

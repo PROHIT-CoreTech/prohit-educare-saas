@@ -1247,12 +1247,23 @@ export default function PlatformAdminPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 uppercase mb-1">Plan</label>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Subscription Plan</label>
                       <select
                         value={offlineForm.plan}
-                        onChange={(e) => setOfflineForm({ ...offlineForm, plan: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const isTrial = val === 'TRIAL_14';
+                          setOfflineForm({
+                            ...offlineForm,
+                            plan: val,
+                            subscriptionStatus: isTrial ? 'TRIAL' : 'ACTIVE',
+                            paymentMode: isTrial ? 'OFFLINE_TRIAL' : offlineForm.paymentMode === 'OFFLINE_TRIAL' ? 'CASH' : offlineForm.paymentMode,
+                            paymentReference: isTrial ? '14-Day Free Trial Activated' : offlineForm.paymentReference === '14-Day Free Trial Activated' ? '' : offlineForm.paymentReference,
+                          });
+                        }}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none font-semibold"
                       >
+                        <option value="TRIAL_14">🎁 14-Day Free Trial (₹0)</option>
                         <option value="STARTER">Starter (₹999/mo)</option>
                         <option value="PROFESSIONAL">Professional (₹2,999/mo)</option>
                         <option value="ENTERPRISE">Enterprise (₹7,999/mo)</option>
@@ -1263,21 +1274,30 @@ export default function PlatformAdminPage() {
                       <label className="block font-bold text-slate-700 uppercase mb-1">Initial Status</label>
                       <select
                         value={offlineForm.subscriptionStatus}
-                        onChange={(e) => setOfflineForm({ ...offlineForm, subscriptionStatus: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setOfflineForm({
+                            ...offlineForm,
+                            subscriptionStatus: val,
+                            plan: val === 'TRIAL' ? 'TRIAL_14' : offlineForm.plan === 'TRIAL_14' ? 'PROFESSIONAL' : offlineForm.plan,
+                            paymentMode: val === 'TRIAL' ? 'OFFLINE_TRIAL' : offlineForm.paymentMode === 'OFFLINE_TRIAL' ? 'CASH' : offlineForm.paymentMode,
+                          });
+                        }}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none font-semibold"
                       >
-                        <option value="ACTIVE">ACTIVE (Paid)</option>
-                        <option value="TRIAL">TRIAL (14 Days)</option>
+                        <option value="TRIAL">TRIAL (14 Days Free)</option>
+                        <option value="ACTIVE">ACTIVE (Paid Tenant)</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block font-bold text-slate-700 uppercase mb-1">Offline Payment Mode</label>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Offline Settlement Mode</label>
                       <select
                         value={offlineForm.paymentMode}
                         onChange={(e) => setOfflineForm({ ...offlineForm, paymentMode: e.target.value })}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none font-semibold"
                       >
+                        <option value="OFFLINE_TRIAL">🎁 14-Day Free Trial</option>
                         <option value="CASH">Cash Payment</option>
                         <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
                         <option value="CHEQUE">Cheque Payment</option>
@@ -1304,7 +1324,7 @@ export default function PlatformAdminPage() {
                       <div><span className="text-slate-400">Academy:</span> <span className="font-bold text-slate-900">{offlineForm.name || 'N/A'}</span></div>
                       <div><span className="text-slate-400">Subdomain:</span> <span className="font-mono font-bold text-orange-700">{offlineForm.slug || 'slug'}.educare</span></div>
                       <div><span className="text-slate-400">Director:</span> <span className="font-bold text-slate-900">{offlineForm.adminName}</span></div>
-                      <div><span className="text-slate-400">Email:</span> <span className="font-bold text-slate-900">{offlineForm.adminEmail}</span></div>
+                      <div><span className="text-slate-400">Plan & Status:</span> <span className="font-bold text-emerald-700">{offlineForm.plan === 'TRIAL_14' || offlineForm.subscriptionStatus === 'TRIAL' ? '🎁 14-Day Free Trial (TRIAL)' : `${offlineForm.plan} (${offlineForm.subscriptionStatus})`}</span></div>
                     </div>
                   </div>
 
