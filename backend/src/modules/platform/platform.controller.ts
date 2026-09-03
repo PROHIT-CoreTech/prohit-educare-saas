@@ -41,6 +41,8 @@ export class PlatformController {
       adminEmail: string;
       adminPassword?: string;
       phone?: string;
+      logoUrl?: string;
+      directorSignatureUrl?: string;
       institutionType?: string;
       institutionTypes?: string[];
       educationBoard?: string;

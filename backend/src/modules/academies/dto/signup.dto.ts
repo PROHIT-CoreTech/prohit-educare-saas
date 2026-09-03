@@ -33,6 +33,10 @@ export class SignupAcademyDto {
 
   @IsOptional()
   @IsString()
+  directorSignatureUrl?: string;
+
+  @IsOptional()
+  @IsString()
   primaryColor?: string;
 
   @IsOptional()

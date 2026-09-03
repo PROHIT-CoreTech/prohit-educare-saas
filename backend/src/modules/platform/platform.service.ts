@@ -178,6 +178,7 @@ export class PlatformService {
       adminPassword?: string;
       phone?: string;
       logoUrl?: string;
+      directorSignatureUrl?: string;
       primaryColor?: string;
       institutionType?: string;
       institutionTypes?: string[];
@@ -222,6 +223,10 @@ export class PlatformService {
       name: dto.name.trim(),
       slug: cleanSlug,
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
+      directorName: dto.adminName.trim(),
+      directorSignatureUrl: dto.directorSignatureUrl ? dto.directorSignatureUrl.trim() : '',
+      email: cleanEmail,
+      phone: dto.phone || '',
       primaryColor: dto.primaryColor || '#f97316',
       institutionType: rawTypes[0],
       institutionTypes: rawTypes,

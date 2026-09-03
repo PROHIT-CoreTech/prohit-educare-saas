@@ -79,6 +79,7 @@ export default function MarketingPage() {
     return () => observer.disconnect();
   }, [hasAnimatedMetrics]);
 
+  const [signatureError, setSignatureError] = useState('');
   const [signupForm, setSignupForm] = useState({
     name: '',
     slug: '',
@@ -87,6 +88,7 @@ export default function MarketingPage() {
     adminPassword: '',
     phone: '',
     logoUrl: '',
+    directorSignatureUrl: '',
     primaryColor: '#f97316',
     institutionType: 'High School',
     institutionTypes: ['High School'] as string[],
@@ -1335,6 +1337,83 @@ export default function MarketingPage() {
                         {showPassword ? <EyeOff className="w-4 h-4 text-orange-500" /> : <Eye className="w-4 h-4 text-slate-400" />}
                       </button>
                     </div>
+                  </div>
+
+                  {/* Director Digital Signature Upload (PNG Format Only) */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <label className="block font-bold text-xs text-slate-700 uppercase">
+                        Director Digital Signature <span className="text-orange-600 font-extrabold text-[11px] normal-case">(PNG Format Only)</span>
+                      </label>
+                      <span className="text-[10px] text-slate-500 font-medium">Transparent PNG required</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2 flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Paste PNG Signature URL (e.g. https://.../signature.png)"
+                          value={signupForm.directorSignatureUrl || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val && !val.startsWith('data:image/') && !val.toLowerCase().endsWith('.png') && !val.toLowerCase().includes('.png?')) {
+                              setSignatureError('Note: Digital signature requires a PNG format image with transparency.');
+                            } else {
+                              setSignatureError('');
+                            }
+                            setSignupForm({ ...signupForm, directorSignatureUrl: val });
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 text-xs font-medium"
+                        />
+                        <label className="shrink-0 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1">
+                          <Upload className="w-3.5 h-3.5 text-orange-600" />
+                          <span>Upload PNG</span>
+                          <input
+                            type="file"
+                            accept="image/png,.png"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.type !== 'image/png' && !file.name.toLowerCase().endsWith('.png')) {
+                                  alert('Invalid file format! Digital signature must be in PNG format (.png) only.');
+                                  e.target.value = '';
+                                  return;
+                                }
+                                setSignatureError('');
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setSignupForm({ ...signupForm, directorSignatureUrl: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      {/* Signature Live Preview */}
+                      <div className="flex items-center justify-center border border-slate-200 rounded-xl p-2 bg-slate-900/90 text-white min-h-[44px]">
+                        {signupForm.directorSignatureUrl ? (
+                          <div className="flex items-center space-x-2">
+                            <img
+                              src={signupForm.directorSignatureUrl}
+                              alt="Director Signature"
+                              className="max-h-8 max-w-[110px] object-contain invert brightness-200 filter"
+                              onError={(e: any) => { e.target.style.display = 'none'; }}
+                            />
+                            <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-1.5 py-0.5 rounded shrink-0">PNG Verified ✓</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-medium italic">No PNG signature</span>
+                        )}
+                      </div>
+                    </div>
+                    {signatureError && (
+                      <p className="text-[11px] text-amber-600 font-bold">
+                        ⚠️ {signatureError}
+                      </p>
+                    )}
                   </div>
 
                   {/* Summary Card Before Launch */}

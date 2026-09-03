@@ -21,6 +21,9 @@ export class Academy {
   directorName?: string;
 
   @Prop({ default: '' })
+  directorSignatureUrl?: string;
+
+  @Prop({ default: '' })
   phone?: string;
 
   @Prop({ default: '' })

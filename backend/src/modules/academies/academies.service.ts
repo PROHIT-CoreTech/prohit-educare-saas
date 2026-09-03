@@ -59,6 +59,7 @@ export class AcademiesService {
       logoUrl: dto.logoUrl ? dto.logoUrl.trim() : '',
       primaryColor: dto.primaryColor || '#f97316',
       directorName: dto.adminName,
+      directorSignatureUrl: dto.directorSignatureUrl ? dto.directorSignatureUrl.trim() : '',
       phone: dto.phone || '',
       email: dto.adminEmail.toLowerCase().trim(),
       institutionType: rawTypes[0],
