@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle } from 'lucide-react';
+import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle, Search, X, ChevronDown, User } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 export default function FeeEnginePage() {
@@ -20,6 +20,22 @@ export default function FeeEnginePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [academyInfo, setAcademyInfo] = useState<any>(null);
+
+  // Searchable student dropdown state
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchStudents();
@@ -69,10 +85,31 @@ export default function FeeEnginePage() {
 
   const handleStudentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
-    setSelectedStudentId(id);
-    setFeeSummary(null);
-    fetchSummary(id);
+    handleSelectStudent(id);
   };
+
+  const handleSelectStudent = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setIsDropdownOpen(false);
+    setFeeSummary(null);
+    fetchSummary(studentId);
+  };
+
+  const filteredStudents = students.filter((s) => {
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase().trim();
+    const nameMatch = s.name?.toLowerCase().includes(q);
+    const codeMatch = s.studentCode?.toLowerCase().includes(q) || s.rollNo?.toLowerCase().includes(q);
+    const stdMatch =
+      `std ${s.standard}`.toLowerCase().includes(q) ||
+      `class ${s.standard}`.toLowerCase().includes(q) ||
+      `${s.standard}th`.toLowerCase().includes(q) ||
+      `${s.standard}` === q;
+    const parentMatch = s.parentName?.toLowerCase().includes(q) || s.parentPhone?.toLowerCase().includes(q);
+    return nameMatch || codeMatch || stdMatch || parentMatch;
+  });
+
+  const selectedStudent = students.find((s) => s._id === selectedStudentId);
 
   const handleInitializeFee = async () => {
     if (!selectedStudentId) return;
@@ -250,20 +287,155 @@ export default function FeeEnginePage() {
         </p>
       </div>
 
-      {/* Student Selector */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
-        <label className="block text-xs font-bold text-slate-700 uppercase">Select Target Student</label>
-        <select
-          value={selectedStudentId}
-          onChange={handleStudentChange}
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
-        >
-          {students.map((s) => (
-            <option key={s._id} value={s._id}>
-              {s.name} ({s.studentCode || 'STU-CODE'}) - Std {s.standard}th
-            </option>
-          ))}
-        </select>
+      {/* Student Selector Card with Real-Time Search */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4" ref={dropdownRef}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Target Student</label>
+            <p className="text-xs text-slate-500 font-medium">Search by name, student code (e.g. STU-2026-00004), class, or parent contact</p>
+          </div>
+          {students.length > 0 && (
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full w-fit">
+              {filteredStudents.length} of {students.length} Students
+            </span>
+          )}
+        </div>
+
+        <div className="relative">
+          {/* Main Combobox Input Bar */}
+          <div className="relative flex items-center">
+            <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search student by name, code, std, phone..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setIsDropdownOpen(true);
+              }}
+              onFocus={() => setIsDropdownOpen(true)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-24 py-3.5 text-slate-900 text-sm font-semibold focus:outline-none focus:border-orange-500 focus:bg-white transition shadow-xs"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                }}
+                className="absolute right-10 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition"
+                title="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="absolute right-3 p-1 rounded-md text-slate-400 hover:text-slate-600 transition"
+            >
+              <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-orange-500' : ''}`} />
+            </button>
+          </div>
+
+          {/* Selected Student Highlight Banner */}
+          {selectedStudent && (
+            <div className="mt-2.5 bg-orange-50/80 border border-orange-200/80 rounded-xl p-3 flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  {selectedStudent.name?.charAt(0) || 'S'}
+                </div>
+                <div>
+                  <span className="font-extrabold text-slate-900 text-sm">{selectedStudent.name}</span>
+                  <div className="flex items-center space-x-2 text-slate-600 font-medium">
+                    <span className="font-mono text-[11px] font-bold text-orange-700">{selectedStudent.studentCode || 'STU-CODE'}</span>
+                    <span>•</span>
+                    <span>Std {selectedStudent.standard}th</span>
+                    {selectedStudent.parentPhone && (
+                      <>
+                        <span>•</span>
+                        <span>Parent: {selectedStudent.parentPhone}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-[10px] uppercase px-2.5 py-1 rounded-full">
+                Active Selection
+              </span>
+            </div>
+          )}
+
+          {/* Dropdown Menu Popup */}
+          {isDropdownOpen && (
+            <div className="absolute z-50 left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-80 overflow-y-auto divide-y divide-slate-100 animate-in fade-in slide-in-from-top-2 duration-150">
+              {loadingStudents ? (
+                <div className="p-4 text-center text-slate-400 font-medium text-xs flex items-center justify-center space-x-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                  <span>Loading students list...</span>
+                </div>
+              ) : filteredStudents.length === 0 ? (
+                <div className="p-6 text-center space-y-2">
+                  <User className="w-8 h-8 text-slate-300 mx-auto" />
+                  <p className="text-sm font-bold text-slate-700">No students found</p>
+                  <p className="text-xs text-slate-400">No student matching &quot;{searchTerm}&quot;</p>
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="text-xs font-bold text-orange-600 hover:underline pt-1 block mx-auto"
+                  >
+                    Clear search filter
+                  </button>
+                </div>
+              ) : (
+                filteredStudents.map((s) => {
+                  const isSelected = s._id === selectedStudentId;
+                  return (
+                    <button
+                      key={s._id}
+                      type="button"
+                      onClick={() => handleSelectStudent(s._id)}
+                      className={`w-full text-left p-3.5 transition flex items-center justify-between group ${
+                        isSelected
+                          ? 'bg-orange-50/90 font-bold border-l-4 border-orange-500 pl-4'
+                          : 'hover:bg-slate-50 text-slate-800'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition ${
+                          isSelected ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-orange-100 group-hover:text-orange-600'
+                        }`}>
+                          {s.name?.charAt(0) || 'S'}
+                        </div>
+                        <div>
+                          <p className={`text-sm font-bold ${isSelected ? 'text-orange-950' : 'text-slate-900 group-hover:text-orange-600'}`}>
+                            {s.name}
+                          </p>
+                          <div className="flex items-center space-x-2 text-xs text-slate-500 font-medium mt-0.5">
+                            <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">
+                              {s.studentCode || 'STU-CODE'}
+                            </span>
+                            <span>•</span>
+                            <span>Std {s.standard}th</span>
+                            {s.parentName && (
+                              <>
+                                <span>•</span>
+                                <span>Parent: {s.parentName}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <CheckCircle className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Loading Skeleton */}
