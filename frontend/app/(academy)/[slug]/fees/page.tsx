@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle, Search, X, ChevronDown, User, History, Eye } from 'lucide-react';
+import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle, Search, X, ChevronDown, User, History, Eye, Calendar } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 export default function FeeEnginePage() {
@@ -20,6 +20,9 @@ export default function FeeEnginePage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [academyInfo, setAcademyInfo] = useState<any>(null);
+
+  // Tab state for left column: INSTALLMENTS vs RECEIPTS
+  const [feeTab, setFeeTab] = useState<'INSTALLMENTS' | 'RECEIPTS'>('INSTALLMENTS');
 
   // Searchable student dropdown state
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -241,6 +244,35 @@ export default function FeeEnginePage() {
     }
   }, [receiptData]);
 
+  const handleDownloadReceipt = () => {
+    if (!canvasRef.current || !receiptData) return;
+    canvasRef.current.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `receipt_${receiptData.receiptNumber}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
+  const handleWhatsAppDirect = () => {
+    if (!receiptData) return;
+    const currentStudent = students.find((s) => s._id === selectedStudentId);
+    const parentPhone = currentStudent?.parentPhone || currentStudent?.phone || '';
+    const cleanPhone = parentPhone.replace(/\D/g, '');
+
+    const message = `Official Fee Payment Receipt\n\nAcademy: ${academyInfo?.name || 'Academy'}\nReceipt No: ${receiptData.receiptNumber}\nStudent: ${receiptData.studentName} (${receiptData.studentCode})\nAmount Paid: ₹${receiptData.amountPaid?.toLocaleString('en-IN')}\nPayment Mode: ${receiptData.paymentMode}\nDate: ${receiptData.date}\n\nThank you!`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = cleanPhone
+      ? `https://wa.me/91${cleanPhone}?text=${encodedMessage}`
+      : `https://wa.me/?text=${encodedMessage}`;
+
+    window.open(waUrl, '_blank');
+  };
+
   const handleShareReceipt = async () => {
     if (!canvasRef.current) return;
     canvasRef.current.toBlob(async (blob) => {
@@ -257,11 +289,7 @@ export default function FeeEnginePage() {
           console.error(e);
         }
       } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `receipt_${receiptData.receiptNumber}.png`;
-        a.click();
+        handleDownloadReceipt();
       }
     });
   };
@@ -509,106 +537,150 @@ export default function FeeEnginePage() {
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-              <h2 className="text-lg font-bold text-slate-900">Fee Schedule Installments (FIFO Priority)</h2>
-              <div className="space-y-3">
-                {feeSummary.feeSchedules?.map((inst: any) => (
-                  <div
-                    key={inst._id}
-                    className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-xs"
+            {/* Tabbed Left Column Container for Installments & Receipts */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+              {/* Tab Navigation Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 gap-2 flex-wrap sm:flex-nowrap">
+                <div className="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setFeeTab('INSTALLMENTS')}
+                    className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center space-x-2 cursor-pointer ${
+                      feeTab === 'INSTALLMENTS'
+                        ? 'bg-orange-500 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
                   >
-                    <div>
-                      <span className="text-xs font-bold text-orange-600 uppercase">Installment #{inst.installmentNo}</span>
-                      <p className="text-sm font-semibold text-slate-900">Due Date: {new Date(inst.dueDate).toLocaleDateString('en-IN')}</p>
-                    </div>
+                    <Calendar className="w-4 h-4" />
+                    <span>Fee Installments</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      feeTab === 'INSTALLMENTS' ? 'bg-orange-600 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {feeSummary.feeSchedules?.length || 0}
+                    </span>
+                  </button>
 
-                    <div className="text-right">
-                      <p className="text-sm font-extrabold text-slate-900 font-mono">
-                        Paid ₹{inst.paidAmount?.toLocaleString('en-IN')} / Total ₹{inst.amount?.toLocaleString('en-IN')}
-                      </p>
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mt-1 uppercase ${
-                          inst.status === 'PAID'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : inst.status === 'PARTIAL'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : 'bg-rose-50 text-rose-700 border border-rose-200'
-                        }`}
-                      >
-                        {inst.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Payment Receipts History Card */}
-            {feeSummary.payments && feeSummary.payments.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center space-x-2">
-                    <History className="w-5 h-5 text-orange-500" />
-                    <h2 className="text-lg font-extrabold text-slate-900">Payment Receipts History ({feeSummary.payments.length})</h2>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                    {feeSummary.payments.length} Saved Receipts
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFeeTab('RECEIPTS')}
+                    className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-extrabold transition flex items-center justify-center space-x-2 cursor-pointer ${
+                      feeTab === 'RECEIPTS'
+                        ? 'bg-orange-500 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                  >
+                    <History className="w-4 h-4" />
+                    <span>Payment Receipts</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      feeTab === 'RECEIPTS' ? 'bg-orange-600 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {feeSummary.payments?.length || 0}
+                    </span>
+                  </button>
                 </div>
 
-                <div className="space-y-3">
-                  {feeSummary.payments.map((p: any, idx: number) => (
+                <span className="text-xs font-bold text-slate-400 hidden md:inline">
+                  {feeTab === 'INSTALLMENTS' ? 'FIFO Installment Schedule' : 'Saved Payment History'}
+                </span>
+              </div>
+
+              {/* TAB 1: FEE INSTALLMENTS */}
+              {feeTab === 'INSTALLMENTS' && (
+                <div className="space-y-3 animate-in fade-in duration-150">
+                  {feeSummary.feeSchedules?.map((inst: any) => (
                     <div
-                      key={p._id || idx}
-                      className="bg-slate-50 border border-slate-200 hover:border-orange-300 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs transition"
+                      key={inst._id}
+                      className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center justify-between shadow-xs hover:border-orange-200 transition"
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-mono text-xs font-black text-orange-600 bg-orange-100/80 border border-orange-200 px-2 py-0.5 rounded">
-                            {p.receiptNumber}
-                          </span>
-                          <span className="text-xs font-bold text-slate-700">
-                            {new Date(p.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 font-medium">
-                          Mode: <span className="font-bold text-slate-800 uppercase">{p.paymentMode}</span>
-                          {p.transactionRef && <span className="ml-2 font-mono text-[11px] text-slate-600">Ref: {p.transactionRef}</span>}
-                        </p>
+                      <div>
+                        <span className="text-xs font-bold text-orange-600 uppercase">Installment #{inst.installmentNo}</span>
+                        <p className="text-sm font-semibold text-slate-900">Due Date: {new Date(inst.dueDate).toLocaleDateString('en-IN')}</p>
                       </div>
 
-                      <div className="flex items-center justify-between sm:justify-end space-x-4">
-                        <div className="text-right">
-                          <span className="text-[11px] text-slate-500 block font-medium">Amount Paid</span>
-                          <span className="text-sm font-black text-emerald-700 font-mono">
-                            ₹{p.totalAmountPaid?.toLocaleString('en-IN')}
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setReceiptData({
-                              receiptNumber: p.receiptNumber,
-                              amountPaid: p.totalAmountPaid,
-                              paymentMode: p.paymentMode,
-                              studentName: feeSummary?.student?.name || 'Student',
-                              studentCode: feeSummary?.student?.studentCode || 'STU',
-                              date: new Date(p.paymentDate).toLocaleDateString('en-IN'),
-                              allocations: p.allocations,
-                            });
-                          }}
-                          className="bg-white border border-slate-200 hover:bg-orange-500 hover:text-white hover:border-orange-500 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer"
+                      <div className="text-right">
+                        <p className="text-sm font-extrabold text-slate-900 font-mono">
+                          Paid ₹{inst.paidAmount?.toLocaleString('en-IN')} / Total ₹{inst.amount?.toLocaleString('en-IN')}
+                        </p>
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mt-1 uppercase ${
+                            inst.status === 'PAID'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : inst.status === 'PARTIAL'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
                         >
-                          <Eye className="w-4 h-4" />
-                          <span>View Receipt</span>
-                        </button>
+                          {inst.status}
+                        </span>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* TAB 2: PAYMENT RECEIPTS HISTORY */}
+              {feeTab === 'RECEIPTS' && (
+                <div className="space-y-3 animate-in fade-in duration-150">
+                  {!feeSummary.payments || feeSummary.payments.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400 text-xs font-medium space-y-1 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <History className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                      <p className="font-bold text-slate-700 text-sm">No payment receipts recorded yet</p>
+                      <p className="text-slate-500">Collect fee payments using the Quick Payment form to generate official digital receipts.</p>
+                    </div>
+                  ) : (
+                    feeSummary.payments.map((p: any, idx: number) => (
+                      <div
+                        key={p._id || idx}
+                        className="bg-slate-50 border border-slate-200 hover:border-orange-300 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs transition"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono text-xs font-black text-orange-600 bg-orange-100/80 border border-orange-200 px-2 py-0.5 rounded">
+                              {p.receiptNumber}
+                            </span>
+                            <span className="text-xs font-bold text-slate-700">
+                              {new Date(p.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium">
+                            Mode: <span className="font-bold text-slate-800 uppercase">{p.paymentMode}</span>
+                            {p.transactionRef && <span className="ml-2 font-mono text-[11px] text-slate-600">Ref: {p.transactionRef}</span>}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end space-x-4">
+                          <div className="text-right">
+                            <span className="text-[11px] text-slate-500 block font-medium">Amount Paid</span>
+                            <span className="text-sm font-black text-emerald-700 font-mono">
+                              ₹{p.totalAmountPaid?.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReceiptData({
+                                receiptNumber: p.receiptNumber,
+                                amountPaid: p.totalAmountPaid,
+                                paymentMode: p.paymentMode,
+                                studentName: feeSummary?.student?.name || 'Student',
+                                studentCode: feeSummary?.student?.studentCode || 'STU',
+                                date: new Date(p.paymentDate).toLocaleDateString('en-IN'),
+                                allocations: p.allocations,
+                              });
+                            }}
+                            className="bg-white border border-slate-200 hover:bg-orange-500 hover:text-white hover:border-orange-500 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer shrink-0"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>View Receipt</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -779,20 +851,32 @@ export default function FeeEnginePage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <button
-                type="button"
-                onClick={handleShareReceipt}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center justify-center space-x-2 text-xs cursor-pointer"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>Share Receipt (WhatsApp / Download)</span>
-              </button>
+            {/* Modal Action Buttons UI */}
+            <div className="space-y-2.5 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={handleWhatsAppDirect}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center space-x-2 text-xs cursor-pointer"
+                >
+                  <Share2 className="w-4 h-4 shrink-0" />
+                  <span>Send on WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadReceipt}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-extrabold py-3 px-4 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center justify-center space-x-2 text-xs cursor-pointer"
+                >
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span>Download Card</span>
+                </button>
+              </div>
 
               <button
                 type="button"
                 onClick={() => setReceiptData(null)}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl border border-slate-200 transition text-xs cursor-pointer"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer"
               >
                 Close Receipt
               </button>
