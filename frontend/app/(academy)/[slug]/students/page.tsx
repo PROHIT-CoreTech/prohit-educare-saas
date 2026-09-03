@@ -1444,7 +1444,7 @@ export default function StudentsPage() {
                   </div>
                   <div className="leading-tight overflow-hidden">
                     <h3 className="font-black uppercase text-[11px] tracking-wide text-yellow-300 truncate">
-                      {academyInfo?.name || 'CHOPRA ACADEMY'}
+                      {academyInfo?.name || 'ACADEMY NAME'}
                     </h3>
                     <p className="text-[8px] text-white/90 font-medium truncate">{academyInfo?.address || 'Academic & Coaching ERP'}</p>
                   </div>
@@ -1509,7 +1509,7 @@ export default function StudentsPage() {
                     </div>
                     <div className="text-[7px] font-bold text-slate-600 border-t border-slate-300 pt-0.5 w-full text-center">
                       <span className="font-serif italic block text-[9px] text-slate-900 leading-none truncate max-w-[80px]">
-                        {academyInfo?.directorName || 'Sandeep Chopra'}
+                        {academyInfo?.directorName || 'Director'}
                       </span>
                       <span className="uppercase text-[5.5px] tracking-tighter text-slate-500 font-sans block">PRINCIPAL'S SIGNATURE</span>
                     </div>

@@ -712,68 +712,91 @@ export default function FeeEnginePage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
 
-            {/* Generated Receipt Modal Card */}
-            {receiptData && (
-              <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-md">
-                <div className="flex items-center space-x-2 text-emerald-600">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <h3 className="font-extrabold text-slate-900">Payment Saved & Receipt Generated!</h3>
-                </div>
+      {/* Official Fee Receipt Centered Modal Overlay */}
+      {receiptData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full relative shadow-2xl space-y-5 my-8 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setReceiptData(null)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
+            >
+              ✕
+            </button>
 
-                {/* HTML Styled Digital Receipt Preview */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 font-sans">
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                    <div>
-                      <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Official Fee Receipt</span>
-                      <h4 className="text-sm font-extrabold text-slate-900">{receiptData.studentName}</h4>
-                      <span className="text-[11px] font-mono font-semibold text-slate-500 block">Student Code: {receiptData.studentCode}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-mono font-bold text-orange-600 block">{receiptData.receiptNumber}</span>
-                      <span className="text-[11px] text-slate-500 font-medium">{receiptData.date}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-slate-500 block font-medium">Payment Mode:</span>
-                      <span className="font-bold text-slate-800 uppercase">{receiptData.paymentMode}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block font-medium">Settlement Status:</span>
-                      <span className="font-bold text-emerald-700 uppercase">Atomic FIFO Settled</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-emerald-800 uppercase">Total Amount Paid</span>
-                    <span className="text-xl font-black text-emerald-700 font-mono">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-
-                {/* Digital Canvas Receipt (For Image Download / WhatsApp Share) */}
-                <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-                  <canvas
-                    ref={(node) => {
-                      canvasRef.current = node;
-                      if (node && receiptData) {
-                        drawReceiptCard(node, receiptData);
-                      }
-                    }}
-                    className="w-full h-auto block"
-                  />
-                </div>
-
-                <button
-                  onClick={handleShareReceipt}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center justify-center space-x-2 text-xs"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span>Share Receipt (WhatsApp / Download)</span>
-                </button>
+            <div className="flex items-center space-x-2 text-emerald-600">
+              <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-lg">Official Fee Receipt</h3>
+                <p className="text-xs text-slate-500 font-medium">Atomic FIFO Settlement Verified</p>
               </div>
-            )}
+            </div>
+
+            {/* HTML Styled Digital Receipt Preview */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 font-sans">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div>
+                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Official Fee Receipt</span>
+                  <h4 className="text-sm font-extrabold text-slate-900">{receiptData.studentName}</h4>
+                  <span className="text-[11px] font-mono font-semibold text-slate-500 block">Student Code: {receiptData.studentCode}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-mono font-bold text-orange-600 block">{receiptData.receiptNumber}</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{receiptData.date}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-slate-500 block font-medium">Payment Mode:</span>
+                  <span className="font-bold text-slate-800 uppercase">{receiptData.paymentMode}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block font-medium">Settlement Status:</span>
+                  <span className="font-bold text-emerald-700 uppercase">Atomic FIFO Settled</span>
+                </div>
+              </div>
+
+              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between">
+                <span className="text-xs font-extrabold text-emerald-800 uppercase">Total Amount Paid</span>
+                <span className="text-xl font-black text-emerald-700 font-mono">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            {/* Digital Canvas Receipt (For Image Download / WhatsApp Share) */}
+            <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+              <canvas
+                ref={(node) => {
+                  canvasRef.current = node;
+                  if (node && receiptData) {
+                    drawReceiptCard(node, receiptData);
+                  }
+                }}
+                className="w-full h-auto block"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={handleShareReceipt}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center justify-center space-x-2 text-xs cursor-pointer"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share Receipt (WhatsApp / Download)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setReceiptData(null)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl border border-slate-200 transition text-xs cursor-pointer"
+              >
+                Close Receipt
+              </button>
+            </div>
           </div>
         </div>
       )}
