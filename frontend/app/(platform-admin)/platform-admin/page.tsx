@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload } from 'lucide-react';
+import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload, ArrowRight, ArrowLeft, User } from 'lucide-react';
 import { apiClient } from '../../../lib/api';
 
 export default function PlatformAdminPage() {
@@ -25,6 +25,7 @@ export default function PlatformAdminPage() {
   const [inspecting, setInspecting] = useState(false);
 
   const [showOfflineModal, setShowOfflineModal] = useState(false);
+  const [offlineStep, setOfflineStep] = useState<number>(1);
   const [showOfflinePassword, setShowOfflinePassword] = useState(false);
   const [offlineForm, setOfflineForm] = useState({
     name: '',
@@ -296,7 +297,10 @@ export default function PlatformAdminPage() {
 
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => setShowOfflineModal(true)}
+              onClick={() => {
+                setOfflineStep(1);
+                setShowOfflineModal(true);
+              }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center space-x-2"
             >
               <PlusCircle className="w-4 h-4" />
@@ -706,353 +710,556 @@ export default function PlatformAdminPage() {
         )}
       </div>
 
-      {/* Master Admin Offline Academy Registration Modal */}
+      {/* Master Admin Offline Academy Registration Modal - 4-Step Guided Onboarding Wizard */}
       {showOfflineModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-xl w-full relative shadow-2xl space-y-6">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl space-y-5">
             <button
-              onClick={() => setShowOfflineModal(false)}
+              onClick={() => {
+                setShowOfflineModal(false);
+                setOfflineStep(1);
+              }}
               className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold"
             >
               ✕
             </button>
 
             <div>
-              <div className="flex items-center space-x-2 text-emerald-700 text-sm font-bold mb-1">
+              <div className="flex items-center space-x-2 text-emerald-700 text-xs font-bold mb-1 uppercase tracking-wider">
                 <PlusCircle className="w-4 h-4 text-emerald-600" />
-                <span>Master Admin Offline Provisioning</span>
+                <span>Master Admin Onboarding Wizard</span>
               </div>
               <h2 className="text-2xl font-black text-slate-900">Register Offline Academy Tenant</h2>
-              <p className="text-xs text-slate-500 font-medium mt-1">Manually provision an academy tenant when payment is collected offline via Cash, Cheque, or Bank Transfer.</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Guided step-wise onboarding for offline academy provisioning & subscription setup.
+              </p>
+            </div>
+
+            {/* Stepper Progress Bar */}
+            <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl">
+              <div className="grid grid-cols-4 gap-2 text-center text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setOfflineStep(1)}
+                  className={`p-2 rounded-xl flex flex-col items-center space-y-1 transition cursor-pointer ${
+                    offlineStep === 1
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : offlineStep > 1
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-white text-slate-500 border border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>{offlineStep > 1 ? '✓' : '1'}</span>
+                  </div>
+                  <span className="truncate text-[10px]">1. Academy</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (offlineForm.name.trim() && offlineForm.slug.trim()) setOfflineStep(2);
+                  }}
+                  className={`p-2 rounded-xl flex flex-col items-center space-y-1 transition cursor-pointer ${
+                    offlineStep === 2
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : offlineStep > 2
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-white text-slate-500 border border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>{offlineStep > 2 ? '✓' : '2'}</span>
+                  </div>
+                  <span className="truncate text-[10px]">2. Programs</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (offlineForm.name.trim() && offlineForm.slug.trim()) setOfflineStep(3);
+                  }}
+                  className={`p-2 rounded-xl flex flex-col items-center space-y-1 transition cursor-pointer ${
+                    offlineStep === 3
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : offlineStep > 3
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-white text-slate-500 border border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <User className="w-3.5 h-3.5" />
+                    <span>{offlineStep > 3 ? '✓' : '3'}</span>
+                  </div>
+                  <span className="truncate text-[10px]">3. Director</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (offlineForm.name.trim() && offlineForm.slug.trim() && offlineForm.adminName.trim() && offlineForm.adminEmail.trim()) {
+                      setOfflineStep(4);
+                    }
+                  }}
+                  className={`p-2 rounded-xl flex flex-col items-center space-y-1 transition cursor-pointer ${
+                    offlineStep === 4
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : 'bg-white text-slate-500 border border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-1">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>4</span>
+                  </div>
+                  <span className="truncate text-[10px]">4. Payment</span>
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleOfflineRegister} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Academy Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter academy name"
-                    value={offlineForm.name}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, name: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Subdomain Slug *</label>
-                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Enter subdomain slug"
-                      value={offlineForm.slug}
-                      onChange={(e) =>
-                        setOfflineForm({
-                          ...offlineForm,
-                          slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-                        })
-                      }
-                      className="w-full bg-transparent text-slate-900 focus:outline-none font-bold"
-                    />
-                    <span className="text-slate-500 font-mono">.educare.prohitcoretech.com</span>
+              {/* STEP 1: ACADEMY IDENTITY & SUBDOMAIN */}
+              {offlineStep === 1 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-100 pb-2">
+                    <span className="text-[11px] font-bold text-orange-600 uppercase tracking-wider">Step 1 of 4</span>
+                    <h3 className="text-base font-extrabold text-slate-900">Academy Identity & Subdomain URL</h3>
                   </div>
-                </div>
-              </div>
 
-              {/* Multi-Select Academic Levels Offered */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Academic Levels Offered * (Select All That Apply)
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                  {[
-                    'Primary School',
-                    'Mid Primary',
-                    'High School',
-                    'Jr. College (Science)',
-                    'Jr. College (Commerce)',
-                    'Jr. College (Arts)',
-                    'Under Graduate (UG)',
-                    'Other / Coaching',
-                  ].map((level) => {
-                    const isChecked = offlineForm.institutionTypes?.includes(level);
-                    return (
-                      <label
-                        key={level}
-                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
-                          isChecked
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            let updated = [...(offlineForm.institutionTypes || [])];
-                            if (e.target.checked) {
-                              if (!updated.includes(level)) updated.push(level);
-                            } else {
-                              updated = updated.filter((item) => item !== level);
-                            }
-                            if (updated.length === 0) updated = ['High School'];
-                            setOfflineForm({
-                              ...offlineForm,
-                              institutionTypes: updated,
-                              institutionType: updated[0],
-                            });
-                          }}
-                          className="hidden"
-                        />
-                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
-                          {isChecked ? '✓' : ''}
-                        </span>
-                        <span className="truncate">{level}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Multi-Select Education Boards Offered */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase">
-                  Education Boards Offered * (Select All That Apply)
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                  {[
-                    'SSC / State Board',
-                    'CBSE',
-                    'ICSE / ICSC',
-                    'IB / International',
-                    'HSC State Board',
-                    'University Board',
-                    'Other / N/A',
-                  ].map((board) => {
-                    const isChecked = offlineForm.educationBoards?.includes(board);
-                    return (
-                      <label
-                        key={board}
-                        className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
-                          isChecked
-                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            let updated = [...(offlineForm.educationBoards || [])];
-                            if (e.target.checked) {
-                              if (!updated.includes(board)) updated.push(board);
-                            } else {
-                              updated = updated.filter((item) => item !== board);
-                            }
-                            if (updated.length === 0) updated = ['SSC / State Board'];
-                            setOfflineForm({
-                              ...offlineForm,
-                              educationBoards: updated,
-                              educationBoard: updated[0],
-                            });
-                          }}
-                          className="hidden"
-                        />
-                        <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
-                          {isChecked ? '✓' : ''}
-                        </span>
-                        <span className="truncate">{board}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Academy Logo Section */}
-              <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                  <span>Academy Logo (Optional)</span>
-                  <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Data URL</span>
-                </label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Paste Logo URL (e.g. https://...)"
-                      value={offlineForm.logoUrl}
-                      onChange={(e) => setOfflineForm({ ...offlineForm, logoUrl: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                    />
-                    <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
-                      <Upload className="w-3.5 h-3.5 text-orange-500" />
-                      <span>Upload File</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Academy Name *</label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setOfflineForm({ ...offlineForm, logoUrl: reader.result as string });
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
+                        type="text"
+                        required
+                        placeholder="e.g. Chopra Academy"
+                        value={offlineForm.name}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, name: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
                       />
-                    </label>
-                  </div>
+                    </div>
 
-                  {offlineForm.logoUrl && (
-                    <div className="flex items-center space-x-3 p-2 bg-orange-50/60 border border-orange-200 rounded-xl">
-                      <img
-                        src={offlineForm.logoUrl}
-                        alt="Academy Logo Preview"
-                        className="w-9 h-9 object-contain rounded-lg border border-slate-200 bg-white"
-                        onError={(e: any) => { e.target.style.display = 'none'; }}
-                      />
-                      <div className="text-xs">
-                        <span className="font-bold text-orange-800 block">Academy Logo Attached</span>
-                        <span className="text-[10px] text-slate-500 font-mono">Will be rendered on student receipts & dashboard header</span>
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Subdomain Slug *</label>
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. chopra"
+                          value={offlineForm.slug}
+                          onChange={(e) =>
+                            setOfflineForm({
+                              ...offlineForm,
+                              slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                            })
+                          }
+                          className="w-full bg-transparent text-slate-900 focus:outline-none font-bold"
+                        />
+                        <span className="text-slate-500 font-mono text-[11px]">.educare.prohitcoretech.com</span>
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Director Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter full name of director"
-                    value={offlineForm.adminName}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, adminName: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                  />
-                </div>
+                  {/* Logo URL & File Upload */}
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                      <span>Academy Logo (Optional)</span>
+                      <span className="text-[10px] text-slate-400 font-normal">PNG / JPG / Data URL</span>
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Paste Logo URL (e.g. https://...)"
+                          value={offlineForm.logoUrl}
+                          onChange={(e) => setOfflineForm({ ...offlineForm, logoUrl: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                        />
+                        <label className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs cursor-pointer transition flex items-center space-x-1 shrink-0">
+                          <Upload className="w-3.5 h-3.5 text-orange-500" />
+                          <span>Upload File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setOfflineForm({ ...offlineForm, logoUrl: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Director Email *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="Enter director email address"
-                    value={offlineForm.adminEmail}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, adminEmail: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                  />
-                </div>
-              </div>
+                      {offlineForm.logoUrl && (
+                        <div className="flex items-center space-x-3 p-2.5 bg-orange-50/60 border border-orange-200 rounded-xl">
+                          <img
+                            src={offlineForm.logoUrl}
+                            alt="Academy Logo Preview"
+                            className="w-9 h-9 object-contain rounded-lg border border-slate-200 bg-white"
+                            onError={(e: any) => { e.target.style.display = 'none'; }}
+                          />
+                          <div className="text-xs">
+                            <span className="font-bold text-orange-800 block">Academy Logo Attached</span>
+                            <span className="text-[10px] text-slate-500 font-mono">Will be rendered on student receipts & dashboard header</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Default Password</label>
-                  <div className="relative">
-                    <input
-                      type={showOfflinePassword ? 'text' : 'password'}
-                      placeholder="Enter default password"
-                      value={offlineForm.adminPassword}
-                      onChange={(e) => setOfflineForm({ ...offlineForm, adminPassword: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 pr-10 font-medium"
-                    />
+                  <div className="pt-2 flex justify-end">
                     <button
                       type="button"
-                      onClick={() => setShowOfflinePassword(!showOfflinePassword)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-700 transition"
+                      disabled={!offlineForm.name.trim() || !offlineForm.slug.trim()}
+                      onClick={() => setOfflineStep(2)}
+                      className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-1.5 cursor-pointer"
                     >
-                      {showOfflinePassword ? <EyeOff className="w-4 h-4 text-orange-600" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                      <span>Next Step: Academic Setup</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Phone Number</label>
-                  <input
-                    type="text"
-                    placeholder="Enter phone number"
-                    value={offlineForm.phone}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, phone: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                  />
-                </div>
-              </div>
+              {/* STEP 2: ACADEMIC LEVELS & EDUCATION BOARDS */}
+              {offlineStep === 2 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-100 pb-2">
+                    <span className="text-[11px] font-bold text-orange-600 uppercase tracking-wider">Step 2 of 4</span>
+                    <h3 className="text-base font-extrabold text-slate-900">Academic Levels & Education Boards Offered</h3>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Plan</label>
-                  <select
-                    value={offlineForm.plan}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, plan: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none font-semibold"
-                  >
-                    <option value="STARTER">Starter (₹999/mo)</option>
-                    <option value="PROFESSIONAL">Professional (₹2,999/mo)</option>
-                    <option value="ENTERPRISE">Enterprise (₹7,999/mo)</option>
-                  </select>
-                </div>
+                  {/* Multi-Select Academic Levels Offered */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">
+                      Academic Levels Offered * (Select All That Apply)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                      {[
+                        'Primary School',
+                        'Mid Primary',
+                        'High School',
+                        'Jr. College (Science)',
+                        'Jr. College (Commerce)',
+                        'Jr. College (Arts)',
+                        'Under Graduate (UG)',
+                        'Other / Coaching',
+                      ].map((level) => {
+                        const isChecked = offlineForm.institutionTypes?.includes(level);
+                        return (
+                          <label
+                            key={level}
+                            className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                              isChecked
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                let updated = [...(offlineForm.institutionTypes || [])];
+                                if (e.target.checked) {
+                                  if (!updated.includes(level)) updated.push(level);
+                                } else {
+                                  updated = updated.filter((item) => item !== level);
+                                }
+                                if (updated.length === 0) updated = ['High School'];
+                                setOfflineForm({
+                                  ...offlineForm,
+                                  institutionTypes: updated,
+                                  institutionType: updated[0],
+                                });
+                              }}
+                              className="hidden"
+                            />
+                            <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
+                              {isChecked ? '✓' : ''}
+                            </span>
+                            <span className="truncate">{level}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Initial Status</label>
-                  <select
-                    value={offlineForm.subscriptionStatus}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, subscriptionStatus: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none font-semibold"
-                  >
-                    <option value="ACTIVE">ACTIVE (Paid)</option>
-                    <option value="TRIAL">TRIAL (14 Days)</option>
-                  </select>
-                </div>
+                  {/* Multi-Select Education Boards Offered */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">
+                      Education Boards Offered * (Select All That Apply)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                      {[
+                        'SSC / State Board',
+                        'CBSE',
+                        'ICSE / ICSC',
+                        'IB / International',
+                        'HSC State Board',
+                        'University Board',
+                        'Other / N/A',
+                      ].map((board) => {
+                        const isChecked = offlineForm.educationBoards?.includes(board);
+                        return (
+                          <label
+                            key={board}
+                            className={`flex items-center space-x-1.5 p-1.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                              isChecked
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                let updated = [...(offlineForm.educationBoards || [])];
+                                if (e.target.checked) {
+                                  if (!updated.includes(board)) updated.push(board);
+                                } else {
+                                  updated = updated.filter((item) => item !== board);
+                                }
+                                if (updated.length === 0) updated = ['SSC / State Board'];
+                                setOfflineForm({
+                                  ...offlineForm,
+                                  educationBoards: updated,
+                                  educationBoard: updated[0],
+                                });
+                              }}
+                              className="hidden"
+                            />
+                            <span className="w-3 h-3 rounded border border-current flex items-center justify-center text-[9px]">
+                              {isChecked ? '✓' : ''}
+                            </span>
+                            <span className="truncate">{board}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Offline Payment Mode</label>
-                  <select
-                    value={offlineForm.paymentMode}
-                    onChange={(e) => setOfflineForm({ ...offlineForm, paymentMode: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none font-semibold"
-                  >
-                    <option value="CASH">Cash Payment</option>
-                    <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
-                    <option value="CHEQUE">Cheque Payment</option>
-                    <option value="CONTRACT">Annual Contract</option>
-                  </select>
-                </div>
-              </div>
+                  <div className="pt-2 flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setOfflineStep(1)}
+                      className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back</span>
+                    </button>
 
-              <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1">Payment Receipt Ref / Notes</label>
-                <input
-                  type="text"
-                  placeholder="Enter payment receipt reference or notes"
-                  value={offlineForm.paymentReference}
-                  onChange={(e) => setOfflineForm({ ...offlineForm, paymentReference: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                />
-              </div>
-
-              {offlineMessage && (
-                <div
-                  className={`text-xs p-3 rounded-xl font-bold ${
-                    offlineMessage.startsWith('Success')
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}
-                >
-                  {offlineMessage}
+                    <button
+                      type="button"
+                      onClick={() => setOfflineStep(3)}
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <span>Next Step: Director Account</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={offlineSubmitting}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-emerald-600/20 transition text-sm"
-              >
-                {offlineSubmitting ? 'Provisioning Academy...' : 'Provision & Activate Academy'}
-              </button>
+              {/* STEP 3: DIRECTOR & SYSTEM ADMIN ACCOUNT */}
+              {offlineStep === 3 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-100 pb-2">
+                    <span className="text-[11px] font-bold text-orange-600 uppercase tracking-wider">Step 3 of 4</span>
+                    <h3 className="text-base font-extrabold text-slate-900">Director & Admin Account Credentials</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Director Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Enter full name of director"
+                        value={offlineForm.adminName}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, adminName: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Director Email *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="Enter director email address"
+                        value={offlineForm.adminEmail}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, adminEmail: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Default Password</label>
+                      <div className="relative">
+                        <input
+                          type={showOfflinePassword ? 'text' : 'password'}
+                          placeholder="Enter default password"
+                          value={offlineForm.adminPassword}
+                          onChange={(e) => setOfflineForm({ ...offlineForm, adminPassword: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 pr-10 font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowOfflinePassword(!showOfflinePassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 transition"
+                        >
+                          {showOfflinePassword ? <EyeOff className="w-4 h-4 text-orange-600" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Phone Number</label>
+                      <input
+                        type="text"
+                        placeholder="Enter phone number"
+                        value={offlineForm.phone}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, phone: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setOfflineStep(2)}
+                      className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={!offlineForm.adminName.trim() || !offlineForm.adminEmail.trim()}
+                      onClick={() => setOfflineStep(4)}
+                      className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <span>Next Step: Billing & Settlement</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: SUBSCRIPTION PLAN & OFFLINE PAYMENT SETTLEMENT */}
+              {offlineStep === 4 && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="border-b border-slate-100 pb-2">
+                    <span className="text-[11px] font-bold text-orange-600 uppercase tracking-wider">Step 4 of 4</span>
+                    <h3 className="text-base font-extrabold text-slate-900">Subscription Tier & Offline Payment Settlement</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Plan</label>
+                      <select
+                        value={offlineForm.plan}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, plan: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                      >
+                        <option value="STARTER">Starter (₹999/mo)</option>
+                        <option value="PROFESSIONAL">Professional (₹2,999/mo)</option>
+                        <option value="ENTERPRISE">Enterprise (₹7,999/mo)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Initial Status</label>
+                      <select
+                        value={offlineForm.subscriptionStatus}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, subscriptionStatus: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                      >
+                        <option value="ACTIVE">ACTIVE (Paid)</option>
+                        <option value="TRIAL">TRIAL (14 Days)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 uppercase mb-1">Offline Payment Mode</label>
+                      <select
+                        value={offlineForm.paymentMode}
+                        onChange={(e) => setOfflineForm({ ...offlineForm, paymentMode: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                      >
+                        <option value="CASH">Cash Payment</option>
+                        <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
+                        <option value="CHEQUE">Cheque Payment</option>
+                        <option value="CONTRACT">Annual Contract</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">Payment Receipt Ref / Notes</label>
+                    <input
+                      type="text"
+                      placeholder="Enter payment receipt reference or transaction notes"
+                      value={offlineForm.paymentReference}
+                      onChange={(e) => setOfflineForm({ ...offlineForm, paymentReference: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                    />
+                  </div>
+
+                  {/* Pre-submission Summary Preview Box */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 font-sans text-xs">
+                    <span className="font-extrabold text-slate-800 uppercase tracking-wider block">Provisioning Summary</span>
+                    <div className="grid grid-cols-2 gap-2 text-slate-600 font-medium">
+                      <div><span className="text-slate-400">Academy:</span> <span className="font-bold text-slate-900">{offlineForm.name || 'N/A'}</span></div>
+                      <div><span className="text-slate-400">Subdomain:</span> <span className="font-mono font-bold text-orange-700">{offlineForm.slug || 'slug'}.educare</span></div>
+                      <div><span className="text-slate-400">Director:</span> <span className="font-bold text-slate-900">{offlineForm.adminName}</span></div>
+                      <div><span className="text-slate-400">Email:</span> <span className="font-bold text-slate-900">{offlineForm.adminEmail}</span></div>
+                    </div>
+                  </div>
+
+                  {offlineMessage && (
+                    <div
+                      className={`text-xs p-3 rounded-xl font-bold ${
+                        offlineMessage.startsWith('Success')
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}
+                    >
+                      {offlineMessage}
+                    </div>
+                  )}
+
+                  <div className="pt-2 flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setOfflineStep(3)}
+                      className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back</span>
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={offlineSubmitting}
+                      className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold px-6 py-3 rounded-xl shadow-md shadow-emerald-600/20 transition text-sm cursor-pointer"
+                    >
+                      {offlineSubmitting ? 'Provisioning Academy...' : 'Provision & Activate Academy 🚀'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
