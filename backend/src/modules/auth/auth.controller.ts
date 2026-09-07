@@ -17,4 +17,13 @@ export class AuthController {
   async me(@Req() req: any) {
     return { user: req.user };
   }
+
+  @UseGuards(AcademyAuthGuard)
+  @Post('change-password')
+  async changePassword(@Req() req: any, @Body() body: { currentPassword?: string; currentPass?: string; newPassword?: string; newPass?: string }) {
+    const currentPass = body.currentPassword || body.currentPass || '';
+    const newPass = body.newPassword || body.newPass || '';
+    const userId = req.user.sub;
+    return this.authService.changePassword(userId, currentPass, newPass);
+  }
 }

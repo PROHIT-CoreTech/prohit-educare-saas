@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
@@ -87,5 +87,29 @@ export class AuthService {
           }
         : null,
     };
+  }
+
+  async changePassword(userId: string, currentPass: string, newPass: string) {
+    if (!currentPass || !newPass) {
+      throw new BadRequestException('Current password and new password are required');
+    }
+    if (newPass.length < 6) {
+      throw new BadRequestException('New password must be at least 6 characters long');
+    }
+
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User account not found');
+    }
+
+    const isMatch = await bcrypt.compare(currentPass, user.passwordHash);
+    if (!isMatch) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    user.passwordHash = await bcrypt.hash(newPass, 10);
+    await user.save();
+
+    return { message: 'Password updated successfully' };
   }
 }

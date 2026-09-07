@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette } from 'lucide-react';
+import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette, KeyRound, Lock } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
-  const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription' | 'security'>('profile');
   
   const [subscription, setSubscription] = useState<any>(null);
   const [loadingSub, setLoadingSub] = useState(true);
@@ -29,6 +29,18 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const [feeStructures, setFeeStructures] = useState<any[]>([]);
   const [showFeeModal, setShowFeeModal] = useState(false);
@@ -182,6 +194,45 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       alert('Failed to update profile: ' + (err.response?.data?.message || err.message));
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!passwordForm.currentPassword) {
+      setPasswordError('Please enter your current password.');
+      return;
+    }
+    if (!passwordForm.newPassword) {
+      setPasswordError('Please enter a new password.');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New password and confirm password do not match.');
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      const res = await apiClient.post('/auth/change-password', {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPasswordSuccess(res.data?.message || 'Password changed successfully!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => setPasswordSuccess(''), 5000);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Failed to change password.';
+      setPasswordError(msg);
+    } finally {
+      setSavingPassword(false);
     }
   };
 
@@ -425,6 +476,18 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         >
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
           <span>Subscription & Billing</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('security')}
+          className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
+            activeTab === 'security'
+              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <KeyRound className="w-4 h-4" />
+          <span>Security & Password</span>
         </button>
       </div>
 
@@ -1349,6 +1412,125 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
           </div>
         </div>
       )}
+
+          {/* TAB 4: SECURITY & CHANGE PASSWORD */}
+          {activeTab === 'security' && (
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 flex items-center space-x-2">
+                  <KeyRound className="w-5 h-5 text-orange-500" />
+                  <span>Security & Account Password</span>
+                </h2>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  Update your account password. Make sure to use a strong password with at least 6 characters.
+                </p>
+              </div>
+
+              {passwordError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-bold p-4 rounded-2xl flex items-center space-x-2 shadow-xs">
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-4 rounded-2xl flex items-center space-x-2 shadow-xs">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>{passwordSuccess}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                    Current Password <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Enter your current password"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 text-xs font-semibold pr-16"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                    >
+                      {showCurrentPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                    New Password <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      placeholder="Enter new password (min. 6 characters)"
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 text-xs font-semibold pr-16"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                    >
+                      {showNewPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                    Confirm New Password <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      placeholder="Re-enter new password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 text-xs font-semibold pr-16"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                    >
+                      {showConfirmPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingPassword}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md shadow-orange-500/20 transition disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {savingPassword ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Updating Password...</span>
+                      </>
+                    ) : (
+                      <span>Update Password</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </>
       )}
 

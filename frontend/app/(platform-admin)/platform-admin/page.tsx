@@ -1141,9 +1141,9 @@ export default function PlatformAdminPage() {
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between">
                       <label className="block font-bold text-slate-700 uppercase">
-                        Director Digital Signature <span className="text-orange-600 font-extrabold text-[11px] normal-case">(PNG Format Only)</span>
+                        Director Digital Signature <span className="text-slate-400 font-semibold text-[11px] normal-case">(Optional)</span> <span className="text-orange-600 font-extrabold text-[11px] normal-case">(PNG Format Only)</span>
                       </label>
-                      <span className="text-[10px] text-slate-500 font-medium">Transparent PNG required for ID cards</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Transparent PNG optional — used on printed ID cards</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
