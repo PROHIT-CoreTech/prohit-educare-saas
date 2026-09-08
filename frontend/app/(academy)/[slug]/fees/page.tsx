@@ -142,16 +142,44 @@ export default function FeeEnginePage() {
     }
   };
 
+  const numberToWordsINR = (amount: number): string => {
+    if (!amount || isNaN(amount) || amount <= 0) return 'Zero Rupees Only';
+    const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    const inWords = (num: number): string => {
+      const n = ('000000000' + num).slice(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+      if (!n) return '';
+      let str = '';
+      str += Number(n[1]) !== 0 ? (a[Number(n[1])] || b[Number(n[1][0])] + ' ' + a[Number(n[1][1])]) + ' Crore ' : '';
+      str += Number(n[2]) !== 0 ? (a[Number(n[2])] || b[Number(n[2][0])] + ' ' + a[Number(n[2][1])]) + ' Lakh ' : '';
+      str += Number(n[3]) !== 0 ? (a[Number(n[3])] || b[Number(n[3][0])] + ' ' + a[Number(n[3][1])]) + ' Thousand ' : '';
+      str += Number(n[4]) !== 0 ? (a[Number(n[4])] || b[Number(n[4][0])] + ' ' + a[Number(n[4][1])]) + ' Hundred ' : '';
+      str += Number(n[5]) !== 0 ? (str !== '' ? 'and ' : '') + (a[Number(n[5])] || b[Number(n[5][0])] + ' ' + a[Number(n[5][1])]) : '';
+      return str.trim();
+    };
+
+    const words = inWords(Math.floor(amount));
+    return words ? words + ' Rupees Only' : '';
+  };
+
   const handleRecordPayment = async () => {
-    if (!selectedStudentId || amountToPay <= 0) return;
-    setProcessing(true);
+    if (!selectedStudentId || amountToPay <= 0) {
+      alert('Please select a student and enter a valid amount');
+      return;
+    }
+
     try {
-      const res = await apiClient.post('/fee-engine/record-payment', {
+      setProcessing(true);
+      const res = await apiClient.post('/billing/collect-payment', {
         studentId: selectedStudentId,
         amountPaid: Number(amountToPay),
         paymentMode,
         transactionRef,
       });
+
+      const currentRem = feeSummary?.summary?.remainingBalance || 0;
+      const updatedRem = Math.max(0, currentRem - Number(amountToPay));
 
       setReceiptData({
         receiptNumber: res.data.receiptNumber || 'REC-' + Date.now(),
@@ -159,7 +187,12 @@ export default function FeeEnginePage() {
         paymentMode,
         studentName: feeSummary?.student?.name || 'Student',
         studentCode: feeSummary?.student?.studentCode || 'STU-2026-00001',
+        parentName: feeSummary?.student?.parentName || '',
         date: new Date().toLocaleDateString('en-IN'),
+        transactionRef,
+        academyName: academyInfo?.name || "Viraj's Academy",
+        branchName: feeSummary?.student?.branchName || 'Main Branch',
+        remainingBalance: updatedRem,
         allocations: res.data.allocations,
       });
 
@@ -176,60 +209,174 @@ export default function FeeEnginePage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = 600;
-    canvas.height = 400;
+    canvas.width = 720;
+    canvas.height = 480;
 
-    // Crisp White Canvas Background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 600, 400);
+    // Cream / Ivory Paper Background (matching Sample Image 1)
+    ctx.fillStyle = '#fdfbf7';
+    ctx.fillRect(0, 0, 720, 480);
 
-    // Vibrant Orange Top Accent Header
-    ctx.fillStyle = '#f97316';
-    ctx.fillRect(0, 0, 600, 15);
+    // Dark Navy Border Frame (matching Sample Image 1)
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(16, 16, 688, 448);
 
-    // Border Outline
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(10, 10, 580, 380);
+    // Inner Dotted Border Frame
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(22, 22, 676, 436);
+    ctx.setLineDash([]);
 
-    // Header Text
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.fillText('PROHIT EDUCARE - OFFICIAL RECEIPT', 30, 50);
+    // Header Title (Viraj's Academy or Tenant Academy Name)
+    ctx.fillStyle = '#1e1b4b';
+    ctx.font = 'bold 26px serif';
+    ctx.fillText(data.academyName || "Viraj's Academy", 40, 60);
 
-    ctx.fillStyle = '#f97316';
+    ctx.fillStyle = '#475569';
+    ctx.font = 'italic 13px sans-serif';
+    ctx.fillText('Nothing Is Impossible...', 40, 78);
+
+    // Header Top Right Details
+    ctx.fillStyle = '#1e293b';
     ctx.font = 'bold 15px monospace';
-    ctx.fillText(`Receipt #: ${data.receiptNumber || ''}`, 30, 80);
+    ctx.fillText(`No.: ${data.receiptNumber || '1402'}`, 520, 55);
 
-    ctx.strokeStyle = '#cbd5e1';
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(`Date : ${data.date}`, 520, 78);
+
+    // Centered RECEIPT Pill Box
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(30, 95);
-    ctx.lineTo(570, 95);
+    if (ctx.roundRect) {
+      ctx.roundRect(290, 85, 140, 32, 16);
+    } else {
+      ctx.rect(290, 85, 140, 32);
+    }
     ctx.stroke();
 
-    // Details
-    ctx.fillStyle = '#334155';
-    ctx.font = '15px sans-serif';
-    ctx.fillText(`Student Name: ${data.studentName || 'Student'}`, 30, 135);
-    ctx.fillText(`Student No / Code: ${data.studentCode || 'N/A'}`, 30, 160);
-    ctx.fillText(`Date: ${data.date}`, 30, 185);
-    ctx.fillText(`Payment Mode: ${data.paymentMode}`, 30, 210);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('RECEIPT', 360, 106);
+    ctx.textAlign = 'left';
 
-    // Amount Box (Mint Green Light Background)
-    ctx.fillStyle = '#ecfdf5';
-    ctx.fillRect(30, 235, 540, 70);
-    ctx.strokeStyle = '#a7f3d0';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(30, 235, 540, 70);
+    // Divider Line under Header
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(40, 130);
+    ctx.lineTo(680, 130);
+    ctx.stroke();
 
-    ctx.fillStyle = '#047857';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillText(`AMOUNT PAID: ₹${(data.amountPaid || 0).toLocaleString('en-IN')}`, 50, 280);
+    // Form Lines Structure (Matching physical receipt book layout in Image 1)
+    const drawFormLine = (label: string, value: string, y: number, isMono = false) => {
+      ctx.fillStyle = '#475569';
+      ctx.font = '13px sans-serif';
+      ctx.fillText(label, 40, y);
 
-    // Footer Stamp
+      const labelWidth = ctx.measureText(label).width;
+      const startX = 45 + labelWidth;
+      const endX = 675;
+
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(startX, y + 3);
+      ctx.lineTo(endX, y + 3);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = isMono ? 'bold 15px monospace' : 'bold 14px sans-serif';
+      ctx.fillText(value, startX + 5, y - 2);
+    };
+
+    // Line 1: Received from Mr. / Mrs. / M/s.
+    drawFormLine('Received from Mr. / Mrs. / M/s.', data.studentName + (data.parentName ? ` (Parent: ${data.parentName})` : ''), 170);
+
+    // Line 2: a sum of Rs.
+    const inWordsText = numberToWordsINR(data.amountPaid);
+    drawFormLine('a sum of Rs.', `₹${(data.amountPaid || 0).toLocaleString('en-IN')}  (${inWordsText})`, 215, true);
+
+    // Line 3: Vide Cash / Online / Cheque No.
+    const modeRef = `${data.paymentMode}${data.transactionRef ? ' - ' + data.transactionRef : ''}`;
+    drawFormLine('Vide Cash / Online / Cheque No.', modeRef, 260);
+
+    // Line 4: Branch
+    drawFormLine('Branch', data.branchName || 'Main Branch', 305);
+
+    // Line 5: Balance Amount / Status
+    ctx.fillStyle = '#475569';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('Remaining Balance:', 40, 350);
+
+    if (data.remainingBalance <= 0) {
+      // FULLY PAYMENT DONE Green Badge
+      ctx.fillStyle = '#dcfce7';
+      ctx.strokeStyle = '#16a34a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(185, 332, 200, 26, 6);
+      } else {
+        ctx.rect(185, 332, 200, 26);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#15803d';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText('FULLY PAYMENT DONE ✓', 205, 349);
+    } else {
+      ctx.fillStyle = '#e11d48';
+      ctx.font = 'bold 15px monospace';
+      ctx.fillText(`₹${data.remainingBalance.toLocaleString('en-IN')}`, 185, 350);
+
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(185, 354);
+      ctx.lineTo(300, 354);
+      ctx.stroke();
+    }
+
+    // Bottom Footer Row
+    // Left Box: Rs. [ Amount Paid ] Pill Badge
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(40, 395, 210, 45, 22);
+    } else {
+      ctx.rect(40, 395, 210, 45);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('Rs.', 58, 423);
+
+    ctx.fillStyle = '#059669';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText(`₹${(data.amountPaid || 0).toLocaleString('en-IN')}`, 95, 423);
+
+    // Note below Rs pill
     ctx.fillStyle = '#64748b';
-    ctx.font = '12px sans-serif';
-    ctx.fillText('Atomic FIFO Settlement Verified by PROHIT CoreTech Engine', 30, 360);
+    ctx.font = '10px sans-serif';
+    ctx.fillText('*SUBJECT TO REALISATION OF CHEQUE', 40, 455);
+
+    // Authorised Signatory Right Column
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(`For ${data.academyName || "VIRAJ ACADEMY"}`, 480, 415);
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'italic 12px sans-serif';
+    ctx.fillText('(Authorised Signatory)', 490, 445);
   };
 
   // Generate Digital Receipt Card on HTML5 Canvas (High Contrast Light Theme)
@@ -665,7 +812,12 @@ export default function FeeEnginePage() {
                                 paymentMode: p.paymentMode,
                                 studentName: feeSummary?.student?.name || 'Student',
                                 studentCode: feeSummary?.student?.studentCode || 'STU',
+                                parentName: feeSummary?.student?.parentName || '',
                                 date: new Date(p.paymentDate).toLocaleDateString('en-IN'),
+                                transactionRef: p.transactionRef || '',
+                                academyName: academyInfo?.name || "Viraj's Academy",
+                                branchName: feeSummary?.student?.branchName || 'Main Branch',
+                                remainingBalance: feeSummary?.summary?.remainingBalance || 0,
                                 allocations: p.allocations,
                               });
                             }}
@@ -791,7 +943,7 @@ export default function FeeEnginePage() {
       {/* Official Fee Receipt Centered Modal Overlay */}
       {receiptData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900 overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full relative shadow-2xl space-y-5 my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full relative shadow-2xl space-y-5 my-8 animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setReceiptData(null)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
@@ -807,34 +959,81 @@ export default function FeeEnginePage() {
               </div>
             </div>
 
-            {/* HTML Styled Digital Receipt Preview */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 font-sans">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            {/* HTML Styled Digital Receipt Preview (Matching Physical Receipt Book Sample Image 1) */}
+            <div className="bg-[#fdfcf7] border-2 border-slate-800 rounded-2xl p-5 space-y-4 font-serif relative shadow-inner text-slate-900">
+              {/* Header Top Row */}
+              <div className="flex items-start justify-between border-b border-slate-300 pb-3">
                 <div>
-                  <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Official Fee Receipt</span>
-                  <h4 className="text-sm font-extrabold text-slate-900">{receiptData.studentName}</h4>
-                  <span className="text-[11px] font-mono font-semibold text-slate-500 block">Student Code: {receiptData.studentCode}</span>
+                  <h4 className="text-xl font-black text-slate-900 font-serif leading-tight">{receiptData.academyName || "Viraj's Academy"}</h4>
+                  <span className="text-[11px] font-sans italic text-slate-600 block">Nothing Is Impossible...</span>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono font-bold text-orange-600 block">{receiptData.receiptNumber}</span>
-                  <span className="text-[11px] text-slate-500 font-medium">{receiptData.date}</span>
+                <div className="text-right font-sans">
+                  <span className="text-xs font-mono font-bold text-slate-900 block">No.: {receiptData.receiptNumber || '1402'}</span>
+                  <span className="text-[11px] text-slate-600 font-medium block">Date : {receiptData.date}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-slate-500 block font-medium">Payment Mode:</span>
-                  <span className="font-bold text-slate-800 uppercase">{receiptData.paymentMode}</span>
+              {/* Centered RECEIPT Pill Badge */}
+              <div className="text-center my-1">
+                <span className="inline-block border-2 border-slate-800 rounded-full px-6 py-0.5 font-sans font-bold text-xs uppercase tracking-widest text-slate-900 bg-white">
+                  RECEIPT
+                </span>
+              </div>
+
+              {/* Form Line Rows with Bottom Underlines */}
+              <div className="space-y-2.5 text-xs font-sans pt-1">
+                <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
+                  <span className="text-slate-600 font-medium">Received from Mr. / Mrs. / M/s.</span>
+                  <span className="font-extrabold text-slate-950 px-1">{receiptData.studentName} {receiptData.parentName ? `(Parent: ${receiptData.parentName})` : ''}</span>
                 </div>
-                <div>
-                  <span className="text-slate-500 block font-medium">Settlement Status:</span>
-                  <span className="font-bold text-emerald-700 uppercase">Atomic FIFO Settled</span>
+
+                <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
+                  <span className="text-slate-600 font-medium">a sum of Rs.</span>
+                  <span className="font-mono font-extrabold text-slate-950 text-sm px-1">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+                  <span className="text-[11px] font-semibold text-slate-700">({numberToWordsINR(receiptData.amountPaid)})</span>
+                </div>
+
+                <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
+                  <span className="text-slate-600 font-medium">Vide Cash / Online / Cheque No.</span>
+                  <span className="font-bold text-slate-950 uppercase px-1">{receiptData.paymentMode} {receiptData.transactionRef ? `(${receiptData.transactionRef})` : ''}</span>
+                  <span className="text-slate-600 font-medium ml-auto">Dtd.</span>
+                  <span className="font-bold text-slate-950">{receiptData.date}</span>
+                </div>
+
+                <div className="flex items-center justify-between border-b border-slate-400 pb-1">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-slate-600 font-medium">Branch:</span>
+                    <span className="font-bold text-slate-950">{receiptData.branchName || 'Main Branch'}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-slate-600 font-medium">Remaining Balance:</span>
+                    {receiptData.remainingBalance <= 0 ? (
+                      <span className="bg-emerald-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded shadow-xs uppercase tracking-wide">
+                        FULLY PAYMENT DONE ✓
+                      </span>
+                    ) : (
+                      <span className="font-mono font-bold text-rose-600 text-sm">
+                        ₹{receiptData.remainingBalance?.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between">
-                <span className="text-xs font-extrabold text-emerald-800 uppercase">Total Amount Paid</span>
-                <span className="text-xl font-black text-emerald-700 font-mono">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+              {/* Bottom Footer Section */}
+              <div className="flex items-end justify-between pt-2">
+                <div>
+                  <div className="border-2 border-slate-900 rounded-full px-4 py-1.5 inline-flex items-center space-x-2 bg-white text-slate-900 font-sans font-bold text-sm shadow-xs">
+                    <span>Rs.</span>
+                    <span className="font-mono font-black text-emerald-700 text-base">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+                  </div>
+                  <span className="text-[9px] text-slate-500 block mt-1 font-sans">*SUBJECT TO REALISATION OF CHEQUE</span>
+                </div>
+
+                <div className="text-right font-sans">
+                  <span className="font-bold text-slate-900 text-xs block">For {receiptData.academyName || "VIRAJ ACADEMY"}</span>
+                  <span className="text-[10px] text-slate-500 italic block mt-4">(Authorised Signatory)</span>
+                </div>
               </div>
             </div>
 
