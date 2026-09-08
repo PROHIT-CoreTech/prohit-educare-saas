@@ -231,11 +231,7 @@ export default function FeeEnginePage() {
     // Header Title (Viraj's Academy or Tenant Academy Name)
     ctx.fillStyle = '#1e1b4b';
     ctx.font = 'bold 26px serif';
-    ctx.fillText(data.academyName || "Viraj's Academy", 40, 60);
-
-    ctx.fillStyle = '#475569';
-    ctx.font = 'italic 13px sans-serif';
-    ctx.fillText('Nothing Is Impossible...', 40, 78);
+    ctx.fillText(data.academyName || "Viraj's Academy", 40, 68);
 
     // Header Top Right Details
     ctx.fillStyle = '#1e293b';
@@ -943,15 +939,15 @@ export default function FeeEnginePage() {
       {/* Official Fee Receipt Centered Modal Overlay */}
       {receiptData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900 overflow-y-auto">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full relative shadow-2xl space-y-5 my-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-4xl xl:max-w-5xl w-full relative shadow-2xl space-y-6 my-8 animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setReceiptData(null)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-xl cursor-pointer bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition"
             >
               ✕
             </button>
 
-            <div className="flex items-center space-x-2 text-emerald-600">
+            <div className="flex items-center space-x-2 text-emerald-600 border-b border-slate-100 pb-3">
               <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
               <div>
                 <h3 className="font-extrabold text-slate-900 text-lg">Official Fee Receipt</h3>
@@ -959,100 +955,108 @@ export default function FeeEnginePage() {
               </div>
             </div>
 
-            {/* HTML Styled Digital Receipt Preview (Matching Physical Receipt Book Sample Image 1) */}
-            <div className="bg-[#fdfcf7] border-2 border-slate-800 rounded-2xl p-5 space-y-4 font-serif relative shadow-inner text-slate-900">
-              {/* Header Top Row */}
-              <div className="flex items-start justify-between border-b border-slate-300 pb-3">
-                <div>
-                  <h4 className="text-xl font-black text-slate-900 font-serif leading-tight">{receiptData.academyName || "Viraj's Academy"}</h4>
-                  <span className="text-[11px] font-sans italic text-slate-600 block">Nothing Is Impossible...</span>
-                </div>
-                <div className="text-right font-sans">
-                  <span className="text-xs font-mono font-bold text-slate-900 block">No.: {receiptData.receiptNumber || '1402'}</span>
-                  <span className="text-[11px] text-slate-600 font-medium block">Date : {receiptData.date}</span>
-                </div>
-              </div>
-
-              {/* Centered RECEIPT Pill Badge */}
-              <div className="text-center my-1">
-                <span className="inline-block border-2 border-slate-800 rounded-full px-6 py-0.5 font-sans font-bold text-xs uppercase tracking-widest text-slate-900 bg-white">
-                  RECEIPT
-                </span>
-              </div>
-
-              {/* Form Line Rows with Bottom Underlines */}
-              <div className="space-y-2.5 text-xs font-sans pt-1">
-                <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
-                  <span className="text-slate-600 font-medium">Received from Mr. / Mrs. / M/s.</span>
-                  <span className="font-extrabold text-slate-950 px-1">{receiptData.studentName} {receiptData.parentName ? `(Parent: ${receiptData.parentName})` : ''}</span>
-                </div>
-
-                <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
-                  <span className="text-slate-600 font-medium">a sum of Rs.</span>
-                  <span className="font-mono font-extrabold text-slate-950 text-sm px-1">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
-                  <span className="text-[11px] font-semibold text-slate-700">({numberToWordsINR(receiptData.amountPaid)})</span>
-                </div>
-
-                <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
-                  <span className="text-slate-600 font-medium">Vide Cash / Online / Cheque No.</span>
-                  <span className="font-bold text-slate-950 uppercase px-1">{receiptData.paymentMode} {receiptData.transactionRef ? `(${receiptData.transactionRef})` : ''}</span>
-                  <span className="text-slate-600 font-medium ml-auto">Dtd.</span>
-                  <span className="font-bold text-slate-950">{receiptData.date}</span>
-                </div>
-
-                <div className="flex items-center justify-between border-b border-slate-400 pb-1">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-slate-600 font-medium">Branch:</span>
-                    <span className="font-bold text-slate-950">{receiptData.branchName || 'Main Branch'}</span>
+            {/* Horizontal 2-Column Grid Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              {/* Left Column: Interactive HTML Receipt Card */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Printable HTML Receipt</span>
+                <div className="bg-[#fdfcf7] border-2 border-slate-800 rounded-2xl p-5 space-y-4 font-serif relative shadow-md text-slate-900">
+                  {/* Header Top Row */}
+                  <div className="flex items-start justify-between border-b border-slate-300 pb-3">
+                    <div>
+                      <h4 className="text-xl font-black text-slate-900 font-serif leading-tight">{receiptData.academyName || "Viraj's Academy"}</h4>
+                    </div>
+                    <div className="text-right font-sans">
+                      <span className="text-xs font-mono font-bold text-slate-900 block">No.: {receiptData.receiptNumber || '1402'}</span>
+                      <span className="text-[11px] text-slate-600 font-medium block">Date : {receiptData.date}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-slate-600 font-medium">Remaining Balance:</span>
-                    {receiptData.remainingBalance <= 0 ? (
-                      <span className="bg-emerald-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded shadow-xs uppercase tracking-wide">
-                        FULLY PAYMENT DONE ✓
-                      </span>
-                    ) : (
-                      <span className="font-mono font-bold text-rose-600 text-sm">
-                        ₹{receiptData.remainingBalance?.toLocaleString('en-IN')}
-                      </span>
-                    )}
+
+                  {/* Centered RECEIPT Pill Badge */}
+                  <div className="text-center my-1">
+                    <span className="inline-block border-2 border-slate-800 rounded-full px-6 py-0.5 font-sans font-bold text-xs uppercase tracking-widest text-slate-900 bg-white">
+                      RECEIPT
+                    </span>
+                  </div>
+
+                  {/* Form Line Rows with Bottom Underlines */}
+                  <div className="space-y-2.5 text-xs font-sans pt-1">
+                    <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
+                      <span className="text-slate-600 font-medium">Received from Mr. / Mrs. / M/s.</span>
+                      <span className="font-extrabold text-slate-950 px-1">{receiptData.studentName} {receiptData.parentName ? `(Parent: ${receiptData.parentName})` : ''}</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
+                      <span className="text-slate-600 font-medium">a sum of Rs.</span>
+                      <span className="font-mono font-extrabold text-slate-950 text-sm px-1">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+                      <span className="text-[11px] font-semibold text-slate-700">({numberToWordsINR(receiptData.amountPaid)})</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-baseline border-b border-slate-400 pb-1 gap-1">
+                      <span className="text-slate-600 font-medium">Vide Cash / Online / Cheque No.</span>
+                      <span className="font-bold text-slate-950 uppercase px-1">{receiptData.paymentMode} {receiptData.transactionRef ? `(${receiptData.transactionRef})` : ''}</span>
+                      <span className="text-slate-600 font-medium ml-auto">Dtd.</span>
+                      <span className="font-bold text-slate-950">{receiptData.date}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-b border-slate-400 pb-1">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-slate-600 font-medium">Branch:</span>
+                        <span className="font-bold text-slate-950">{receiptData.branchName || 'Main Branch'}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-slate-600 font-medium">Remaining Balance:</span>
+                        {receiptData.remainingBalance <= 0 ? (
+                          <span className="bg-emerald-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded shadow-xs uppercase tracking-wide">
+                            FULLY PAYMENT DONE ✓
+                          </span>
+                        ) : (
+                          <span className="font-mono font-bold text-rose-600 text-sm">
+                            ₹{receiptData.remainingBalance?.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Footer Section */}
+                  <div className="flex items-end justify-between pt-2">
+                    <div>
+                      <div className="border-2 border-slate-900 rounded-full px-4 py-1.5 inline-flex items-center space-x-2 bg-white text-slate-900 font-sans font-bold text-sm shadow-xs">
+                        <span>Rs.</span>
+                        <span className="font-mono font-black text-emerald-700 text-base">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
+                      </div>
+                      <span className="text-[9px] text-slate-500 block mt-1 font-sans">*SUBJECT TO REALISATION OF CHEQUE</span>
+                    </div>
+
+                    <div className="text-right font-sans">
+                      <span className="font-bold text-slate-900 text-xs block">For {receiptData.academyName || "VIRAJ ACADEMY"}</span>
+                      <span className="text-[10px] text-slate-500 italic block mt-4">(Authorised Signatory)</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Footer Section */}
-              <div className="flex items-end justify-between pt-2">
-                <div>
-                  <div className="border-2 border-slate-900 rounded-full px-4 py-1.5 inline-flex items-center space-x-2 bg-white text-slate-900 font-sans font-bold text-sm shadow-xs">
-                    <span>Rs.</span>
-                    <span className="font-mono font-black text-emerald-700 text-base">₹{receiptData.amountPaid?.toLocaleString('en-IN')}</span>
-                  </div>
-                  <span className="text-[9px] text-slate-500 block mt-1 font-sans">*SUBJECT TO REALISATION OF CHEQUE</span>
-                </div>
-
-                <div className="text-right font-sans">
-                  <span className="font-bold text-slate-900 text-xs block">For {receiptData.academyName || "VIRAJ ACADEMY"}</span>
-                  <span className="text-[10px] text-slate-500 italic block mt-4">(Authorised Signatory)</span>
+              {/* Right Column: Generated Canvas Card Preview */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Generated PNG Image Card</span>
+                <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-md bg-white p-1">
+                  <canvas
+                    ref={(node) => {
+                      canvasRef.current = node;
+                      if (node && receiptData) {
+                        drawReceiptCard(node, receiptData);
+                      }
+                    }}
+                    className="w-full h-auto block rounded-xl"
+                  />
                 </div>
               </div>
-            </div>
-
-            {/* Digital Canvas Receipt (For Image Download / WhatsApp Share) */}
-            <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-              <canvas
-                ref={(node) => {
-                  canvasRef.current = node;
-                  if (node && receiptData) {
-                    drawReceiptCard(node, receiptData);
-                  }
-                }}
-                className="w-full h-auto block"
-              />
             </div>
 
             {/* Modal Action Buttons UI */}
-            <div className="space-y-2.5 pt-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2.5 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={handleWhatsAppDirect}
@@ -1070,15 +1074,15 @@ export default function FeeEnginePage() {
                   <Download className="w-4 h-4 shrink-0" />
                   <span>Download Card</span>
                 </button>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => setReceiptData(null)}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl border border-slate-200 text-xs transition cursor-pointer"
-              >
-                Close Receipt
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setReceiptData(null)}
+                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl border border-slate-200 text-xs transition cursor-pointer"
+                >
+                  Close Receipt
+                </button>
+              </div>
             </div>
           </div>
         </div>
