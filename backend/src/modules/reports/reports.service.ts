@@ -15,8 +15,9 @@ export class ReportsService {
     private tenantContextService: TenantContextService,
   ) {}
 
-  async getFinancialOverview() {
+  async getFinancialOverview(branchId?: string) {
     const academyId = this.tenantContextService.academyId;
+    const branchFilter = branchId && Types.ObjectId.isValid(branchId) ? { branchId: new Types.ObjectId(branchId) } : {};
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -33,18 +34,19 @@ export class ReportsService {
     const totalAdmissions = await this.studentModel.countDocuments({
       academyId,
       status: 'ACTIVE',
+      ...branchFilter,
     });
 
     // 2. Daily Collection (Today's settled cash/online receipts)
     const dailyStats = await this.paymentModel.aggregate([
-      { $match: { academyId, paymentDate: { $gte: startOfToday, $lte: endOfToday } } },
+      { $match: { academyId, paymentDate: { $gte: startOfToday, $lte: endOfToday }, ...branchFilter } },
       { $group: { _id: null, total: { $sum: '$totalAmountPaid' } } },
     ]);
     const dailyCollection = dailyStats[0]?.total || 0;
 
     // 3. Monthly Fees Collection (Current month settled)
     const monthlyStats = await this.paymentModel.aggregate([
-      { $match: { academyId, paymentDate: { $gte: startOfMonth, $lte: endOfMonth } } },
+      { $match: { academyId, paymentDate: { $gte: startOfMonth, $lte: endOfMonth }, ...branchFilter } },
       { $group: { _id: null, total: { $sum: '$totalAmountPaid' } } },
     ]);
     const monthlyCollection = monthlyStats[0]?.total || 0;
@@ -56,6 +58,7 @@ export class ReportsService {
           academyId,
           dueDate: { $gte: startOfMonth, $lte: endOfMonth },
           status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] },
+          ...branchFilter,
         },
       },
       {
@@ -69,14 +72,14 @@ export class ReportsService {
 
     // 5. FY 2026-27 Collection
     const fyStats = await this.paymentModel.aggregate([
-      { $match: { academyId, paymentDate: { $gte: fyStart, $lte: fyEnd } } },
+      { $match: { academyId, paymentDate: { $gte: fyStart, $lte: fyEnd }, ...branchFilter } },
       { $group: { _id: null, total: { $sum: '$totalAmountPaid' } } },
     ]);
     const fyCollection = fyStats[0]?.total || 0;
 
     // Overall Fee Totals
     const feeStats = await this.feeScheduleModel.aggregate([
-      { $match: { academyId } },
+      { $match: { academyId, ...branchFilter } },
       {
         $group: {
           _id: null,

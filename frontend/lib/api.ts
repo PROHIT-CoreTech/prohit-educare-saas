@@ -22,3 +22,18 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401 && typeof window !== 'undefined') {
+      const msg = error.response.data?.message;
+      if (typeof msg === 'string' && (msg.includes('another device') || msg.includes('Session invalidated'))) {
+        localStorage.removeItem('prohit_auth_token');
+        alert('⚠️ Session Expired: You have been logged out because your account was logged in from another device.');
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);

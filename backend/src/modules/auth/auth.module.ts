@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
@@ -7,6 +7,7 @@ import { User, UserSchema } from '../../database/schemas/user.schema';
 import { Academy, AcademySchema } from '../../database/schemas/academy.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -19,6 +20,6 @@ import { TenantContextService } from '../../common/services/tenant-context.servi
   ],
   controllers: [AuthController],
   providers: [AuthService, TenantContextService],
-  exports: [AuthService],
+  exports: [AuthService, TenantContextService, JwtModule, MongooseModule],
 })
 export class AuthModule {}

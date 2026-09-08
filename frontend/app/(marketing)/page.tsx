@@ -8,6 +8,7 @@ import {
   ChevronRight, Star, GraduationCap, Building2, CheckCircle
 } from 'lucide-react';
 import { apiClient } from '../../lib/api';
+import { isValidMobile } from '../../lib/validation';
 
 export default function MarketingPage() {
   const [slug, setSlug] = useState('');
@@ -120,6 +121,10 @@ export default function MarketingPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (signupForm.phone && !isValidMobile(signupForm.phone)) {
+      setSignupMessage('Invalid Mobile Number: Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      return;
+    }
     setSubmitting(true);
     setSignupMessage('');
     try {

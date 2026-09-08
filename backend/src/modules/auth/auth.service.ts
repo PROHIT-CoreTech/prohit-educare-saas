@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, NotFoundException, BadRequestExcepti
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { User, UserDocument } from '../../database/schemas/user.schema';
 import { Academy, AcademyDocument } from '../../database/schemas/academy.schema';
@@ -57,11 +58,16 @@ export class AuthService {
       academy = await this.academyModel.findById(user.academyId).exec();
     }
 
+    const sessionId = randomUUID();
+    user.currentSessionId = sessionId;
+    await user.save();
+
     const payload = {
       sub: user._id.toString(),
       academyId: user.academyId.toString(),
       role: user.role,
       email: user.email,
+      sessionId,
     };
 
     const token = this.jwtService.sign(payload, {

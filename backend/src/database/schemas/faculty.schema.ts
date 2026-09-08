@@ -8,6 +8,9 @@ export class Faculty {
   @Prop({ type: Types.ObjectId, ref: 'Academy', required: true, index: true })
   academyId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Branch', required: false, index: true })
+  branchId?: Types.ObjectId;
+
   @Prop({ required: false, trim: true })
   facultyId?: string;
 

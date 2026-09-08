@@ -11,6 +11,8 @@ import { User, UserDocument } from '../../database/schemas/user.schema';
 import { Payment, PaymentDocument } from '../../database/schemas/payment.schema';
 import { FeeSchedule, FeeScheduleDocument } from '../../database/schemas/fee-schedule.schema';
 import { ClassBatch, ClassBatchDocument } from '../../database/schemas/class-batch.schema';
+import { isValidMobile } from '../../common/utils/phone-validation.util';
+import { getStudentLimitByPlan } from '../../common/utils/subscription-plan.util';
 
 @Injectable()
 export class PlatformService {
@@ -352,6 +354,169 @@ export class PlatformService {
         name: academy.name,
         slug: academy.slug,
       },
+    };
+  }
+
+  async bulkImportStudents(
+    platformUserId: string,
+    academyId: string,
+    rows: Array<{
+      name: string;
+      parentName: string;
+      parentPhone: string;
+      parentEmail?: string;
+      standard: number;
+      medium?: string;
+      stream?: string;
+      rollNo?: string;
+      dateOfBirth?: string;
+      bloodGroup?: string;
+      address?: string;
+      emergencyPhone?: string;
+      customTotalFee?: number;
+    }>,
+  ) {
+    const academy = await this.academyModel.findById(academyId).exec();
+    if (!academy) {
+      throw new NotFoundException('Academy tenant not found');
+    }
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new BadRequestException('No student records provided for bulk import');
+    }
+
+    const currentYear = new Date().getFullYear();
+    let existingCount = await this.studentModel.countDocuments({ academyId: academy._id });
+    const planKey = (academy as any)?.subscriptionPlanKey || (academy.subscriptionStatus === 'TRIAL' ? 'TRIAL' : 'STARTER');
+    const studentLimit = getStudentLimitByPlan(planKey);
+
+    if (studentLimit !== -1 && existingCount >= studentLimit) {
+      throw new BadRequestException(`Student capacity limit reached for ${academy.name} (${existingCount}/${studentLimit}). Upgrade subscription plan to import more students.`);
+    }
+
+    const importedStudents: any[] = [];
+    const errors: string[] = [];
+
+    for (let index = 0; index < rows.length; index++) {
+      const row = rows[index];
+      const rowNum = index + 1;
+
+      if (existingCount >= studentLimit) {
+        errors.push(`Row ${rowNum}: Plan student limit of ${studentLimit} reached for this academy.`);
+        continue;
+      }
+
+      if (!row.name || !row.name.trim()) {
+        errors.push(`Row ${rowNum}: Student Name is required`);
+        continue;
+      }
+      if (!row.parentName || !row.parentName.trim()) {
+        errors.push(`Row ${rowNum}: Parent Name is required`);
+        continue;
+      }
+      if (!row.parentPhone || !isValidMobile(row.parentPhone)) {
+        errors.push(`Row ${rowNum}: Parent Phone must be a valid 10-digit mobile number starting with 6-9`);
+        continue;
+      }
+      if (row.emergencyPhone && !isValidMobile(row.emergencyPhone)) {
+        errors.push(`Row ${rowNum}: Emergency Phone must be a valid 10-digit mobile number starting with 6-9`);
+        continue;
+      }
+
+      const std = Number(row.standard) || 10;
+      if (std < 1 || std > 15) {
+        errors.push(`Row ${rowNum}: Standard must be a number between 1 and 15`);
+        continue;
+      }
+
+      const medium = (row.medium || (std >= 11 ? 'english' : 'english')).toLowerCase().trim();
+      const stream = (row.stream || (std >= 11 ? 'science' : 'none')).toLowerCase().trim();
+
+      // Find or create matching ClassBatch
+      let classBatch = await this.classBatchModel.findOne({
+        academyId: academy._id,
+        standard: std,
+        medium,
+      }).exec();
+
+      if (!classBatch) {
+        const batchName = std >= 11 
+          ? `Class ${std}th Standard (${stream.toUpperCase()})` 
+          : `Class ${std}th Standard (${medium.toUpperCase()})`;
+        classBatch = await this.classBatchModel.create({
+          academyId: academy._id,
+          standard: std,
+          medium,
+          section: std >= 11 ? stream : 'none',
+          batchName,
+        });
+      }
+
+      existingCount++;
+      const seqNumber = String(existingCount).padStart(5, '0');
+      const studentCode = `STU-${currentYear}-${seqNumber}`;
+
+      const totalFee = Number(row.customTotalFee) || (std >= 11 ? 45000 : 35000);
+
+      const student = await this.studentModel.create({
+        academyId: academy._id,
+        studentCode,
+        name: row.name.trim(),
+        parentName: row.parentName.trim(),
+        parentPhone: row.parentPhone.trim(),
+        parentEmail: row.parentEmail ? row.parentEmail.trim() : undefined,
+        classBatchId: classBatch._id,
+        standard: std,
+        medium,
+        stream,
+        customTotalFee: totalFee,
+        discountAmount: 0,
+        paymentType: 'FULL',
+        installmentCount: 1,
+        dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : undefined,
+        bloodGroup: row.bloodGroup || 'B+',
+        emergencyContactName: row.parentName.trim(),
+        emergencyPhone: row.emergencyPhone ? row.emergencyPhone.trim() : row.parentPhone.trim(),
+        address: row.address || '',
+        rollNo: row.rollNo || studentCode,
+        validUpto: `31-MAR-${currentYear + 1}`,
+        status: 'ACTIVE',
+        advanceBalance: 0,
+      });
+
+      // Create FeeSchedule
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      await this.feeScheduleModel.create({
+        academyId: academy._id,
+        studentId: student._id,
+        installmentNo: 1,
+        amount: totalFee,
+        dueDate,
+        status: 'PENDING',
+        paidAmount: 0,
+      });
+
+      importedStudents.push(student);
+    }
+
+    await this.platformAuditLogModel.create({
+      platformUserId: new Types.ObjectId(platformUserId),
+      academyId: academy._id,
+      action: 'BULK_STUDENT_IMPORT',
+      details: {
+        academyName: academy.name,
+        attemptedCount: rows.length,
+        importedCount: importedStudents.length,
+        errorCount: errors.length,
+      },
+    });
+
+    return {
+      message: `Successfully imported ${importedStudents.length} of ${rows.length} students into ${academy.name}`,
+      importedCount: importedStudents.length,
+      totalAttempted: rows.length,
+      errors,
     };
   }
 }

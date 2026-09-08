@@ -1,12 +1,16 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { TenantContextService } from '../services/tenant-context.service';
+import { User, UserDocument } from '../../database/schemas/user.schema';
 
 @Injectable()
 export class AcademyAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly tenantContextService: TenantContextService,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,6 +28,17 @@ export class AcademyAuthGuard implements CanActivate {
       }
       if (payload.type === 'PLATFORM') {
         throw new UnauthorizedException('Platform JWT tokens cannot access Academy endpoints');
+      }
+
+      // Single active session validation
+      if (payload.sessionId && !payload.isImpersonating) {
+        const user = await this.userModel.findById(payload.sub).select('currentSessionId isActive').exec();
+        if (!user || !user.isActive) {
+          throw new UnauthorizedException('User account is inactive or no longer exists');
+        }
+        if (user.currentSessionId && user.currentSessionId !== payload.sessionId) {
+          throw new UnauthorizedException('Session invalidated: Your account was logged in from another device');
+        }
       }
 
       request.user = payload;

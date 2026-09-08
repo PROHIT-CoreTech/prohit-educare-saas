@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Faculty, FacultyDocument } from '../../database/schemas/faculty.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
+import { isValidMobile } from '../../common/utils/phone-validation.util';
 
 @Injectable()
 export class FacultyService {
@@ -20,6 +21,9 @@ export class FacultyService {
     facultyId?: string;
     assignedStandards?: string[];
   }) {
+    if (!isValidMobile(dto.phone)) {
+      throw new BadRequestException('Faculty phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000');
+    }
     const academyId = this.tenantContextService.academyId;
     const count = await this.facultyModel.countDocuments({ academyId });
     const currentYear = new Date().getFullYear();
@@ -52,6 +56,9 @@ export class FacultyService {
 
   async update(id: string, dto: Partial<Faculty>) {
     const academyId = this.tenantContextService.academyId;
+    if (dto.phone && !isValidMobile(dto.phone)) {
+      throw new BadRequestException('Faculty phone must be a valid 10-digit mobile number starting with 6-9');
+    }
     const updated = await this.facultyModel
       .findOneAndUpdate({ _id: id, academyId }, dto, { new: true })
       .exec();

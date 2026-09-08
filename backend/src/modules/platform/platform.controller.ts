@@ -83,4 +83,14 @@ export class PlatformController {
   async impersonateAcademy(@Param('id') id: string, @GetUser('sub') platformUserId: string) {
     return this.platformService.impersonateAcademy(platformUserId, id);
   }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('academies/:id/bulk-import-students')
+  async bulkImportStudents(
+    @Param('id') academyId: string,
+    @Body('students') students: any[],
+    @GetUser('sub') platformUserId: string,
+  ) {
+    return this.platformService.bulkImportStudents(platformUserId, academyId, students);
+  }
 }

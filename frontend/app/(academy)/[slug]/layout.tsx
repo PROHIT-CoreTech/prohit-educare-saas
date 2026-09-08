@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Users, CreditCard, BookOpen, BarChart3, LogOut, 
-  ShieldAlert, ShieldCheck, Sparkles, AlertCircle, Settings, Menu, X 
+  ShieldAlert, ShieldCheck, Sparkles, AlertCircle, Settings, Menu, X, Building2 
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import dashboardBg from '@/public/dashboard_bg_edu_tech.svg';
@@ -25,6 +25,23 @@ export default function AcademyLayout({
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [unauthenticated, setUnauthenticated] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('ALL');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('prohit_selected_branch_id');
+      if (stored) setSelectedBranchId(stored);
+    }
+  }, []);
+
+  const handleBranchChange = (branchId: string) => {
+    setSelectedBranchId(branchId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('prohit_selected_branch_id', branchId);
+      window.dispatchEvent(new Event('branch-changed'));
+    }
+  };
 
   useEffect(() => {
     let token = typeof window !== 'undefined' ? localStorage.getItem('prohit_auth_token') : null;
@@ -49,6 +66,11 @@ export default function AcademyLayout({
       apiClient
         .get('/billing/my-subscription')
         .then((res) => setSubscription(res.data))
+        .catch(() => {});
+
+      apiClient
+        .get('/branches')
+        .then((res) => setBranches(res.data))
         .catch(() => {});
 
       apiClient
@@ -84,6 +106,7 @@ export default function AcademyLayout({
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Students', href: '/students', icon: Users },
+    { name: 'Branches', href: '/branches', icon: Building2 },
     { name: 'Fee Engine', href: '/fees', icon: CreditCard },
     { name: 'Academics', href: '/academics', icon: BookOpen },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
@@ -172,6 +195,25 @@ export default function AcademyLayout({
                 {params.slug}.educare.prohitcoretech.com
               </span>
             </div>
+
+            {/* Branch Selector Dropdown */}
+            {branches.length > 0 && (
+              <div className="hidden sm:flex items-center space-x-1.5 bg-slate-100/90 border border-slate-200 rounded-xl px-2.5 py-1 text-xs shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                <select
+                  value={selectedBranchId}
+                  onChange={(e) => handleBranchChange(e.target.value)}
+                  className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer text-xs"
+                >
+                  <option value="ALL">All Branches</option>
+                  {branches.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {b.name} {b.isMain ? '(Main)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Desktop Navigation Links */}

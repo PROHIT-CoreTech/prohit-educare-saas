@@ -9,8 +9,8 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('financial-overview')
-  getFinancialOverview() {
-    return this.reportsService.getFinancialOverview();
+  getFinancialOverview(@Query('branchId') branchId?: string) {
+    return this.reportsService.getFinancialOverview(branchId);
   }
 
   @Get('recent-payments')

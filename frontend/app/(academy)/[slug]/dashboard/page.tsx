@@ -14,13 +14,25 @@ export default function TenantDashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    const handleBranchChange = () => {
+      fetchDashboardData();
+    };
+
+    window.addEventListener('branch-changed', handleBranchChange);
+    return () => {
+      window.removeEventListener('branch-changed', handleBranchChange);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
+      const branchId = typeof window !== 'undefined' ? localStorage.getItem('prohit_selected_branch_id') : 'ALL';
+      const branchParam = branchId && branchId !== 'ALL' ? `?branchId=${branchId}` : '';
+
       const [overviewRes, scheduleRes] = await Promise.all([
-        apiClient.get('/reports/financial-overview'),
+        apiClient.get(`/reports/financial-overview${branchParam}`),
         apiClient.get(`/roster/today?day=${todayDayName}`),
       ]);
       setOverview(overviewRes.data);

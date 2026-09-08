@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { FacultyModule } from './modules/faculty/faculty.module';
 import { RosterModule } from './modules/roster/roster.module';
 import { FacultyAttendanceModule } from './modules/faculty-attendance/faculty-attendance.module';
+import { BranchesModule } from './modules/branches/branches.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { FacultyAttendanceModule } from './modules/faculty-attendance/faculty-at
     FacultyModule,
     RosterModule,
     FacultyAttendanceModule,
+    BranchesModule,
   ],
 })
 export class AppModule {}

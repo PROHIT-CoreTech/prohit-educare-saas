@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, IsArray, MinLength, Matches } from 'class-validator';
+import { IsMobilePhone10 } from '../../../common/validators/is-mobile-phone-10.validator';
 
 export class SignupAcademyDto {
   @IsString()
@@ -25,6 +26,7 @@ export class SignupAcademyDto {
 
   @IsOptional()
   @IsString()
+  @IsMobilePhone10()
   phone?: string;
 
   @IsOptional()

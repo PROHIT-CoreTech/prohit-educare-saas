@@ -18,6 +18,11 @@ export class StudentsController {
     return this.studentsService.findAll();
   }
 
+  @Get('usage-stats')
+  getUsageStats() {
+    return this.studentsService.getStudentUsageStats();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(id);

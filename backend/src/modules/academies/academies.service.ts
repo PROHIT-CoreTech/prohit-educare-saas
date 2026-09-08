@@ -7,6 +7,7 @@ import { Academy, AcademyDocument } from '../../database/schemas/academy.schema'
 import { User, UserDocument } from '../../database/schemas/user.schema';
 import { SignupAcademyDto } from './dto/signup.dto';
 import { TenantContextService } from '../../common/services/tenant-context.service';
+import { isValidMobile } from '../../common/utils/phone-validation.util';
 
 const RESERVED_SLUGS = ['admin', 'api', 'app', 'www', 'platform', 'public', 'auth', 'billing', 'dash', 'help', 'root', 'static'];
 
@@ -147,6 +148,9 @@ export class AcademiesService {
     educationBoard?: string;
     educationBoards?: string[];
   }) {
+    if (dto.phone && !isValidMobile(dto.phone)) {
+      throw new BadRequestException('Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210)');
+    }
     const academyId = this.tenantContextService.academyId;
     const updateData: any = { ...dto };
 

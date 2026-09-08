@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload, ArrowRight, ArrowLeft, User } from 'lucide-react';
+import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload, ArrowRight, ArrowLeft, User, FileSpreadsheet, FileUp, CheckCircle2, Download, AlertTriangle } from 'lucide-react';
 import { apiClient } from '../../../lib/api';
+import { isValidMobile } from '../../../lib/validation';
+import { downloadSampleExcelTemplate, parseExcelFile, ValidatedStudentRow } from '../../../lib/excel-import';
 
 export default function PlatformAdminPage() {
   const [token, setToken] = useState<string | null>(null);
@@ -23,6 +25,14 @@ export default function PlatformAdminPage() {
 
   const [selectedTenantRecords, setSelectedTenantRecords] = useState<any>(null);
   const [inspecting, setInspecting] = useState(false);
+
+  const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
+  const [selectedBulkAcademyId, setSelectedBulkAcademyId] = useState('');
+  const [parsedRows, setParsedRows] = useState<ValidatedStudentRow[]>([]);
+  const [parsingExcel, setParsingExcel] = useState(false);
+  const [parseError, setParseError] = useState('');
+  const [importingStudents, setImportingStudents] = useState(false);
+  const [importResult, setImportResult] = useState<any>(null);
 
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [offlineStep, setOfflineStep] = useState<number>(1);
@@ -145,6 +155,10 @@ export default function PlatformAdminPage() {
 
   const handleOfflineRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (offlineForm.phone && !isValidMobile(offlineForm.phone)) {
+      setOfflineMessage('Invalid Mobile Number: Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      return;
+    }
     setOfflineSubmitting(true);
     setOfflineMessage('');
     try {
@@ -173,18 +187,82 @@ export default function PlatformAdminPage() {
           paymentMode: 'CASH',
           paymentReference: '',
         });
-        setOfflineMessage('');
-      }, 2000);
+        setOfflineStep(1);
+      }, 1500);
     } catch (err: any) {
-      const rawMsg = err.response?.data?.message;
-      const msgStr = Array.isArray(rawMsg)
-        ? rawMsg.join(', ')
-        : typeof rawMsg === 'string'
-        ? rawMsg
-        : 'Offline registration failed';
-      setOfflineMessage(msgStr);
+      setOfflineMessage('Registration failed: ' + (err.response?.data?.message || err.message));
     } finally {
       setOfflineSubmitting(false);
+    }
+  };
+
+  const handleOpenBulkUploadModal = (academyId?: string) => {
+    setSelectedBulkAcademyId(academyId || (academies.length > 0 ? academies[0]._id : ''));
+    setParsedRows([]);
+    setParseError('');
+    setImportResult(null);
+    setShowBulkUploadModal(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParsingExcel(true);
+    setParseError('');
+    setImportResult(null);
+    try {
+      const rows = await parseExcelFile(file);
+      setParsedRows(rows);
+    } catch (err: any) {
+      setParseError(err.message || 'Failed to parse Excel file.');
+    } finally {
+      setParsingExcel(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleExecuteBulkImport = async () => {
+    if (!selectedBulkAcademyId) {
+      alert('Please select a target Academy Tenant first.');
+      return;
+    }
+    const validRows = parsedRows.filter((r) => r.isValid);
+    if (validRows.length === 0) {
+      alert('No valid student rows found in the uploaded file.');
+      return;
+    }
+
+    setImportingStudents(true);
+    setImportResult(null);
+    try {
+      const payload = validRows.map((r) => ({
+        name: r.name,
+        parentName: r.parentName,
+        parentPhone: r.parentPhone,
+        parentEmail: r.parentEmail,
+        standard: r.standard,
+        medium: r.medium,
+        stream: r.stream,
+        rollNo: r.rollNo,
+        dateOfBirth: r.dateOfBirth,
+        bloodGroup: r.bloodGroup,
+        address: r.address,
+        emergencyPhone: r.emergencyPhone,
+        customTotalFee: r.customTotalFee,
+      }));
+
+      const res = await apiClient.post(`/platform/academies/${selectedBulkAcademyId}/bulk-import-students`, {
+        students: payload,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setImportResult(res.data);
+      if (token) fetchAdminData(token);
+    } catch (err: any) {
+      alert('Bulk import failed: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setImportingStudents(false);
     }
   };
 
@@ -403,12 +481,21 @@ export default function PlatformAdminPage() {
             </button>
           </div>
 
-          <button
-            onClick={() => fetchAdminData(token)}
-            className="text-xs bg-white hover:bg-slate-100 text-slate-800 font-bold px-4 py-2.5 rounded-xl border border-slate-200 transition shadow-xs"
-          >
-            Refresh All Data
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleOpenBulkUploadModal()}
+              className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl border border-emerald-600 transition shadow-sm inline-flex items-center space-x-1.5"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Bulk Student Excel Import</span>
+            </button>
+            <button
+              onClick={() => fetchAdminData(token)}
+              className="text-xs bg-white hover:bg-slate-100 text-slate-800 font-bold px-4 py-2.5 rounded-xl border border-slate-200 transition shadow-xs"
+            >
+              Refresh All Data
+            </button>
+          </div>
         </div>
 
         {/* TAB 1: ACADEMY TENANTS ROSTER */}
@@ -530,6 +617,15 @@ export default function PlatformAdminPage() {
                                   Activate Sub
                                 </button>
                               )}
+
+                              <button
+                                onClick={() => handleOpenBulkUploadModal(ac._id)}
+                                className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-xl border border-emerald-200 inline-flex items-center space-x-1 transition"
+                                title="Bulk import students into this academy via Excel"
+                              >
+                                <FileSpreadsheet className="w-3.5 h-3.5" />
+                                <span>Bulk Import</span>
+                              </button>
 
                               <button
                                 onClick={() => handleImpersonate(ac._id, ac.slug)}
@@ -1428,6 +1524,168 @@ export default function PlatformAdminPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* BULK STUDENT EXCEL UPLOAD MODAL */}
+      {showBulkUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-4xl w-full relative shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowBulkUploadModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold text-lg"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center space-x-3 border-b border-slate-200 pb-4">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold shrink-0">
+                <FileSpreadsheet className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-900">Bulk Student Excel Upload</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Import multiple student records and auto-generate fee schedules for a selected Academy Tenant using Excel (.xlsx, .xls, .csv).
+                </p>
+              </div>
+            </div>
+
+            {/* Target Academy Selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Select Target Academy Tenant <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedBulkAcademyId}
+                  onChange={(e) => setSelectedBulkAcademyId(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-semibold"
+                >
+                  <option value="">-- Choose Target Academy --</option>
+                  {academies.map((ac) => (
+                    <option key={ac._id} value={ac._id}>
+                      {ac.name} ({ac.slug}) — {ac.institutionType}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={downloadSampleExcelTemplate}
+                  className="w-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition shadow-xs"
+                >
+                  <Download className="w-4 h-4 text-emerald-600" />
+                  <span>Download Sample (.xlsx)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* File Upload Box */}
+            <div className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-3xl p-6 text-center bg-slate-50/50 transition">
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleFileUpload}
+                id="excel-file-input"
+                className="hidden"
+              />
+              <label htmlFor="excel-file-input" className="cursor-pointer flex flex-col items-center justify-center space-y-2">
+                <FileUp className="w-10 h-10 text-emerald-600 animate-bounce" />
+                <span className="font-extrabold text-sm text-slate-800">
+                  {parsingExcel ? 'Parsing Excel File...' : 'Click to Upload Excel Sheet (.xlsx / .csv)'}
+                </span>
+                <span className="text-xs text-slate-500">Supports standard SheetJS columns: Student Name, Parent Name, Parent Phone, Standard...</span>
+              </label>
+            </div>
+
+            {parseError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-bold p-4 rounded-2xl flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                <span>{parseError}</span>
+              </div>
+            )}
+
+            {importResult && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-4 rounded-2xl space-y-2">
+                <div className="flex items-center space-x-2 font-black text-sm text-emerald-700">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>{importResult.message}</span>
+                </div>
+                {importResult.errors && importResult.errors.length > 0 && (
+                  <div className="pt-2 text-rose-700 space-y-1">
+                    <span className="font-bold block">Row Errors ({importResult.errors.length}):</span>
+                    <ul className="list-disc pl-5 space-y-0.5 max-h-32 overflow-y-auto">
+                      {importResult.errors.map((errStr: string, idx: number) => (
+                        <li key={idx}>{errStr}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Parsed Rows Validation Preview Table */}
+            {parsedRows.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs text-slate-800">
+                    Preview & Validation ({parsedRows.filter((r) => r.isValid).length} Valid / {parsedRows.filter((r) => !r.isValid).length} Errors out of {parsedRows.length} total)
+                  </span>
+
+                  <button
+                    onClick={handleExecuteBulkImport}
+                    disabled={importingStudents || parsedRows.filter((r) => r.isValid).length === 0}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2 rounded-xl text-xs shadow-md shadow-emerald-600/20 transition disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {importingStudents ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Importing Students...</span>
+                      </>
+                    ) : (
+                      <span>Execute Import ({parsedRows.filter((r) => r.isValid).length} Valid Records)</span>
+                    )}
+                  </button>
+                </div>
+
+                <div className="border border-slate-200 rounded-2xl overflow-hidden max-h-60 overflow-y-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-100 text-slate-700 font-bold uppercase border-b border-slate-200 sticky top-0">
+                      <tr>
+                        <th className="p-2.5">Row #</th>
+                        <th className="p-2.5">Student Name</th>
+                        <th className="p-2.5">Parent Name</th>
+                        <th className="p-2.5">Parent Phone</th>
+                        <th className="p-2.5">Std</th>
+                        <th className="p-2.5">Medium</th>
+                        <th className="p-2.5">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {parsedRows.map((r, i) => (
+                        <tr key={i} className={r.isValid ? 'bg-emerald-50/40' : 'bg-rose-50/50'}>
+                          <td className="p-2.5 font-bold">{r.rowNum}</td>
+                          <td className="p-2.5 font-semibold text-slate-900">{r.name || '—'}</td>
+                          <td className="p-2.5 text-slate-700">{r.parentName || '—'}</td>
+                          <td className="p-2.5 font-mono">{r.parentPhone || '—'}</td>
+                          <td className="p-2.5 font-bold">Std {r.standard}</td>
+                          <td className="p-2.5 uppercase text-[10px] font-bold">{r.medium}</td>
+                          <td className="p-2.5 whitespace-nowrap">
+                            {r.isValid ? (
+                              <span className="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded">Valid ✓</span>
+                            ) : (
+                              <span className="text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded">{r.error}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

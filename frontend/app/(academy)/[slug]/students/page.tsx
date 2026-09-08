@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, User, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
+import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
+import { isValidMobile } from '../../../../lib/validation';
 
 const DEFAULT_BATCH_PRESETS = [
   { id: 'preset_10_eng', standard: 10, medium: 'english', section: 'none', batchName: 'Class 10th (English Medium)' },
@@ -39,6 +40,17 @@ export default function StudentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
 
+  const [usageStats, setUsageStats] = useState<{
+    activeStudents: number;
+    totalRecords: number;
+    studentLimit: number;
+    isUnlimited?: boolean;
+    remainingStudents: number;
+    usagePercentage: number;
+    subscriptionStatus: string;
+    planKey: string;
+  } | null>(null);
+
   // Digital ID Card State
   const [showIdCardModal, setShowIdCardModal] = useState(false);
   const [selectedIdCardStudent, setSelectedIdCardStudent] = useState<any>(null);
@@ -66,7 +78,7 @@ export default function StudentsPage() {
     parentPhone: '',
     parentEmail: '',
     photoUrl: '',
-    bloodGroup: 'B+',
+    bloodGroup: 'Not Available',
     emergencyContactName: '',
     emergencyPhone: '',
     address: '',
@@ -83,7 +95,7 @@ export default function StudentsPage() {
       parentPhone: stu.parentPhone || '',
       parentEmail: stu.parentEmail || '',
       photoUrl: stu.photoUrl || '',
-      bloodGroup: stu.bloodGroup || 'B+',
+      bloodGroup: stu.bloodGroup || 'Not Available',
       emergencyContactName: stu.emergencyContactName || stu.parentName || '',
       emergencyPhone: stu.emergencyPhone || stu.parentPhone || '',
       address: stu.address || '',
@@ -96,6 +108,14 @@ export default function StudentsPage() {
   const handleSaveEditedStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStudent) return;
+    if (!isValidMobile(editFormData.parentPhone)) {
+      alert('Invalid Mobile Number: Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      return;
+    }
+    if (editFormData.emergencyPhone && !isValidMobile(editFormData.emergencyPhone)) {
+      alert('Invalid Emergency Phone: Please enter a valid 10-digit mobile number starting with 6-9.');
+      return;
+    }
     setIsUpdatingStudent(true);
     try {
       await apiClient.patch(`/students/${editingStudent._id}`, editFormData);
@@ -134,7 +154,7 @@ export default function StudentsPage() {
     medium: 'english',
     stream: 'science',
     photoUrl: '',
-    bloodGroup: 'B+',
+    bloodGroup: 'Not Available',
     emergencyContactName: '',
     emergencyPhone: '',
     address: '',
@@ -172,15 +192,17 @@ export default function StudentsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [stuRes, classRes, feeRes, acadRes] = await Promise.all([
+      const [stuRes, classRes, feeRes, acadRes, usageRes] = await Promise.all([
         apiClient.get('/students'),
         apiClient.get('/classes'),
         apiClient.get('/fee-engine/structures').catch(() => ({ data: [] })),
         apiClient.get('/academies/my-academy').catch(() => ({ data: null })),
+        apiClient.get('/students/usage-stats').catch(() => ({ data: null })),
       ]);
       setStudents(stuRes.data);
       setClasses(classRes.data);
       if (acadRes?.data) setAcademyInfo(acadRes.data);
+      if (usageRes?.data) setUsageStats(usageRes.data);
       const loadedFeeStructures = feeRes.data || [];
       setFeeStructures(loadedFeeStructures);
       setAuthError(false);
@@ -271,6 +293,14 @@ export default function StudentsPage() {
 
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidMobile(formData.parentPhone)) {
+      alert('Invalid Mobile Number: Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      return;
+    }
+    if (formData.emergencyPhone && !isValidMobile(formData.emergencyPhone)) {
+      alert('Invalid Emergency Phone: Please enter a valid 10-digit mobile number starting with 6-9.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('prohit_auth_token') : null;
@@ -548,12 +578,74 @@ export default function StudentsPage() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 self-start sm:self-auto shrink-0 text-xs sm:text-sm"
+          disabled={usageStats ? (usageStats.studentLimit !== -1 && usageStats.remainingStudents <= 0) : false}
+          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 self-start sm:self-auto shrink-0 text-xs sm:text-sm disabled:opacity-50"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>Add New Student</span>
+          <span>Enroll New Student</span>
         </button>
       </div>
+
+      {/* Student Quota Usage & Remaining Count Widget */}
+      {usageStats && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 font-bold shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-extrabold text-sm text-slate-900">
+                  Student Capacity Quota ({usageStats.planKey} Plan)
+                </span>
+                <span className="text-xs text-slate-500 font-medium block -mt-0.5">
+                  {usageStats.studentLimit === -1 || usageStats.isUnlimited
+                    ? `${usageStats.totalRecords} Enrolled • Unlimited Capacity`
+                    : `${usageStats.totalRecords} Enrolled / ${usageStats.studentLimit} Limit (${usageStats.remainingStudents} Remaining Seats)`}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <span className={`text-xs font-black px-3 py-1 rounded-xl border ${
+                usageStats.studentLimit === -1 || usageStats.isUnlimited
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : usageStats.remainingStudents === 0
+                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                  : usageStats.usagePercentage >= 80
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              }`}>
+                {usageStats.studentLimit === -1 || usageStats.isUnlimited
+                  ? 'Unlimited Capacity'
+                  : `${usageStats.remainingStudents} Seats Remaining (${100 - usageStats.usagePercentage}% Available)`}
+              </span>
+              <a
+                href="/subscription"
+                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-slate-300 transition"
+              >
+                Upgrade Plan
+              </a>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${
+                usageStats.studentLimit === -1 || usageStats.isUnlimited
+                  ? 'bg-emerald-500'
+                  : usageStats.usagePercentage >= 100
+                  ? 'bg-rose-500'
+                  : usageStats.usagePercentage >= 80
+                  ? 'bg-amber-500'
+                  : 'bg-orange-500'
+              }`}
+              style={{ width: `${usageStats.studentLimit === -1 || usageStats.isUnlimited ? 100 : usageStats.usagePercentage}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Search & Status Filters Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -977,7 +1069,7 @@ export default function StudentsPage() {
                     onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
                   >
-                    {['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'].map((bg) => (
+                    {['Not Available', 'A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'].map((bg) => (
                       <option key={bg} value={bg}>
                         {bg}
                       </option>
@@ -1278,7 +1370,7 @@ export default function StudentsPage() {
                     onChange={(e) => setEditFormData({ ...editFormData, bloodGroup: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
                   >
-                    {['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'].map((bg) => (
+                    {['Not Available', 'A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'].map((bg) => (
                       <option key={bg} value={bg}>
                         {bg}
                       </option>

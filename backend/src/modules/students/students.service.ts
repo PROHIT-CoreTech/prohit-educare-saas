@@ -1,16 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Student, StudentDocument } from '../../database/schemas/student.schema';
 import { Counter, CounterDocument } from '../../database/schemas/counter.schema';
+import { Academy, AcademyDocument } from '../../database/schemas/academy.schema';
 import { TenantContextService } from '../../common/services/tenant-context.service';
 import { FeeEngineService } from '../fee-engine/fee-engine.service';
+import { isValidMobile } from '../../common/utils/phone-validation.util';
+import { getStudentLimitByPlan } from '../../common/utils/subscription-plan.util';
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectModel(Student.name) private studentModel: Model<StudentDocument>,
     @InjectModel(Counter.name) private counterModel: Model<CounterDocument>,
+    @InjectModel(Academy.name) private academyModel: Model<AcademyDocument>,
     private tenantContextService: TenantContextService,
     private feeEngineService: FeeEngineService,
   ) {}
@@ -37,7 +41,23 @@ export class StudentsService {
     installmentCount?: number;
     customTotalFee?: number;
   }) {
+    if (!isValidMobile(dto.parentPhone)) {
+      throw new BadRequestException('Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000');
+    }
+    if (dto.emergencyPhone && !isValidMobile(dto.emergencyPhone)) {
+      throw new BadRequestException('Emergency phone must be a valid 10-digit mobile number starting with 6-9');
+    }
     const academyId = this.tenantContextService.academyId;
+
+    // Student quota verification
+    const academy = await this.academyModel.findById(academyId).exec();
+    const planKey = (academy as any)?.subscriptionPlanKey || (academy?.subscriptionStatus === 'TRIAL' ? 'TRIAL' : 'STARTER');
+    const studentLimit = getStudentLimitByPlan(planKey);
+    const existingCount = await this.studentModel.countDocuments({ academyId });
+
+    if (studentLimit !== -1 && existingCount >= studentLimit) {
+      throw new BadRequestException(`Student quota limit reached for your plan (${existingCount}/${studentLimit}). Upgrade your plan to enroll more students.`);
+    }
     const currentYear = new Date().getFullYear();
     const counterId = `student_${academyId.toString()}_${currentYear}`;
 
@@ -117,6 +137,12 @@ export class StudentsService {
 
   async update(id: string, dto: Partial<Student>) {
     const academyId = this.tenantContextService.academyId;
+    if (dto.parentPhone && !isValidMobile(dto.parentPhone)) {
+      throw new BadRequestException('Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210)');
+    }
+    if (dto.emergencyPhone && !isValidMobile(dto.emergencyPhone)) {
+      throw new BadRequestException('Emergency phone must be a valid 10-digit mobile number starting with 6-9');
+    }
     const updated = await this.studentModel
       .findOneAndUpdate({ _id: id, academyId }, dto, { new: true })
       .exec();
@@ -173,5 +199,29 @@ export class StudentsService {
     const res = await this.studentModel.deleteOne({ _id: id, academyId }).exec();
     if (res.deletedCount === 0) throw new NotFoundException('Student not found or cross-tenant deletion rejected');
     return { message: 'Student deleted successfully' };
+  }
+
+  async getStudentUsageStats() {
+    const academyId = this.tenantContextService.academyId;
+    const academy = await this.academyModel.findById(academyId).exec();
+    const activeStudents = await this.studentModel.countDocuments({ academyId, status: 'ACTIVE' });
+    const totalRecords = await this.studentModel.countDocuments({ academyId });
+
+    const planKey = (academy as any)?.subscriptionPlanKey || (academy?.subscriptionStatus === 'TRIAL' ? 'TRIAL' : 'STARTER');
+    const limit = getStudentLimitByPlan(planKey);
+    const isUnlimited = limit === -1;
+    const remaining = isUnlimited ? -1 : Math.max(0, limit - totalRecords);
+    const usagePercentage = isUnlimited ? 0 : Math.min(100, Math.round((totalRecords / limit) * 100));
+
+    return {
+      activeStudents,
+      totalRecords,
+      studentLimit: limit,
+      isUnlimited,
+      remainingStudents: remaining,
+      usagePercentage,
+      subscriptionStatus: academy?.subscriptionStatus || 'TRIAL',
+      planKey,
+    };
   }
 }

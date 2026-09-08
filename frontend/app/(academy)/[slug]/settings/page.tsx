@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette, KeyRound, Lock } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
+import { isValidMobile } from '../../../../lib/validation';
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription' | 'security'>('profile');
@@ -182,6 +183,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (profileForm.phone && !isValidMobile(profileForm.phone)) {
+      alert('Invalid Mobile Number: Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
     setSavingProfile(true);
     setProfileSuccess('');
     try {
@@ -369,6 +374,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveFaculty = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidMobile(facultyForm.phone)) {
+      alert('Invalid Mobile Number: Faculty phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      return;
+    }
     try {
       if (editingFacultyId) {
         await apiClient.put(`/faculty/${editingFacultyId}`, facultyForm);
