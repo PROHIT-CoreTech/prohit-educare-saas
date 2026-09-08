@@ -171,8 +171,9 @@ export default function AcademyLayout({
 
         {/* Top Tenant Navigation */}
         <header className="border-b border-white/60 bg-white/85 backdrop-blur-md sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+          {/* Brand & Branch Selector */}
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
             {academy?.logoUrl ? (
               <img
                 src={academy.logoUrl}
@@ -187,23 +188,23 @@ export default function AcademyLayout({
                 {academy?.name?.charAt(0) || params.slug.charAt(0).toUpperCase()}
               </div>
             )}
-            <div className="truncate">
-              <h1 className="font-bold text-base sm:text-lg text-slate-900 leading-tight truncate">
+            <div className="min-w-0 max-w-[130px] sm:max-w-[170px] md:max-w-[210px]">
+              <h1 className="font-bold text-sm sm:text-base text-slate-900 leading-tight truncate whitespace-nowrap">
                 {academy?.name || `${params.slug} Academy`}
               </h1>
-              <span className="text-[10px] sm:text-xs text-orange-600 font-mono font-semibold block truncate">
+              <span className="text-[10px] sm:text-xs text-orange-600 font-mono font-semibold block truncate whitespace-nowrap">
                 {params.slug}.educare.prohitcoretech.com
               </span>
             </div>
 
             {/* Branch Selector Dropdown */}
             {branches.length > 0 && (
-              <div className="hidden sm:flex items-center space-x-1.5 bg-slate-100/90 border border-slate-200 rounded-xl px-2.5 py-1 text-xs shrink-0">
+              <div className="hidden sm:flex items-center space-x-1.5 bg-slate-100/90 border border-slate-200 rounded-xl px-2.5 py-1 text-xs shrink-0 whitespace-nowrap">
                 <Building2 className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                 <select
                   value={selectedBranchId}
                   onChange={(e) => handleBranchChange(e.target.value)}
-                  className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer text-xs"
+                  className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer text-xs pr-1"
                 >
                   <option value="ALL">All Branches</option>
                   {branches.map((b) => (
@@ -217,7 +218,7 @@ export default function AcademyLayout({
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center space-x-1.5 text-xs sm:text-sm font-medium">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-1.5 text-xs sm:text-sm font-medium shrink-0">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = pathname.includes(link.href);
@@ -225,14 +226,14 @@ export default function AcademyLayout({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-2 rounded-xl flex items-center space-x-2 transition ${
+                  className={`px-2 py-1.5 xl:px-3 xl:py-2 rounded-xl flex items-center space-x-1.5 transition shrink-0 whitespace-nowrap ${
                     active
                       ? 'bg-orange-50 text-orange-600 font-bold border border-orange-200 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{link.name}</span>
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">{link.name}</span>
                 </Link>
               );
             })}
@@ -242,15 +243,15 @@ export default function AcademyLayout({
                 localStorage.removeItem('prohit_auth_token');
                 window.location.href = `/login`;
               }}
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition ml-1"
+              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition ml-1 shrink-0"
               title="Logout"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 shrink-0" />
             </button>
           </div>
 
           {/* Mobile Hamburger Button */}
-          <div className="flex items-center space-x-2 lg:hidden">
+          <div className="flex items-center space-x-2 lg:hidden shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition focus:outline-none"
@@ -264,6 +265,28 @@ export default function AcademyLayout({
         {/* Mobile Dropdown Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-slate-200 bg-white p-4 shadow-xl space-y-1.5 animate-fadeIn">
+            {/* Mobile Branch Selector */}
+            {branches.length > 0 && (
+              <div className="sm:hidden mb-3 p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-xs font-bold text-slate-700">
+                  <Building2 className="w-4 h-4 text-orange-500" />
+                  <span>Selected Branch:</span>
+                </div>
+                <select
+                  value={selectedBranchId}
+                  onChange={(e) => handleBranchChange(e.target.value)}
+                  className="bg-white border border-slate-200 font-bold text-slate-800 text-xs px-2 py-1 rounded-lg focus:outline-none"
+                >
+                  <option value="ALL">All Branches</option>
+                  {branches.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {b.name} {b.isMain ? '(Main)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {navLinks.map((link) => {
               const Icon = link.icon;
               const active = pathname.includes(link.href);
