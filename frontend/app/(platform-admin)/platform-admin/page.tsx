@@ -692,8 +692,27 @@ export default function PlatformAdminPage() {
                       const details = log.details || {};
                       const academyName = details.academyName || log.academyId?.name || 'Platform System';
                       const academySlug = details.academySlug || log.academyId?.slug || 'admin';
-                      const amount = details.amount ? `₹${details.amount?.toLocaleString('en-IN')}` : details.plan === 'STARTER' ? '₹11,988 / yr' : '₹35,988 / yr';
                       const paymentMode = details.paymentMode || (log.action === 'OFFLINE_TENANT_REGISTERED' ? 'OFFLINE_CASH' : 'CASHFREE_PG');
+
+                      const isTrial =
+                        details.paymentMode === '14_DAY_FREE_TRIAL' ||
+                        details.paymentMode === 'OFFLINE_TRIAL' ||
+                        details.paymentMode === 'FREE_TRIAL' ||
+                        details.plan === '14-Day Free Trial' ||
+                        details.plan === '14-Day Trial' ||
+                        details.plan === 'TRIAL' ||
+                        details.plan === 'TRIAL_14' ||
+                        details.amount === 0 ||
+                        log.action === '14-DAY FREE TRIAL STARTED' ||
+                        log.academyId?.subscriptionStatus === 'TRIAL';
+
+                      const displayAmount = isTrial || details.amount === 0
+                        ? 'N/A'
+                        : details.amount !== undefined && details.amount !== null && Number(details.amount) > 0
+                        ? `₹${Number(details.amount).toLocaleString('en-IN')} / yr`
+                        : details.plan === 'STARTER'
+                        ? '₹11,988 / yr'
+                        : '₹35,988 / yr';
 
                       const subStart = formatDate(details.subscriptionStart || log.academyId?.createdAt || log.createdAt);
                       const subExpiry = formatDate(
@@ -756,8 +775,8 @@ export default function PlatformAdminPage() {
                               <span className="text-[10px] text-slate-500 block font-normal">Ref: {details.paymentReference}</span>
                             )}
                           </td>
-                          <td className="p-4 font-black text-emerald-700 font-mono whitespace-nowrap">
-                            {log.action === 'OFFLINE_TENANT_REGISTERED' || log.action?.includes('Provision') ? amount : 'N/A'}
+                          <td className={`p-4 font-black whitespace-nowrap ${isTrial || details.amount === 0 ? 'text-slate-500 font-sans text-xs' : 'text-emerald-700 font-mono'}`}>
+                            {log.action === 'OFFLINE_TENANT_REGISTERED' || log.action?.includes('Provision') || log.action?.includes('TRIAL') ? displayAmount : 'N/A'}
                           </td>
                           <td className="p-4 text-slate-600 whitespace-nowrap font-medium">
                             {log.platformUserId?.name || 'Master Admin'} ({log.platformUserId?.email || 'admin@prohiteducare.com'})
