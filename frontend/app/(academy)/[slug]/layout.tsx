@@ -190,14 +190,9 @@ export default function AcademyLayout({
             )}
 
             <div className="flex flex-col justify-center">
-              <div className="flex items-center space-x-2">
-                <h1 className="font-extrabold text-base sm:text-lg text-slate-900 leading-tight whitespace-nowrap">
-                  {academy?.name || `${params.slug} Academy`}
-                </h1>
-                <span className="text-[10px] text-orange-600 font-mono font-semibold bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100 hidden md:inline-block whitespace-nowrap">
-                  {params.slug}
-                </span>
-              </div>
+              <h1 className="font-extrabold text-base sm:text-lg text-slate-900 leading-tight whitespace-nowrap">
+                {academy?.name || `${params.slug} Academy`}
+              </h1>
 
               {/* Next Line: Branch Selector Dropdown */}
               {branches.length > 0 && (
