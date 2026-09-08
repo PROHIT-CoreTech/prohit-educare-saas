@@ -25,6 +25,7 @@ export default function PlatformAdminPage() {
 
   const [selectedTenantRecords, setSelectedTenantRecords] = useState<any>(null);
   const [inspecting, setInspecting] = useState(false);
+  const [selectedTenantDetail, setSelectedTenantDetail] = useState<any>(null);
 
   const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
   const [selectedBulkAcademyId, setSelectedBulkAcademyId] = useState('');
@@ -538,7 +539,6 @@ export default function PlatformAdminPage() {
                   <tr>
                     <th className="px-6 py-4 whitespace-nowrap">Academy Name</th>
                     <th className="px-6 py-4 whitespace-nowrap">Subdomain</th>
-                    <th className="px-6 py-4 whitespace-nowrap">Type & Board</th>
                     <th className="px-6 py-4 whitespace-nowrap">Status</th>
                     <th className="px-6 py-4 text-right whitespace-nowrap">Master Admin Tools</th>
                   </tr>
@@ -546,7 +546,7 @@ export default function PlatformAdminPage() {
                 <tbody className="divide-y divide-slate-200">
                   {filteredAcademies.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
+                      <td colSpan={4} className="px-6 py-12 text-center text-slate-500 font-medium">
                         No academy tenants found matching your filter criteria.
                       </td>
                     </tr>
@@ -563,71 +563,6 @@ export default function PlatformAdminPage() {
                               <span>{ac.slug}.educare.prohitcoretech.com</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="space-y-1 text-xs">
-                              {/* Institution Types */}
-                              <div className="flex items-center flex-wrap gap-1 max-w-[260px]">
-                                {(() => {
-                                  const types: string[] = ac.institutionTypes?.length
-                                    ? ac.institutionTypes
-                                    : [ac.institutionType || 'High School'];
-                                  const visible = types.slice(0, 2);
-                                  const hiddenCount = types.length - visible.length;
-                                  return (
-                                    <>
-                                      {visible.map((t) => (
-                                        <span
-                                          key={t}
-                                          className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap"
-                                        >
-                                          {t}
-                                        </span>
-                                      ))}
-                                      {hiddenCount > 0 && (
-                                        <span
-                                          title={`All Types: ${types.join(', ')}`}
-                                          className="bg-blue-100 text-blue-800 border border-blue-300 px-1.5 py-0.5 rounded-md text-[10px] font-black cursor-help shrink-0"
-                                        >
-                                          +{hiddenCount}
-                                        </span>
-                                      )}
-                                    </>
-                                  );
-                                })()}
-                              </div>
-
-                              {/* Education Boards */}
-                              <div className="flex items-center flex-wrap gap-1 max-w-[260px]">
-                                {(() => {
-                                  const boards: string[] = ac.educationBoards?.length
-                                    ? ac.educationBoards
-                                    : [ac.educationBoard || 'SSC / State Board'];
-                                  const visible = boards.slice(0, 2);
-                                  const hiddenCount = boards.length - visible.length;
-                                  return (
-                                    <>
-                                      {visible.map((b) => (
-                                        <span
-                                          key={b}
-                                          className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap"
-                                        >
-                                          {b}
-                                        </span>
-                                      ))}
-                                      {hiddenCount > 0 && (
-                                        <span
-                                          title={`All Boards: ${boards.join(', ')}`}
-                                          className="bg-purple-100 text-purple-800 border border-purple-300 px-1.5 py-0.5 rounded-md text-[10px] font-black cursor-help shrink-0"
-                                        >
-                                          +{hiddenCount}
-                                        </span>
-                                      )}
-                                    </>
-                                  );
-                                })()}
-                              </div>
-                            </div>
-                          </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
@@ -642,38 +577,13 @@ export default function PlatformAdminPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end space-x-2">
-                              {ac.subscriptionStatus === 'ACTIVE' ? (
-                                <button
-                                  onClick={() => handleStatusChange(ac._id, 'CANCELLED')}
-                                  className="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl border border-rose-200 transition font-bold"
-                                >
-                                  Cancel Sub
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleStatusChange(ac._id, 'ACTIVE')}
-                                  className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200 transition font-bold"
-                                >
-                                  Activate Sub
-                                </button>
-                              )}
-
+                            <div className="flex items-center justify-end">
                               <button
-                                onClick={() => handleOpenBulkUploadModal(ac._id)}
-                                className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-xl border border-emerald-200 inline-flex items-center space-x-1 transition"
-                                title="Bulk import students into this academy via Excel"
+                                onClick={() => setSelectedTenantDetail(ac)}
+                                className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl inline-flex items-center space-x-1.5 shadow-md shadow-orange-500/20 transition cursor-pointer"
                               >
-                                <FileSpreadsheet className="w-3.5 h-3.5" />
-                                <span>Bulk Import</span>
-                              </button>
-
-                              <button
-                                onClick={() => handleImpersonate(ac._id, ac.slug)}
-                                className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3.5 py-1.5 rounded-xl inline-flex items-center space-x-1 shadow-md shadow-orange-500/20 transition"
-                              >
-                                <span>Impersonate</span>
-                                <ExternalLink className="w-3 h-3 ml-0.5" />
+                                <Eye className="w-4 h-4" />
+                                <span>Show Details</span>
                               </button>
                             </div>
                           </td>
@@ -1746,6 +1656,205 @@ export default function PlatformAdminPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Particular Tenant Full Details Modal */}
+      {selectedTenantDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-2xl w-full relative shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedTenantDetail(null)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold text-lg"
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div className="flex items-start space-x-3 border-b border-slate-200 pb-4 pr-8">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 font-black text-xl shrink-0">
+                {selectedTenantDetail.name?.charAt(0) || 'A'}
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-xl font-black text-slate-900">{selectedTenantDetail.name}</h2>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${
+                      selectedTenantDetail.subscriptionStatus === 'ACTIVE'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : selectedTenantDetail.subscriptionStatus === 'TRIAL'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}
+                  >
+                    {selectedTenantDetail.subscriptionStatus}
+                  </span>
+                </div>
+                <p className="text-xs text-orange-600 font-mono font-bold mt-1 flex items-center space-x-1">
+                  <span>{selectedTenantDetail.slug}.educare.prohitcoretech.com</span>
+                  <span className="text-slate-400 font-normal ml-2">ID: {selectedTenantDetail._id}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Grid 1: Academic Particulars (Type & Board) */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider flex items-center space-x-1.5">
+                <Layers className="w-4 h-4 text-orange-500" />
+                <span>Academic Particulars (Type & Board)</span>
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                {/* Institution Types */}
+                <div>
+                  <span className="text-xs font-bold text-slate-700 block mb-2">Institution Types</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(() => {
+                      const types: string[] = selectedTenantDetail.institutionTypes?.length
+                        ? selectedTenantDetail.institutionTypes
+                        : [selectedTenantDetail.institutionType || 'High School'];
+                      return types.map((t) => (
+                        <span
+                          key={t}
+                          className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg text-xs font-bold"
+                        >
+                          {t}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+
+                {/* Education Boards */}
+                <div>
+                  <span className="text-xs font-bold text-slate-700 block mb-2">Education Boards</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(() => {
+                      const boards: string[] = selectedTenantDetail.educationBoards?.length
+                        ? selectedTenantDetail.educationBoards
+                        : [selectedTenantDetail.educationBoard || 'SSC / State Board'];
+                      return boards.map((b) => (
+                        <span
+                          key={b}
+                          className="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-lg text-xs font-bold"
+                        >
+                          {b}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid 2: Director & Contact Details */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider flex items-center space-x-1.5">
+                <User className="w-4 h-4 text-orange-500" />
+                <span>Director & Contact Particulars</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs font-medium">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Director Name</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{selectedTenantDetail.directorName || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Email Address</span>
+                  <span className="font-bold text-slate-800">{selectedTenantDetail.email || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Contact Phone</span>
+                  <span className="font-mono font-bold text-slate-800">{selectedTenantDetail.phone || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid 3: Subscription Status & Timeline */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider flex items-center space-x-1.5">
+                <Calendar className="w-4 h-4 text-orange-500" />
+                <span>Subscription Status & Timeline</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Subscription Status</span>
+                  <span className="font-extrabold text-slate-900">{selectedTenantDetail.subscriptionStatus}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Registration Date</span>
+                  <span className="font-mono font-bold text-slate-800">{formatDate(selectedTenantDetail.createdAt)}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                    {selectedTenantDetail.subscriptionStatus === 'TRIAL' ? 'Trial Expiry Date' : 'Subscription Expiry'}
+                  </span>
+                  <span className="font-mono font-bold text-emerald-700">
+                    {formatDate(selectedTenantDetail.subscriptionStatus === 'TRIAL' ? selectedTenantDetail.trialEndsAt : selectedTenantDetail.subscriptionEndsAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid 4: Master Admin Tools */}
+            <div className="space-y-3 border-t border-slate-200 pt-4">
+              <h3 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider flex items-center space-x-1.5">
+                <ShieldAlert className="w-4 h-4 text-orange-500" />
+                <span>Master Admin Control Actions</span>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedTenantDetail.subscriptionStatus === 'ACTIVE' ? (
+                  <button
+                    onClick={() => {
+                      handleStatusChange(selectedTenantDetail._id, 'CANCELLED');
+                      setSelectedTenantDetail({ ...selectedTenantDetail, subscriptionStatus: 'CANCELLED' });
+                    }}
+                    className="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2.5 rounded-xl border border-rose-200 transition font-bold"
+                  >
+                    Cancel Subscription
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleStatusChange(selectedTenantDetail._id, 'ACTIVE');
+                      setSelectedTenantDetail({ ...selectedTenantDetail, subscriptionStatus: 'ACTIVE' });
+                    }}
+                    className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl border border-emerald-200 transition font-bold"
+                  >
+                    Activate Subscription
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    handleOpenBulkUploadModal(selectedTenantDetail._id);
+                    setSelectedTenantDetail(null);
+                  }}
+                  className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl inline-flex items-center space-x-1.5 transition shadow-sm"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Bulk Import Students</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleInspectRecords(selectedTenantDetail._id);
+                    setSelectedTenantDetail(null);
+                  }}
+                  className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2.5 rounded-xl border border-indigo-200 inline-flex items-center space-x-1.5 transition"
+                >
+                  <Database className="w-4 h-4" />
+                  <span>Inspect System Records</span>
+                </button>
+
+                <button
+                  onClick={() => handleImpersonate(selectedTenantDetail._id, selectedTenantDetail.slug)}
+                  className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl inline-flex items-center space-x-1.5 shadow-md shadow-orange-500/20 transition"
+                >
+                  <span>Impersonate Tenant</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
