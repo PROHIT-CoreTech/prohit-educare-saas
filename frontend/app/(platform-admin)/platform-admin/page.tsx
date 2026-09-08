@@ -563,27 +563,68 @@ export default function PlatformAdminPage() {
                               <span>{ac.slug}.educare.prohitcoretech.com</span>
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                {(ac.institutionTypes && ac.institutionTypes.length > 0
-                                  ? ac.institutionTypes
-                                  : [ac.institutionType || 'High School']
-                                ).map((typeItem: string) => (
-                                  <span key={typeItem} className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold">
-                                    {typeItem}
-                                  </span>
-                                ))}
+                          <td className="px-6 py-4">
+                            <div className="space-y-1 text-xs">
+                              {/* Institution Types */}
+                              <div className="flex items-center flex-wrap gap-1 max-w-[260px]">
+                                {(() => {
+                                  const types: string[] = ac.institutionTypes?.length
+                                    ? ac.institutionTypes
+                                    : [ac.institutionType || 'High School'];
+                                  const visible = types.slice(0, 2);
+                                  const hiddenCount = types.length - visible.length;
+                                  return (
+                                    <>
+                                      {visible.map((t) => (
+                                        <span
+                                          key={t}
+                                          className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap"
+                                        >
+                                          {t}
+                                        </span>
+                                      ))}
+                                      {hiddenCount > 0 && (
+                                        <span
+                                          title={`All Types: ${types.join(', ')}`}
+                                          className="bg-blue-100 text-blue-800 border border-blue-300 px-1.5 py-0.5 rounded-md text-[10px] font-black cursor-help shrink-0"
+                                        >
+                                          +{hiddenCount}
+                                        </span>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
-                              <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                {(ac.educationBoards && ac.educationBoards.length > 0
-                                  ? ac.educationBoards
-                                  : [ac.educationBoard || 'SSC / State Board']
-                                ).map((boardItem: string) => (
-                                  <span key={boardItem} className="bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold">
-                                    {boardItem}
-                                  </span>
-                                ))}
+
+                              {/* Education Boards */}
+                              <div className="flex items-center flex-wrap gap-1 max-w-[260px]">
+                                {(() => {
+                                  const boards: string[] = ac.educationBoards?.length
+                                    ? ac.educationBoards
+                                    : [ac.educationBoard || 'SSC / State Board'];
+                                  const visible = boards.slice(0, 2);
+                                  const hiddenCount = boards.length - visible.length;
+                                  return (
+                                    <>
+                                      {visible.map((b) => (
+                                        <span
+                                          key={b}
+                                          className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap"
+                                        >
+                                          {b}
+                                        </span>
+                                      ))}
+                                      {hiddenCount > 0 && (
+                                        <span
+                                          title={`All Boards: ${boards.join(', ')}`}
+                                          className="bg-purple-100 text-purple-800 border border-purple-300 px-1.5 py-0.5 rounded-md text-[10px] font-black cursor-help shrink-0"
+                                        >
+                                          +{hiddenCount}
+                                        </span>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </td>
@@ -800,19 +841,19 @@ export default function PlatformAdminPage() {
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter Tier (₹999/mo)</span>
                 <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹11,988 / yr</p>
-                <span className="text-xs text-slate-500 font-medium mt-1 block">Up to 200 Students per tenant</span>
+                <span className="text-xs text-slate-500 font-medium mt-1 block">Up to 400 Students per tenant</span>
               </div>
 
               <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-200">
                 <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Professional Tier (₹2,999/mo)</span>
                 <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹35,988 / yr</p>
-                <span className="text-xs text-orange-700 font-bold mt-1 block">Most Popular (Up to 1,000 Students)</span>
+                <span className="text-xs text-orange-700 font-bold mt-1 block">Most Popular (Up to 1,500 Students)</span>
               </div>
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Tier (₹7,999/mo)</span>
                 <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹95,988 / yr</p>
-                <span className="text-xs text-slate-500 font-medium mt-1 block">Unlimited Multi-Branch Chains</span>
+                <span className="text-xs text-slate-500 font-medium mt-1 block">Unlimited Multi-Branch Chains & Students</span>
               </div>
             </div>
 
