@@ -156,11 +156,24 @@ export default function PlatformAdminPage() {
 
   const handleExtendTrial = async (academyId: string, days: number = 14) => {
     try {
-      const res = await apiClient.post(
-        `/platform/academies/${academyId}/extend-trial`,
-        { days },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      let res;
+      try {
+        res = await apiClient.post(
+          `/platform/academies/${academyId}/extend-trial`,
+          { days },
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+      } catch (postErr: any) {
+        if (postErr.response?.status === 404 || postErr.message?.includes('Cannot POST') || postErr.response?.status === 405) {
+          res = await apiClient.patch(
+            `/platform/academies/${academyId}/extend-trial`,
+            { days },
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+        } else {
+          throw postErr;
+        }
+      }
       alert(res.data.message || 'Trial period extended by 14 days!');
       fetchAdminData(token!);
       if (selectedTenantDetail && selectedTenantDetail._id === academyId) {

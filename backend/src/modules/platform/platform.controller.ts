@@ -103,4 +103,14 @@ export class PlatformController {
   ) {
     return this.platformService.extendTrialPeriod(id, days || 14, platformUserId);
   }
+
+  @UseGuards(PlatformAuthGuard)
+  @Patch('academies/:id/extend-trial')
+  async extendTrialPeriodPatch(
+    @Param('id') id: string,
+    @Body('days') days: number,
+    @GetUser('sub') platformUserId: string,
+  ) {
+    return this.platformService.extendTrialPeriod(id, days || 14, platformUserId);
+  }
 }
