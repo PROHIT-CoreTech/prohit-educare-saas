@@ -676,6 +676,7 @@ export default function PlatformAdminPage() {
                         details.plan === 'TRIAL_14' ||
                         details.amount === 0 ||
                         log.action === '14-DAY FREE TRIAL STARTED' ||
+                        log.action === 'TRIAL_EXTENDED_14_DAYS' ||
                         log.academyId?.subscriptionStatus === 'TRIAL';
 
                       const displayAmount = isTrial || details.amount === 0
@@ -688,10 +689,14 @@ export default function PlatformAdminPage() {
 
                       const subStart = formatDate(details.subscriptionStart || log.academyId?.createdAt || log.createdAt);
                       const subExpiry = formatDate(
-                        details.subscriptionExpiry ||
-                        (log.academyId?.subscriptionStatus === 'ACTIVE'
-                          ? log.academyId?.subscriptionEndsAt || new Date(new Date(log.createdAt).setFullYear(new Date(log.createdAt).getFullYear() + 1))
-                          : log.academyId?.trialEndsAt || new Date(new Date(log.createdAt).setDate(new Date(log.createdAt).getDate() + 14)))
+                        isTrial
+                          ? log.academyId?.trialEndsAt ||
+                            (details.subscriptionExpiry && new Date(details.subscriptionExpiry).getTime() - new Date(log.createdAt).getTime() <= 30 * 24 * 60 * 60 * 1000
+                              ? details.subscriptionExpiry
+                              : new Date(new Date(log.createdAt).setDate(new Date(log.createdAt).getDate() + 14)))
+                          : details.subscriptionExpiry ||
+                            log.academyId?.subscriptionEndsAt ||
+                            new Date(new Date(log.createdAt).setFullYear(new Date(log.createdAt).getFullYear() + 1))
                       );
 
                       return (
@@ -716,6 +721,8 @@ export default function PlatformAdminPage() {
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : log.action === 'IMPERSONATE_START'
                                   ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                  : log.action === 'TRIAL_EXTENDED_14_DAYS'
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
                                   : 'bg-slate-100 text-slate-800'
                               }`}
                             >
@@ -723,6 +730,8 @@ export default function PlatformAdminPage() {
                                 ? 'Offline Provisioning'
                                 : log.action === 'IMPERSONATE_START'
                                 ? 'Admin Impersonation'
+                                : log.action === 'TRIAL_EXTENDED_14_DAYS'
+                                ? 'Trial +14 Days Extended'
                                 : log.action}
                             </span>
                           </td>
