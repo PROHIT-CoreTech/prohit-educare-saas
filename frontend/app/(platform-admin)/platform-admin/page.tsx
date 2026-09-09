@@ -154,6 +154,27 @@ export default function PlatformAdminPage() {
     }
   };
 
+  const handleExtendTrial = async (academyId: string, days: number = 14) => {
+    try {
+      const res = await apiClient.post(
+        `/platform/academies/${academyId}/extend-trial`,
+        { days },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      alert(res.data.message || 'Trial period extended by 14 days!');
+      fetchAdminData(token!);
+      if (selectedTenantDetail && selectedTenantDetail._id === academyId) {
+        setSelectedTenantDetail({
+          ...selectedTenantDetail,
+          subscriptionStatus: res.data.academy?.subscriptionStatus || selectedTenantDetail.subscriptionStatus,
+          trialEndsAt: res.data.academy?.trialEndsAt || selectedTenantDetail.trialEndsAt,
+        });
+      }
+    } catch (err: any) {
+      alert('Failed to extend trial period: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   const handleOfflineRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (offlineForm.phone && !isValidMobile(offlineForm.phone)) {
@@ -1788,9 +1809,18 @@ export default function PlatformAdminPage() {
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">
                     {selectedTenantDetail.subscriptionStatus === 'TRIAL' ? 'Trial Expiry Date' : 'Subscription Expiry'}
                   </span>
-                  <span className="font-mono font-bold text-emerald-700">
-                    {formatDate(selectedTenantDetail.subscriptionStatus === 'TRIAL' ? selectedTenantDetail.trialEndsAt : selectedTenantDetail.subscriptionEndsAt)}
-                  </span>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <span className="font-mono font-bold text-emerald-700">
+                      {formatDate(selectedTenantDetail.subscriptionStatus === 'TRIAL' ? selectedTenantDetail.trialEndsAt : selectedTenantDetail.subscriptionEndsAt)}
+                    </span>
+                    <button
+                      onClick={() => handleExtendTrial(selectedTenantDetail._id, 14)}
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md text-[10px] font-extrabold transition cursor-pointer"
+                      title="Add +14 Days Trial Extension"
+                    >
+                      +14 Days
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1802,6 +1832,15 @@ export default function PlatformAdminPage() {
                 <span>Master Admin Control Actions</span>
               </h3>
               <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleExtendTrial(selectedTenantDetail._id, 14)}
+                  className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl inline-flex items-center space-x-1.5 shadow-md shadow-amber-500/20 transition cursor-pointer"
+                  title="Extend trial period by 14 days"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Extend Trial (+14 Days)</span>
+                </button>
+
                 {selectedTenantDetail.subscriptionStatus === 'ACTIVE' ? (
                   <button
                     onClick={() => {

@@ -529,4 +529,52 @@ export class PlatformService {
       errors,
     };
   }
+
+  /**
+   * Extends the trial period for a target tenant academy by specified days (default 14 days)
+   * Allowed only via Master Admin Console
+   */
+  async extendTrialPeriod(id: string, days: number = 14, platformUserId: string) {
+    const academy = await this.academyModel.findById(id).exec();
+    if (!academy) throw new NotFoundException('Academy tenant not found');
+
+    const extendDays = Number(days) > 0 ? Number(days) : 14;
+
+    // Calculate base date: if current trialEndsAt is in the future, extend from that; otherwise extend from current date
+    const baseDate = (academy.trialEndsAt && new Date(academy.trialEndsAt).getTime() > Date.now())
+      ? new Date(academy.trialEndsAt)
+      : new Date();
+
+    const newTrialEndsAt = new Date(baseDate.getTime() + extendDays * 24 * 60 * 60 * 1000);
+    academy.trialEndsAt = newTrialEndsAt;
+
+    // If tenant subscription is not ACTIVE, set status to TRIAL
+    if (academy.subscriptionStatus !== 'ACTIVE') {
+      academy.subscriptionStatus = 'TRIAL';
+    }
+
+    await academy.save();
+
+    // Log transaction/audit event
+    await this.platformAuditLogModel.create({
+      platformUserId: new Types.ObjectId(platformUserId),
+      academyId: academy._id,
+      action: 'TRIAL_EXTENDED_14_DAYS',
+      details: {
+        academyName: academy.name,
+        academySlug: academy.slug,
+        extendedDays: extendDays,
+        newTrialEndsAt,
+        subscriptionStart: academy.createdAt,
+        subscriptionExpiry: newTrialEndsAt,
+        paymentMode: '14_DAY_FREE_TRIAL',
+        amount: 0,
+      },
+    });
+
+    return {
+      message: `Trial period successfully extended by ${extendDays} days for ${academy.name}! New Trial Expiry: ${newTrialEndsAt.toLocaleDateString('en-IN')}`,
+      academy,
+    };
+  }
 }

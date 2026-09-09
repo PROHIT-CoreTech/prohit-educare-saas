@@ -93,4 +93,14 @@ export class PlatformController {
   ) {
     return this.platformService.bulkImportStudents(platformUserId, academyId, students);
   }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('academies/:id/extend-trial')
+  async extendTrialPeriod(
+    @Param('id') id: string,
+    @Body('days') days: number,
+    @GetUser('sub') platformUserId: string,
+  ) {
+    return this.platformService.extendTrialPeriod(id, days || 14, platformUserId);
+  }
 }
