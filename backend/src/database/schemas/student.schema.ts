@@ -56,6 +56,9 @@ export class Student {
   @Prop({ required: false, trim: true })
   photoUrl?: string;
 
+  @Prop({ required: false, enum: ['MALE', 'FEMALE', 'OTHER'], default: 'MALE', trim: true })
+  gender?: string;
+
   @Prop({ required: false, trim: true })
   bloodGroup?: string;
 

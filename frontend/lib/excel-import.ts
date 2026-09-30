@@ -6,6 +6,7 @@ export interface RawStudentRow {
   parentName: string;
   parentPhone: string;
   parentEmail?: string;
+  gender?: string;
   standard: number;
   medium?: string;
   stream?: string;
@@ -29,6 +30,7 @@ export interface ValidatedStudentRow extends RawStudentRow {
 export function downloadSampleExcelTemplate() {
   const headers = [
     'Student Name',
+    'Gender',
     'Parent Name',
     'Parent Phone',
     'Parent Email',
@@ -46,6 +48,7 @@ export function downloadSampleExcelTemplate() {
   const sampleRows = [
     [
       'Aarav Sharma',
+      'Male',
       'Rajesh Sharma',
       '9876543210',
       'rajesh@example.com',
@@ -61,6 +64,7 @@ export function downloadSampleExcelTemplate() {
     ],
     [
       'Ananya Patel',
+      'Female',
       'Suresh Patel',
       '9823012345',
       'suresh@example.com',
@@ -76,6 +80,7 @@ export function downloadSampleExcelTemplate() {
     ],
     [
       'Rohan Kulkarni',
+      'Male',
       'Vijay Kulkarni',
       '9765432109',
       'vijay@example.com',
@@ -97,6 +102,7 @@ export function downloadSampleExcelTemplate() {
   // Set column widths for readability
   worksheet['!cols'] = [
     { wch: 22 }, // Student Name
+    { wch: 10 }, // Gender
     { wch: 20 }, // Parent Name
     { wch: 15 }, // Parent Phone
     { wch: 25 }, // Parent Email
@@ -139,6 +145,16 @@ export async function parseExcelFile(file: File): Promise<ValidatedStudentRow[]>
 
           // Map column name keys safely (handles variations in casing/spaces)
           const name = String(row['Student Name'] || row['student_name'] || row['Name'] || '').trim();
+          const genderRaw = String(row['Gender'] || row['gender'] || row['Sex'] || '').trim().toLowerCase();
+          let gender = 'MALE';
+          if (genderRaw.startsWith('f') || genderRaw.includes('female')) {
+            gender = 'FEMALE';
+          } else if (genderRaw.startsWith('m') || genderRaw.includes('male')) {
+            gender = 'MALE';
+          } else if (genderRaw) {
+            gender = 'OTHER';
+          }
+
           const parentName = String(row['Parent Name'] || row['parent_name'] || '').trim();
           const parentPhone = String(row['Parent Phone'] || row['parent_phone'] || row['Phone'] || '').trim();
           const parentEmail = String(row['Parent Email'] || row['parent_email'] || '').trim();
@@ -176,6 +192,7 @@ export async function parseExcelFile(file: File): Promise<ValidatedStudentRow[]>
           return {
             rowNum,
             name,
+            gender,
             parentName,
             parentPhone,
             parentEmail: parentEmail || undefined,

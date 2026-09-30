@@ -31,6 +31,55 @@ const DEFAULT_BATCH_PRESETS = [
   { id: 'preset_15_sci', standard: 15, medium: 'english', section: 'science', batchName: 'Class 15th TY B.Sc / Degree' },
 ];
 
+const StudentAvatar = ({
+  photoUrl,
+  gender,
+  name,
+  className = "w-9 h-9 rounded-full",
+  iconClassName = "w-5 h-5",
+}: {
+  photoUrl?: string;
+  gender?: string;
+  name?: string;
+  className?: string;
+  iconClassName?: string;
+}) => {
+  if (photoUrl) {
+    return <img src={photoUrl} alt={name || 'Student'} className={`${className} object-cover border border-slate-200 shadow-xs`} />;
+  }
+
+  const g = (gender || 'MALE').toUpperCase();
+  const isFemale = g === 'FEMALE';
+
+  if (isFemale) {
+    return (
+      <div
+        className={`${className} bg-pink-100 border border-pink-300 text-pink-700 flex items-center justify-center font-black shrink-0 overflow-hidden relative shadow-xs`}
+        title={`Female Student (${name || ''})`}
+      >
+        <svg className={iconClassName} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="7" r="4.5" fill="#fbcfe8" stroke="#db2777" />
+          <path d="M5.5 21v-1.5a5.5 5.5 0 0 1 11 0V21" fill="#f472b6" stroke="#db2777" />
+          <path d="M7 8c-1.5 0.5-2.5 2-2.5 4" stroke="#db2777" strokeWidth="1.5" />
+          <path d="M17 8c1.5 0.5 2.5 2 2.5 4" stroke="#db2777" strokeWidth="1.5" />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`${className} bg-blue-100 border border-blue-300 text-blue-700 flex items-center justify-center font-black shrink-0 overflow-hidden relative shadow-xs`}
+      title={`Male Student (${name || ''})`}
+    >
+      <svg className={iconClassName} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="7" r="4.5" fill="#bfdbfe" stroke="#2563eb" />
+        <path d="M5.5 21v-1.5a5.5 5.5 0 0 1 11 0V21" fill="#60a5fa" stroke="#2563eb" />
+      </svg>
+    </div>
+  );
+};
+
 export default function StudentsPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -78,6 +127,7 @@ export default function StudentsPage() {
     parentPhone: '',
     parentEmail: '',
     photoUrl: '',
+    gender: 'MALE',
     bloodGroup: 'Not Available',
     emergencyContactName: '',
     emergencyPhone: '',
@@ -95,6 +145,7 @@ export default function StudentsPage() {
       parentPhone: stu.parentPhone || '',
       parentEmail: stu.parentEmail || '',
       photoUrl: stu.photoUrl || '',
+      gender: stu.gender ? stu.gender.toUpperCase() : 'MALE',
       bloodGroup: stu.bloodGroup || 'Not Available',
       emergencyContactName: stu.emergencyContactName || stu.parentName || '',
       emergencyPhone: stu.emergencyPhone || stu.parentPhone || '',
@@ -154,6 +205,7 @@ export default function StudentsPage() {
     medium: 'english',
     stream: 'science',
     photoUrl: '',
+    gender: 'MALE',
     bloodGroup: 'Not Available',
     emergencyContactName: '',
     emergencyPhone: '',
@@ -343,6 +395,7 @@ export default function StudentsPage() {
         medium: formData.standard <= 10 ? formData.medium : 'english',
         stream: formData.standard >= 11 ? formData.stream : 'none',
         photoUrl: formData.photoUrl,
+        gender: formData.gender || 'MALE',
         bloodGroup: formData.bloodGroup,
         emergencyContactName: formData.emergencyContactName || formData.parentName,
         emergencyPhone: formData.emergencyPhone || formData.parentPhone,
@@ -366,6 +419,7 @@ export default function StudentsPage() {
         medium: 'english',
         stream: 'science',
         photoUrl: '',
+        gender: 'MALE',
         bloodGroup: 'B+',
         emergencyContactName: '',
         emergencyPhone: '',
@@ -725,13 +779,7 @@ export default function StudentsPage() {
                   <tr key={stu._id} className="hover:bg-slate-50 transition">
                     <td className="p-4 font-bold text-slate-900">
                       <div className="flex items-center space-x-3">
-                        {stu.photoUrl ? (
-                          <img src={stu.photoUrl} alt={stu.name} className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-xs" />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-extrabold text-xs border border-orange-200 shrink-0">
-                            {stu.name?.charAt(0)?.toUpperCase()}
-                          </div>
-                        )}
+                        <StudentAvatar photoUrl={stu.photoUrl} gender={stu.gender} name={stu.name} className="w-9 h-9 rounded-full" iconClassName="w-5 h-5" />
                         <div>
                           <div>{stu.name}</div>
                           {stu.bloodGroup && (
@@ -1013,14 +1061,10 @@ export default function StudentsPage() {
             <form onSubmit={handleCreateStudent} className="space-y-4">
               {/* Photo Upload Provision */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
-                <label className="block text-xs font-bold text-slate-700 uppercase">Student Passport Photo Provision *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase">Student Passport Photo & Gender *</label>
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 rounded-2xl bg-white border border-slate-300 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
-                    {formData.photoUrl ? (
-                      <img src={formData.photoUrl} alt="Student Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <Camera className="w-6 h-6 text-slate-400" />
-                    )}
+                    <StudentAvatar photoUrl={formData.photoUrl} gender={formData.gender} name={formData.name || 'Preview'} className="w-full h-full rounded-2xl" iconClassName="w-8 h-8" />
                   </div>
 
                   <div className="space-y-1.5 flex-1">
@@ -1043,21 +1087,52 @@ export default function StudentsPage() {
                         className="hidden"
                       />
                     </label>
-                    <span className="text-[10px] text-slate-400 block font-medium">Supported formats: JPG, PNG, WEBP (Max 2MB)</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">If no photo uploaded, default avatar applies based on gender</span>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter full name of student"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                />
+              {/* Gender Selection & Student Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter full name of student"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Gender *</label>
+                  <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, gender: 'MALE' })}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition flex items-center justify-center space-x-1 ${
+                        formData.gender === 'MALE'
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>Male</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, gender: 'FEMALE' })}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition flex items-center justify-center space-x-1 ${
+                        formData.gender === 'FEMALE'
+                          ? 'bg-pink-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>Female</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Blood Group & Address */}
@@ -1293,14 +1368,10 @@ export default function StudentsPage() {
             <form onSubmit={handleSaveEditedStudent} className="space-y-4">
               {/* Photo Upload Provision */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
-                <label className="block text-xs font-bold text-slate-700 uppercase">Update Passport Photo</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase">Update Passport Photo & Gender</label>
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 rounded-2xl bg-white border border-slate-300 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
-                    {editFormData.photoUrl ? (
-                      <img src={editFormData.photoUrl} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <Camera className="w-6 h-6 text-slate-400" />
-                    )}
+                    <StudentAvatar photoUrl={editFormData.photoUrl} gender={editFormData.gender} name={editFormData.name || 'Preview'} className="w-full h-full rounded-2xl" iconClassName="w-8 h-8" />
                   </div>
 
                   <div className="space-y-1.5 flex-1">
@@ -1327,15 +1398,46 @@ export default function StudentsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
-                />
+              {/* Gender Selection & Student Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Gender *</label>
+                  <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setEditFormData({ ...editFormData, gender: 'MALE' })}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition flex items-center justify-center space-x-1 ${
+                        editFormData.gender === 'MALE'
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>Male</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditFormData({ ...editFormData, gender: 'FEMALE' })}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition flex items-center justify-center space-x-1 ${
+                        editFormData.gender === 'FEMALE'
+                          ? 'bg-pink-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>Female</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1593,11 +1695,7 @@ export default function StudentsPage() {
                       className="w-[68px] h-[78px] rounded-lg bg-slate-100 border-2 overflow-hidden shadow-sm flex items-center justify-center"
                       style={{ borderColor: academyInfo?.primaryColor || '#f97316' }}
                     >
-                      {selectedIdCardStudent.photoUrl ? (
-                        <img src={selectedIdCardStudent.photoUrl} alt="Photo" className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="w-9 h-9 text-slate-400" />
-                      )}
+                      <StudentAvatar photoUrl={selectedIdCardStudent.photoUrl} gender={selectedIdCardStudent.gender} name={selectedIdCardStudent.name} className="w-full h-full rounded-none" iconClassName="w-10 h-10" />
                     </div>
                     <div className="text-[7px] font-bold text-slate-600 border-t border-slate-300 pt-0.5 w-full text-center">
                       <span className="font-serif italic block text-[9px] text-slate-900 leading-none truncate max-w-[80px]">

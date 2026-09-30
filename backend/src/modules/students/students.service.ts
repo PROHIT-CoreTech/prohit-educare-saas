@@ -30,6 +30,7 @@ export class StudentsService {
     stream?: string;
     dateOfBirth?: Date;
     photoUrl?: string;
+    gender?: string;
     bloodGroup?: string;
     emergencyContactName?: string;
     emergencyPhone?: string;
@@ -97,6 +98,7 @@ export class StudentsService {
       customTotalFee: dto.customTotalFee,
       dateOfBirth: dto.dateOfBirth,
       photoUrl: dto.photoUrl,
+      gender: dto.gender ? dto.gender.toUpperCase() : 'MALE',
       bloodGroup: dto.bloodGroup,
       emergencyContactName: dto.emergencyContactName || dto.parentName,
       emergencyPhone: dto.emergencyPhone || dto.parentPhone,
