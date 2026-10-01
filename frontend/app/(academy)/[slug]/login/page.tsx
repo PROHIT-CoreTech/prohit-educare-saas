@@ -12,17 +12,30 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [academyLogo, setAcademyLogo] = useState<string | null>(null);
+  const [academyInfo, setAcademyInfo] = useState<{
+    name?: string;
+    logoUrl?: string;
+    primaryColor?: string;
+  } | null>(null);
 
   useEffect(() => {
     apiClient
-      .get(`/academies/check-slug/${params.slug}`)
+      .get(`/academies/public-info/${params.slug}`)
       .then((res) => {
-        if (res.data?.logoUrl) {
-          setAcademyLogo(res.data.logoUrl);
+        if (res.data) {
+          setAcademyInfo(res.data);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        apiClient
+          .get(`/academies/check-slug/${params.slug}`)
+          .then((res) => {
+            if (res.data) {
+              setAcademyInfo(res.data);
+            }
+          })
+          .catch(() => {});
+      });
   }, [params.slug]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -46,9 +59,20 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
     }
   };
 
-  const academyName = params.slug
-    ? params.slug.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('-') + ' Academy'
-    : 'Priya-Academy Academy';
+  const academyName = academyInfo?.name
+    ? academyInfo.name
+    : params.slug
+    ? params.slug.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') + ' Academy'
+    : 'Academy';
+
+  const logoUrl = academyInfo?.logoUrl;
+
+  function displayNameChar(str: string) {
+    const cleaned = str.replace(/[^a-zA-Z0-9]/g, '').trim();
+    return cleaned ? cleaned.charAt(0) : 'A';
+  }
+
+  const initialChar = (displayNameChar(academyName) || params.slug.charAt(0) || 'A').toUpperCase();
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-12 font-sans relative overflow-hidden bg-slate-950">
@@ -64,13 +88,21 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
       {/* Main Container Layout */}
       <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
         {/* LEFT COLUMN: Brand Watermark & ERP Info */}
-        <div className="lg:col-span-7 hidden lg:flex flex-col justify-between h-full min-h-[580px] p-4 text-white pointer-events-none select-none">
-          {/* Top Left Academy Pill */}
-          <div className="flex items-center space-x-3 bg-black/40 backdrop-blur-md px-4 py-2.5 rounded-2xl w-fit border border-white/10 shadow-lg">
-            <div className="w-8 h-8 rounded-xl bg-white text-[#EA580C] flex items-center justify-center font-black text-base shadow-xs uppercase">
-              {params.slug.charAt(0).toUpperCase()}
-            </div>
-            <span className="font-extrabold text-xs tracking-wider uppercase text-white">{academyName}</span>
+        <div className="lg:col-span-7 hidden lg:flex flex-col justify-between h-full min-h-[580px] p-4 text-white select-none">
+          {/* Top Left Academy Pill Badge matching reference design */}
+          <div className="flex items-center space-x-3 bg-black/60 backdrop-blur-lg px-4 py-2.5 rounded-2xl w-fit border border-white/15 shadow-xl">
+            {logoUrl ? (
+              <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center overflow-hidden shrink-0 shadow-xs border border-white/30">
+                <img src={logoUrl} alt={academyName} className="max-h-full max-w-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-white text-[#EA580C] flex items-center justify-center font-black text-lg shadow-xs uppercase shrink-0">
+                {initialChar}
+              </div>
+            )}
+            <span className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-white truncate max-w-[320px]">
+              {academyName}
+            </span>
           </div>
 
           {/* Bottom Left ERP Info Box */}
@@ -83,19 +115,39 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
         </div>
 
         {/* RIGHT COLUMN: Pure White Login Card */}
-        <div className="col-span-12 lg:col-span-5 flex items-center justify-center lg:justify-end">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 max-w-md w-full space-y-6 text-slate-900 border border-white/50 relative">
-            {/* Header & Branding Badge */}
-            <div className="flex items-start space-x-4">
-              {academyLogo ? (
-                <img
-                  src={academyLogo}
-                  alt={academyName}
-                  className="w-12 h-12 object-contain rounded-2xl border border-slate-200 bg-white p-1 shadow-md shrink-0"
-                />
+        <div className="col-span-12 lg:col-span-5 flex flex-col items-center lg:items-end justify-center">
+          {/* Mobile Top Academy Pill (visible on small screens) */}
+          <div className="lg:hidden flex items-center justify-center w-full mb-4">
+            <div className="flex items-center space-x-3 bg-black/60 backdrop-blur-lg px-4 py-2.5 rounded-2xl border border-white/15 shadow-xl max-w-full">
+              {logoUrl ? (
+                <div className="w-8 h-8 rounded-xl bg-white p-1 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                  <img src={logoUrl} alt={academyName} className="max-h-full max-w-full object-contain" />
+                </div>
               ) : (
-                <div className="w-12 h-12 rounded-2xl bg-[#EA580C] text-white flex items-center justify-center font-black text-2xl shadow-md shadow-orange-500/30 uppercase shrink-0">
-                  {params.slug.charAt(0).toUpperCase()}
+                <div className="w-8 h-8 rounded-xl bg-white text-[#EA580C] flex items-center justify-center font-black text-base shadow-xs uppercase shrink-0">
+                  {initialChar}
+                </div>
+              )}
+              <span className="font-extrabold text-xs tracking-wider uppercase text-white truncate max-w-[240px]">
+                {academyName}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 max-w-md w-full space-y-6 text-slate-900 border border-white/50 relative">
+            {/* Header & Branding Badge inside card */}
+            <div className="flex items-center space-x-4">
+              {logoUrl ? (
+                <div className="w-14 h-14 rounded-2xl border-2 border-orange-100 bg-white p-1.5 shadow-md shrink-0 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={logoUrl}
+                    alt={academyName}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-[#EA580C] text-white flex items-center justify-center font-black text-2xl shadow-md shadow-orange-500/30 uppercase shrink-0">
+                  {initialChar}
                 </div>
               )}
               <div className="min-w-0 flex-1">

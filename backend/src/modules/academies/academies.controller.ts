@@ -17,6 +17,11 @@ export class AcademiesController {
     return this.academiesService.checkSlugAvailability(slug);
   }
 
+  @Get('public-info/:slug')
+  async getPublicInfo(@Param('slug') slug: string) {
+    return this.academiesService.getPublicInfoBySlug(slug);
+  }
+
   @UseGuards(AcademyAuthGuard)
   @Get('my-academy')
   async getMyAcademy() {
