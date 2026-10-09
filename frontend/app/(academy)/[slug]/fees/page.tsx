@@ -171,7 +171,7 @@ export default function FeeEnginePage() {
 
     try {
       setProcessing(true);
-      const res = await apiClient.post('/billing/collect-payment', {
+      const res = await apiClient.post('/fee-engine/record-payment', {
         studentId: selectedStudentId,
         amountPaid: Number(amountToPay),
         paymentMode,
