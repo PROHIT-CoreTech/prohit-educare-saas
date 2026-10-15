@@ -34,15 +34,6 @@ export default function ComplianceNavbar() {
           <Link href="/contact" className="hover:text-orange-600 transition">
             Contact Us
           </Link>
-          <Link href="/terms" className="hover:text-orange-600 transition">
-            Terms
-          </Link>
-          <Link href="/privacy" className="hover:text-orange-600 transition">
-            Privacy
-          </Link>
-          <Link href="/refund-policy" className="hover:text-orange-600 transition">
-            Refunds
-          </Link>
         </nav>
 
         {/* Actions */}

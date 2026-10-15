@@ -181,14 +181,11 @@ export default function MarketingPage() {
             </div>
           </div>
 
-          {/* Central Compliance & Marketing Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 text-xs sm:text-sm font-bold text-slate-600">
+          {/* Central Navigation */}
+          <nav className="hidden md:flex items-center space-x-6 text-xs sm:text-sm font-bold text-slate-600">
             <a href="#features" className="hover:text-orange-600 transition">Features</a>
             <Link href="/pricing" className="hover:text-orange-600 transition">Pricing</Link>
             <Link href="/contact" className="hover:text-orange-600 transition">Contact Us</Link>
-            <Link href="/terms" className="hover:text-orange-600 transition">Terms</Link>
-            <Link href="/privacy" className="hover:text-orange-600 transition">Privacy</Link>
-            <Link href="/refund-policy" className="hover:text-orange-600 transition">Refunds</Link>
           </nav>
 
           <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm font-semibold">
