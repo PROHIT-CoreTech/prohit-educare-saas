@@ -7,8 +7,10 @@ import {
   Printer, Calendar, Clock, Layers, Award, FileText, Share2, Laptop, 
   ChevronRight, Star, GraduationCap, Building2, CheckCircle
 } from 'lucide-react';
+import Link from 'next/link';
 import { apiClient } from '../../lib/api';
 import { isValidMobile } from '../../lib/validation';
+import ComplianceFooter from './components/ComplianceFooter';
 
 export default function MarketingPage() {
   const [slug, setSlug] = useState('');
@@ -178,6 +180,16 @@ export default function MarketingPage() {
               </span>
             </div>
           </div>
+
+          {/* Central Compliance & Marketing Navigation */}
+          <nav className="hidden lg:flex items-center space-x-6 text-xs sm:text-sm font-bold text-slate-600">
+            <a href="#features" className="hover:text-orange-600 transition">Features</a>
+            <Link href="/pricing" className="hover:text-orange-600 transition">Pricing</Link>
+            <Link href="/contact" className="hover:text-orange-600 transition">Contact Us</Link>
+            <Link href="/terms" className="hover:text-orange-600 transition">Terms</Link>
+            <Link href="/privacy" className="hover:text-orange-600 transition">Privacy</Link>
+            <Link href="/refund-policy" className="hover:text-orange-600 transition">Refunds</Link>
+          </nav>
 
           <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm font-semibold">
             {/* Product Admin Console Link */}
@@ -413,7 +425,7 @@ export default function MarketingPage() {
 
                     <div className="bg-orange-950 text-white p-1 px-3 flex items-center justify-between text-[7px] font-bold">
                       <span className="bg-orange-800 px-1.5 py-0.5 rounded text-[6px] uppercase">ISSUED BY ACADEMY</span>
-                      <span className="font-mono">+91 9561042069</span>
+                      <span className="font-mono">+91 97739 69033</span>
                     </div>
                   </div>
 
@@ -823,7 +835,7 @@ export default function MarketingPage() {
       </section>
 
       {/* PRICING SECTION - MOBILE RESPONSIVE */}
-      <section className="py-16 sm:py-24 relative bg-white border-t border-slate-200">
+      <section id="pricing" className="py-16 sm:py-24 relative bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900">Simple, Transparent Indian Rupee Pricing</h2>
@@ -905,16 +917,19 @@ export default function MarketingPage() {
                 </ul>
               </div>
 
-              <button
-                onClick={() => setShowModal(true)}
-                className="mt-6 sm:mt-8 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl sm:rounded-2xl transition border border-slate-200 cursor-pointer text-xs sm:text-sm shadow-xs"
+              <Link
+                href="/contact"
+                className="mt-6 sm:mt-8 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl sm:rounded-2xl transition border border-slate-200 cursor-pointer text-xs sm:text-sm shadow-xs block text-center"
               >
                 Contact Enterprise Sales
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
+
+      {/* COMPLIANCE & LEGAL FOOTER (CASHFREE APPROVED) */}
+      <ComplianceFooter />
 
       {/* SIGNUP TRIAL MODAL - 4-STEP ONBOARDING WIZARD */}
       {showModal && (

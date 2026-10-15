@@ -8,6 +8,26 @@ export function middleware(request: NextRequest) {
   // Extract hostname without port
   const hostname = host.split(':')[0].toLowerCase();
 
+  // Public marketing & compliance routes that should never be rewritten into tenant paths
+  const complianceRoutes = ['/terms', '/privacy', '/refund-policy', '/contact', '/pricing'];
+  if (complianceRoutes.some((p) => url.pathname === p || url.pathname.startsWith(`${p}/`))) {
+    return NextResponse.next();
+  }
+
+  // Common compliance URL aliases
+  if (url.pathname === '/terms-and-conditions') {
+    return NextResponse.redirect(new URL('/terms', request.url));
+  }
+  if (url.pathname === '/privacy-policy') {
+    return NextResponse.redirect(new URL('/privacy', request.url));
+  }
+  if (url.pathname === '/cancellation-policy' || url.pathname === '/refund' || url.pathname === '/refunds') {
+    return NextResponse.redirect(new URL('/refund-policy', request.url));
+  }
+  if (url.pathname === '/contact-us') {
+    return NextResponse.redirect(new URL('/contact', request.url));
+  }
+
   // 1. Platform Admin Subdomain (e.g. admin.localhost or admin.educare.prohitcoretech.com)
   if (hostname.startsWith('admin.')) {
     if (url.pathname === '/') {

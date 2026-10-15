@@ -1721,7 +1721,7 @@ export default function StudentsPage() {
                   >
                     ISSUED BY ACADEMY
                   </span>
-                  <span className="font-mono text-[7px]">{academyInfo?.phone || '+91 9561042069'}</span>
+                  <span className="font-mono text-[7px]">{academyInfo?.phone || '+91 97739 69033'}</span>
                 </div>
               </div>
 
