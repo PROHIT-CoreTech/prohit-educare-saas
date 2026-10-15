@@ -5,35 +5,9 @@ import { COMPANY_INFO } from '../../../lib/company-info';
 
 export default function ComplianceFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-white text-slate-700 text-sm">
-      {/* Prominent Compliance Text Hyperlinks Strip (Terms | Privacy | Refunds) */}
-      <div className="bg-white border-b border-slate-200 py-6 sm:py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center space-x-8 sm:space-x-14 text-base sm:text-lg font-bold text-slate-700">
-            <Link
-              href="/terms"
-              className="text-slate-700 hover:text-orange-600 hover:underline underline-offset-4 transition"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-slate-700 hover:text-orange-600 hover:underline underline-offset-4 transition"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/refund-policy"
-              className="text-slate-700 hover:text-orange-600 hover:underline underline-offset-4 transition"
-            >
-              Refunds
-            </Link>
-          </div>
-        </div>
-      </div>
-
+    <footer className="border-t border-slate-800 bg-slate-950 text-slate-300 text-sm">
       {/* Main Footer Information Grid */}
-      <div className="bg-slate-950 text-slate-300 py-12 sm:py-16">
+      <div className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
             {/* Col 1 & 2: Brand & Operating Entity Info */}
