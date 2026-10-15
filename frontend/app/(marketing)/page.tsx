@@ -393,7 +393,7 @@ export default function MarketingPage() {
                         <GraduationCap className="w-4 h-4 text-yellow-300" />
                         <div>
                           <h4 className="font-black text-[10px] uppercase text-yellow-300">EXCELLENCE ACADEMY</h4>
-                          <p className="text-[7px] text-orange-100 font-medium">Dahisar, Mumbai</p>
+                          <p className="text-[7px] text-orange-100 font-medium">Shivaji Nagar, Pune</p>
                         </div>
                       </div>
                       <span className="text-[6.5px] bg-orange-600 px-1.5 py-0.5 rounded uppercase font-extrabold">VERIFIED</span>
@@ -405,8 +405,8 @@ export default function MarketingPage() {
 
                     <div className="p-2.5 sm:p-3 flex items-start justify-between flex-1 gap-2 bg-gradient-to-b from-orange-50/30 to-white">
                       <div className="space-y-1 text-[8.5px] sm:text-[9px]">
-                        <p className="font-black text-slate-900 text-[10px] sm:text-[10.5px]">NAME: ROHIT BARGE</p>
-                        <p className="font-bold text-slate-600">ROLL NO: <span className="font-mono text-orange-600 font-extrabold">STU-2026-00003</span></p>
+                        <p className="font-black text-slate-900 text-[10px] sm:text-[10.5px]">NAME: AARAV SHARMA</p>
+                        <p className="font-bold text-slate-600">ROLL NO: <span className="font-mono text-orange-600 font-extrabold">STU-2026-00101</span></p>
                         <p className="font-bold text-slate-600">COURSE: <span className="text-slate-900 font-extrabold">Std 12th (SCIENCE)</span></p>
                         <p className="font-bold text-slate-600">BATCH: <span className="text-slate-800 font-bold">Morning Batch</span></p>
                         <p className="font-bold text-slate-600">VALID UPTO: <span className="font-mono text-rose-600 font-bold">31-MAR-2027</span></p>
@@ -422,7 +422,7 @@ export default function MarketingPage() {
 
                     <div className="bg-orange-950 text-white p-1 px-3 flex items-center justify-between text-[7px] font-bold">
                       <span className="bg-orange-800 px-1.5 py-0.5 rounded text-[6px] uppercase">ISSUED BY ACADEMY</span>
-                      <span className="font-mono">+91 97739 69033</span>
+                      <span className="font-mono">+91 98000 12345</span>
                     </div>
                   </div>
 
@@ -434,10 +434,10 @@ export default function MarketingPage() {
                     </div>
 
                     <div className="p-2.5 sm:p-3 space-y-1 text-[8px] sm:text-[8.5px] leading-tight flex-1 bg-gradient-to-b from-orange-50/20 to-white">
-                      <p className="border-b border-slate-100 pb-0.5"><strong className="text-slate-900">BLOOD GROUP:</strong> <span className="font-mono font-black text-rose-600 bg-rose-50 px-1 rounded">B+</span></p>
-                      <p className="border-b border-slate-100 pb-0.5"><strong className="text-slate-900">EMERGENCY CONTACT:</strong> Subhash Barge</p>
-                      <p className="border-b border-slate-100 pb-0.5"><strong className="text-slate-900">EMERGENCY PHONE:</strong> 9021979149</p>
-                      <p className="border-b border-slate-100 pb-0.5 truncate"><strong className="text-slate-900">ADDRESS:</strong> Dahisar, Mumbai 400068</p>
+                      <p className="border-b border-slate-100 pb-0.5"><strong className="text-slate-900">BLOOD GROUP:</strong> <span className="font-mono font-black text-rose-600 bg-rose-50 px-1 rounded">O+</span></p>
+                      <p className="border-b border-slate-100 pb-0.5"><strong className="text-slate-900">EMERGENCY CONTACT:</strong> Rajesh Sharma (Father)</p>
+                      <p className="border-b border-slate-100 pb-0.5"><strong className="text-slate-900">EMERGENCY PHONE:</strong> +91 98765 43210</p>
+                      <p className="border-b border-slate-100 pb-0.5 truncate"><strong className="text-slate-900">ADDRESS:</strong> 124, FC Road, Shivaji Nagar, Pune - 411005</p>
                       
                       <div className="bg-orange-50 p-1 rounded-lg border border-orange-200 text-[6.5px] sm:text-[7px]">
                         <strong className="text-orange-900 block">INSTRUCTIONS:</strong>
@@ -499,14 +499,14 @@ export default function MarketingPage() {
                       <tbody className="divide-y divide-slate-200">
                         <tr>
                           <td className="p-2.5 sm:p-3 font-mono text-orange-600 font-bold">REC-2026-0042</td>
-                          <td className="p-2.5 sm:p-3 font-bold text-slate-900">Rohit Barge (Std 12th Sci)</td>
+                          <td className="p-2.5 sm:p-3 font-bold text-slate-900">Aarav Sharma (Std 12th Sci)</td>
                           <td className="p-2.5 sm:p-3 font-mono font-bold text-emerald-600">₹12,000</td>
                           <td className="p-2.5 sm:p-3 text-slate-600">Inst 1 (₹8,000) + Inst 2 (₹4,000)</td>
                           <td className="p-2.5 sm:p-3"><span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded text-[10px] border border-emerald-200">UPI / GPay</span></td>
                         </tr>
                         <tr>
                           <td className="p-2.5 sm:p-3 font-mono text-orange-600 font-bold">REC-2026-0041</td>
-                          <td className="p-2.5 sm:p-3 font-bold text-slate-900">Mahesh Zambre (Std 11th Gen)</td>
+                          <td className="p-2.5 sm:p-3 font-bold text-slate-900">Priya Patel (Std 11th Gen)</td>
                           <td className="p-2.5 sm:p-3 font-mono font-bold text-emerald-600">₹15,000</td>
                           <td className="p-2.5 sm:p-3 text-slate-600">Full Single Payment Settle</td>
                           <td className="p-2.5 sm:p-3"><span className="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[10px] border border-blue-200">Cash Ledger</span></td>
