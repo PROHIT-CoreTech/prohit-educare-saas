@@ -325,6 +325,17 @@ export default function AcademyLayout({
       {/* Main Responsive Content Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 overflow-x-hidden">{children}</main>
 
+      {/* Academy Dashboard Compliance Footer */}
+      <footer className="mt-auto py-5 border-t border-slate-200/80 bg-white/60 text-center pb-16 lg:pb-5">
+        <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs sm:text-sm font-bold text-slate-600">
+          <Link href="/terms" className="hover:text-orange-600 hover:underline transition">Terms</Link>
+          <Link href="/privacy" className="hover:text-orange-600 hover:underline transition">Privacy</Link>
+          <Link href="/refund-policy" className="hover:text-orange-600 hover:underline transition">Refunds</Link>
+          <span className="text-slate-300 hidden sm:inline">•</span>
+          <span className="text-slate-400 font-medium text-xs">Platform by PROHIT CoreTech</span>
+        </div>
+      </footer>
+
       {/* Mobile Bottom Navigation Bar (< 1024px) for Quick 1-Tap Access */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 shadow-lg px-2 py-1.5 flex items-center justify-around">
         {navLinks.slice(0, 5).map((link) => {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Lock, Mail, ShieldCheck, Eye, EyeOff, Globe } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import loginBg from '@/public/login_bg_classroom.svg';
@@ -235,6 +236,13 @@ export default function AcademyLoginPage({ params }: { params: { slug: string } 
                 )}
               </button>
             </form>
+
+            {/* Compliance Policy Text Hyperlinks */}
+            <div className="flex items-center justify-center space-x-6 sm:space-x-8 text-xs sm:text-sm font-bold text-slate-500 pt-4 border-t border-slate-100">
+              <Link href="/terms" className="hover:text-orange-600 hover:underline transition">Terms</Link>
+              <Link href="/privacy" className="hover:text-orange-600 hover:underline transition">Privacy</Link>
+              <Link href="/refund-policy" className="hover:text-orange-600 hover:underline transition">Refunds</Link>
+            </div>
           </div>
         </div>
       </div>
