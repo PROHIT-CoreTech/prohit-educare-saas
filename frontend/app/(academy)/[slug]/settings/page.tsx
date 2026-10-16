@@ -1,14 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette, KeyRound, Lock } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import { isValidMobile } from '../../../../lib/validation';
+import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../../../lib/pricing-plans';
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription' | 'security'>('profile');
   
   const [subscription, setSubscription] = useState<any>(null);
+  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>(DEFAULT_PLANS);
+  const [selectedPlanForRenewal, setSelectedPlanForRenewal] = useState<PricingPlan | null>(null);
+  const [showOfflineNoticeModal, setShowOfflineNoticeModal] = useState<boolean>(false);
   const [loadingSub, setLoadingSub] = useState(true);
   const [renewingPlan, setRenewingPlan] = useState<string | null>(null);
   const [renewalError, setRenewalError] = useState('');
@@ -147,11 +152,28 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const loadAllSettings = async () => {
       setLoading(true);
-      await Promise.all([fetchAcademy(), fetchSubscription(), fetchFeeStructures(), fetchFaculty()]);
+      await Promise.all([
+        fetchAcademy(),
+        fetchSubscription(),
+        fetchFeeStructures(),
+        fetchFaculty(),
+        fetchDynamicPlans(),
+      ]);
       setLoading(false);
     };
     loadAllSettings();
   }, []);
+
+  const fetchDynamicPlans = async () => {
+    try {
+      const data = await fetchPublicPlans();
+      if (data && data.length > 0) {
+        setPricingPlans(data);
+      }
+    } catch (e) {
+      console.error('Failed to load dynamic plans in settings', e);
+    }
+  };
 
   const fetchAcademy = async () => {
     try {
@@ -411,8 +433,9 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
     }
   };
 
-  const handleRenewSubscription = async (planKey: string, amount: number) => {
-    alert('🚫 Online Payment Disabled (Offline Sales Mode)\n\nOnline subscription payment gateway is currently disabled. Please contact Product Support (+91 97739 69033 / info@prohitcoretech.com) to renew or upgrade your academy license offline via Cash or Bank Transfer.');
+  const handleRenewSubscription = (plan: PricingPlan) => {
+    setSelectedPlanForRenewal(plan);
+    setShowOfflineNoticeModal(true);
   };
 
   const filteredFaculty = facultyList.filter(
@@ -1303,7 +1326,13 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 </span>
                 <span className="text-xs text-slate-500 font-mono font-semibold">Tenant License</span>
               </div>
-              <h2 className="text-2xl font-black text-slate-900">{subscription?.name || params.slug} Academy</h2>
+              <h2 className="text-2xl font-black text-slate-900">
+                {subscription?.name
+                  ? /academy$/i.test(subscription.name.trim())
+                    ? subscription.name.trim()
+                    : `${subscription.name.trim()} Academy`
+                  : `${params.slug} Academy`}
+              </h2>
               <p className="text-xs text-slate-500 mt-1 font-medium">
                 {subscription?.subscriptionStatus === 'ACTIVE' ? 'License Expiry Date:' : 'Trial Expiry Date:'}{' '}
                 <span className="font-mono text-emerald-700 font-bold">
@@ -1330,94 +1359,129 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </div>
           </div>
 
-          {/* Pricing Tiers */}
+          {/* Real-time Pricing Catalog Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            <div>
+              <div className="flex items-center space-x-2 text-xs font-extrabold text-orange-600 uppercase tracking-wider mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Real-Time Pricing &amp; Tier Catalog</span>
+              </div>
+              <h3 className="text-xl font-black text-slate-900">
+                Monthly Subscription &amp; Tier Management
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                Real-time dynamic pricing synchronized with the Platform Admin Console. Billed monthly with zero annual lock-in.
+              </p>
+            </div>
+
+            <Link
+              href={`/${params.slug}/subscription`}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold px-4 py-2 rounded-xl border border-slate-200 transition flex items-center space-x-1.5 self-start sm:self-auto shrink-0 shadow-xs"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-orange-500" />
+              <span>Open Full Billing &amp; Coupons Console</span>
+            </Link>
+          </div>
+
+          {/* Pricing Tiers Grid - Dynamic from Platform Admin / fetchPublicPlans */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Starter */}
-            <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900">Starter Plan</h3>
-              <div className="text-3xl font-black text-slate-900 font-mono">
-                ₹11,988 <span className="text-xs text-slate-500 font-normal">/ year</span>
-              </div>
-              <ul className="space-y-2 text-xs text-slate-700">
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Up to 200 Active Students</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Single Branch Academy Management</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Atomic FIFO Fee Engine &amp; Receipts</span>
-                </li>
-              </ul>
-              <button
-                onClick={() => handleRenewSubscription('STARTER', 11988)}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-2.5 rounded-xl text-xs transition border border-slate-200"
-              >
-                Renew Starter (₹11,988)
-              </button>
-            </div>
+            {pricingPlans.map((plan) => {
+              const planKey = (plan.slug || plan.key || plan.name).toUpperCase().trim();
+              const currentKey = (subscription?.subscriptionPlanKey || 'PROFESSIONAL').toUpperCase().trim();
+              const isCurrent = currentKey.includes(planKey) || planKey.includes(currentKey);
+              const hasDiscount = plan.originalPrice && plan.originalPrice > plan.priceMonthly;
 
-            {/* Professional */}
-            <div className="bg-orange-50/40 border-2 border-orange-500 p-6 rounded-3xl space-y-4 relative shadow-md">
-              <span className="absolute -top-3 right-6 bg-orange-500 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-                POPULAR
-              </span>
-              <h3 className="text-lg font-extrabold text-slate-900">Professional Plan</h3>
-              <div className="text-3xl font-black text-slate-900 font-mono">
-                ₹35,988 <span className="text-xs text-slate-500 font-normal">/ year</span>
-              </div>
-              <ul className="space-y-2 text-xs text-slate-700">
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Up to 1,000 Active Students</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Academics &amp; Stream Locks (Sci/Com/Arts)</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Advance Credit Auto-Settlement</span>
-                </li>
-              </ul>
-              <button
-                onClick={() => handleRenewSubscription('PROFESSIONAL', 35988)}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-orange-500/20"
-              >
-                Renew Professional (₹35,988)
-              </button>
-            </div>
+              return (
+                <div
+                  key={plan.slug || plan.name}
+                  className={`bg-white rounded-3xl p-6 md:p-7 flex flex-col justify-between space-y-5 transition relative shadow-sm ${
+                    plan.popular
+                      ? 'border-2 border-orange-500 shadow-lg bg-gradient-to-b from-orange-50/20 to-white'
+                      : 'border border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {plan.popular && (
+                    <span className="absolute -top-3.5 right-6 bg-orange-500 text-white text-[10px] font-black uppercase tracking-wider px-3.5 py-0.5 rounded-full shadow-xs">
+                      {plan.offerBadge || 'MOST POPULAR'}
+                    </span>
+                  )}
 
-            {/* Enterprise */}
-            <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900">Enterprise Plan</h3>
-              <div className="text-3xl font-black text-slate-900 font-mono">
-                ₹95,988 <span className="text-xs text-slate-500 font-normal">/ year</span>
-              </div>
-              <ul className="space-y-2 text-xs text-slate-700">
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Unlimited Multi-Branch Students</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Custom Subdomain &amp; Primary Branding</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Dedicated Account Manager &amp; SLA</span>
-                </li>
-              </ul>
-              <button
-                onClick={() => handleRenewSubscription('ENTERPRISE', 95988)}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-2.5 rounded-xl text-xs transition border border-slate-200"
-              >
-                Renew Enterprise (₹95,988)
-              </button>
-            </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        {plan.studentLimit || (plan.maxStudents > 0 ? `Up to ${plan.maxStudents} Students` : 'Unlimited Students')}
+                      </span>
+                      {isCurrent ? (
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-200">
+                          Active Tier
+                        </span>
+                      ) : (
+                        hasDiscount && !plan.popular && (
+                          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-emerald-200">
+                            {plan.offerBadge || 'Special Rate'}
+                          </span>
+                        )
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="text-xl font-black text-slate-900">{plan.name}</h4>
+                      {plan.description && (
+                        <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                          {plan.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100">
+                      {hasDiscount && (
+                        <div className="flex items-center space-x-2 text-xs mb-0.5">
+                          <span className="text-slate-400 line-through font-mono font-semibold">
+                            ₹{plan.originalPrice?.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[10px]">
+                            Save {Math.round(((plan.originalPrice! - plan.priceMonthly) / plan.originalPrice!) * 100)}%
+                          </span>
+                        </div>
+                      )}
+                      <div className="text-3xl font-black text-slate-900 font-mono">
+                        ₹{plan.priceMonthly.toLocaleString('en-IN')}{' '}
+                        <span className="text-xs text-slate-500 font-normal font-sans">/ month</span>
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-medium">Billed monthly &bull; Zero lock-in</span>
+                    </div>
+
+                    <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
+                      {plan.features.slice(0, 7).map((feat, idx) => (
+                        <li key={idx} className="flex items-start space-x-2">
+                          <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <span className="leading-tight">{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-2">
+                    {isCurrent ? (
+                      <button
+                        onClick={() => handleRenewSubscription(plan)}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-extrabold py-3 rounded-xl text-xs transition shadow-md shadow-orange-500/20 flex items-center justify-center space-x-1.5 cursor-pointer"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Renew Current Tier (₹{plan.priceMonthly.toLocaleString('en-IN')})</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleRenewSubscription(plan)}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-3 rounded-xl text-xs transition border border-slate-200 flex items-center justify-center space-x-1.5 cursor-pointer"
+                      >
+                        <span>Switch to {plan.name}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -1820,6 +1884,69 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 {editingFacultyId ? 'Update Faculty Profile' : 'Save Faculty Profile'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Offline Notice Modal */}
+      {showOfflineNoticeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 max-w-md w-full relative shadow-2xl space-y-4 text-center">
+            <button
+              onClick={() => setShowOfflineNoticeModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-black text-slate-900">
+                Monthly Renewal for {selectedPlanForRenewal?.name || 'Selected Tier'}
+              </h3>
+              <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">
+                Online payment gateway renewal is in offline sales mode. Please share your academy ID ({subscription?.slug || params.slug}) with your PROHIT Account Manager to renew or upgrade your monthly subscription instantly.
+              </p>
+            </div>
+
+            {selectedPlanForRenewal && (
+              <div className="bg-orange-50/50 border border-orange-200 p-3 rounded-2xl text-xs text-left space-y-1">
+                <div className="flex justify-between">
+                  <span className="font-semibold text-slate-600">Selected Plan:</span>
+                  <span className="font-bold text-slate-900">{selectedPlanForRenewal.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-slate-600">Rate:</span>
+                  <span className="font-mono font-bold text-orange-600">
+                    ₹{selectedPlanForRenewal.priceMonthly.toLocaleString('en-IN')} / month
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs text-slate-600 font-mono space-y-1 text-left">
+              <p><span className="font-bold text-slate-800">Product Support:</span> PROHIT CoreTech</p>
+              <p><span className="font-bold text-slate-800">Phone:</span> +91 97739 69033</p>
+              <p><span className="font-bold text-slate-800">Email:</span> info@prohitcoretech.com</p>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <Link
+                href={`/${params.slug}/subscription`}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-2.5 rounded-xl transition text-xs flex items-center justify-center cursor-pointer"
+              >
+                Go to Billing Console
+              </Link>
+              <button
+                onClick={() => setShowOfflineNoticeModal(false)}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl shadow-md transition text-xs cursor-pointer"
+              >
+                Understand &amp; Close
+              </button>
+            </div>
           </div>
         </div>
       )}
