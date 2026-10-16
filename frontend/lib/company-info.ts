@@ -24,24 +24,21 @@ export const COMPANY_INFO = {
   },
   subscription: {
     trialDays: 14,
-    billingCycle: 'Annual Billing',
+    billingCycle: 'Monthly Billing',
     pricing: {
       starter: {
         name: 'Starter Academy',
         monthly: 999,
-        annual: 11988,
-        students: 200,
+        students: 400,
       },
       professional: {
         name: 'Professional Academy',
         monthly: 2999,
-        annual: 35988,
-        students: 1000,
+        students: 1500,
       },
       enterprise: {
         name: 'Enterprise Network',
         monthly: 7999,
-        annual: 95988,
         students: 'Unlimited',
       },
     },

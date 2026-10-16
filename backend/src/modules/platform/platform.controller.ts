@@ -113,4 +113,89 @@ export class PlatformController {
   ) {
     return this.platformService.extendTrialPeriod(id, days || 14, platformUserId);
   }
+
+  // --- PUBLIC ENDPOINTS (Landing Page / Tenant Client) ---
+
+  @Get('public/pricing-plans')
+  async getPublicPricingPlans() {
+    return this.platformService.getPublicPlans();
+  }
+
+  @Get('public/banner')
+  async getPublicBanner() {
+    return this.platformService.getPublicBanner();
+  }
+
+  // --- PLATFORM ADMIN: PLANS CRUD ---
+
+  @UseGuards(PlatformAuthGuard)
+  @Get('plans')
+  async getAllPlans() {
+    return this.platformService.getAllPlans();
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('plans')
+  async createPlan(@Body() body: any) {
+    return this.platformService.createPlan(body);
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Patch('plans/:id')
+  async updatePlan(@Param('id') id: string, @Body() body: any) {
+    return this.platformService.updatePlan(id, body);
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('plans/:id')
+  async updatePlanPost(@Param('id') id: string, @Body() body: any) {
+    return this.platformService.updatePlan(id, body);
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('plans/:id/delete')
+  async deletePlan(@Param('id') id: string) {
+    return this.platformService.deletePlan(id);
+  }
+
+  // --- PLATFORM ADMIN: COUPONS CRUD ---
+
+  @UseGuards(PlatformAuthGuard)
+  @Get('coupons')
+  async getAllCoupons() {
+    return this.platformService.getAllCoupons();
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('coupons')
+  async createCoupon(@Body() body: any) {
+    return this.platformService.createCoupon(body);
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Patch('coupons/:id')
+  async updateCoupon(@Param('id') id: string, @Body() body: any) {
+    return this.platformService.updateCoupon(id, body);
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('coupons/:id/delete')
+  async deleteCoupon(@Param('id') id: string) {
+    return this.platformService.deleteCoupon(id);
+  }
+
+  // --- PLATFORM ADMIN: PROMO BANNER ---
+
+  @UseGuards(PlatformAuthGuard)
+  @Get('banner')
+  async getBannerSettings() {
+    return this.platformService.getBannerSettings();
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Post('banner')
+  async updateBannerSettings(@Body() body: any) {
+    return this.platformService.updateBannerSettings(body);
+  }
 }
+

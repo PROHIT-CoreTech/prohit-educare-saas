@@ -47,7 +47,7 @@ export default function RefundPolicyPage() {
               <span>Non-Refundable Subscription Notice</span>
             </div>
             <p className="leading-relaxed">
-              All subscription plans for <strong>{COMPANY_INFO.productName}</strong> (Starter Academy, Professional Academy, and Enterprise Network) are <strong>strictly non-refundable and non-transferable</strong> once purchased and activated. Because we provide an unrestricted <strong>14-Day Full-Featured Free Trial</strong>, institutions are given complete opportunity to verify all features, workflows, and compatibility prior to committing to an annual plan.
+              All subscription plans for <strong>{COMPANY_INFO.productName}</strong> (Starter Academy, Professional Academy, and Enterprise Network) are <strong>strictly non-refundable and non-transferable</strong> once purchased and activated. Because we provide an unrestricted <strong>14-Day Full-Featured Free Trial</strong>, institutions are given complete opportunity to verify all features, workflows, and compatibility prior to committing to a paid monthly plan.
             </p>
           </div>
 
@@ -73,14 +73,14 @@ export default function RefundPolicyPage() {
             <section className="space-y-3">
               <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center space-x-2">
                 <span className="bg-slate-900 text-white w-6 h-6 rounded-lg text-xs flex items-center justify-center font-mono">2</span>
-                <span>Annual Paid Subscriptions</span>
+                <span>Monthly Paid Subscriptions</span>
               </h2>
               <p>
-                Once an annual subscription is confirmed and processed via our payment gateway (Cashfree) or direct bank transfer:
+                Once a monthly subscription is confirmed and processed via our payment gateway (Cashfree) or direct bank transfer:
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
                 <li>Subscription fees are immediately allocated toward cloud server infrastructure, database storage, tenant isolation, and maintenance costs.</li>
-                <li><strong>No full or pro-rated partial refunds</strong> are provided for mid-term cancellations or unused time within the annual term.</li>
+                <li><strong>No full or pro-rated partial refunds</strong> are provided for mid-month cancellations or unused time within the monthly billing period.</li>
                 <li>Subscriptions cannot be transferred to a third party or credited towards another institution.</li>
               </ul>
             </section>
@@ -92,7 +92,7 @@ export default function RefundPolicyPage() {
                 <span>Subscription Cancellation Procedure</span>
               </h2>
               <p>
-                You have the right to cancel future renewals of your subscription at any time:
+                You have the right to cancel future renewals of your monthly subscription at any time:
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
                 <li>
@@ -100,7 +100,7 @@ export default function RefundPolicyPage() {
                   <a href={`mailto:${COMPANY_INFO.contact.email}`} className="text-orange-600 font-semibold underline">
                     {COMPANY_INFO.contact.email}
                   </a>{' '}
-                  at least 7 days before your annual renewal date.
+                  at least 48 hours before your monthly renewal date.
                 </li>
                 <li>
                   <strong>Access Continuity:</strong> Upon cancellation, your tenant portal and data access will remain fully functional until the final day of your currently active paid billing cycle.

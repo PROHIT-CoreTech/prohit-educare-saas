@@ -12,6 +12,10 @@ import { Payment, PaymentSchema } from '../../database/schemas/payment.schema';
 import { FeeSchedule, FeeScheduleSchema } from '../../database/schemas/fee-schedule.schema';
 import { ClassBatch, ClassBatchSchema } from '../../database/schemas/class-batch.schema';
 
+import { SubscriptionPlan, SubscriptionPlanSchema } from '../../database/schemas/subscription-plan.schema';
+import { Coupon, CouponSchema } from '../../database/schemas/coupon.schema';
+import { PlatformSetting, PlatformSettingSchema } from '../../database/schemas/platform-setting.schema';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -23,6 +27,9 @@ import { ClassBatch, ClassBatchSchema } from '../../database/schemas/class-batch
       { name: Payment.name, schema: PaymentSchema },
       { name: FeeSchedule.name, schema: FeeScheduleSchema },
       { name: ClassBatch.name, schema: ClassBatchSchema },
+      { name: SubscriptionPlan.name, schema: SubscriptionPlanSchema },
+      { name: Coupon.name, schema: CouponSchema },
+      { name: PlatformSetting.name, schema: PlatformSettingSchema },
     ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'super-secret-key-123',

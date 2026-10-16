@@ -85,12 +85,12 @@ export default function TermsPage() {
                 <span>Subscription Plans, Pricing &amp; Billing Cycles</span>
               </h2>
               <p>
-                Access to {COMPANY_INFO.productName} is offered under tiered annual subscription plans billed in Indian National Rupees (INR / ₹) as published on our <Link href="/pricing" className="text-orange-600 font-semibold hover:underline">Pricing Page</Link>.
+                Access to {COMPANY_INFO.productName} is offered under tiered monthly subscription plans billed in Indian National Rupees (INR / ₹) as published on our <Link href="/pricing" className="text-orange-600 font-semibold hover:underline">Pricing Page</Link>.
               </p>
               <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
                 <li><strong>14-Day Free Trial:</strong> New tenants receive a 14-day fully featured free trial without requiring credit card or payment authorization.</li>
-                <li><strong>Paid Subscriptions:</strong> After the trial period, continuous access requires purchasing an annual license for your chosen tier (Starter Academy, Professional Academy, or Enterprise Network).</li>
-                <li><strong>Price Modifications:</strong> {COMPANY_INFO.name} reserves the right to revise subscription fees upon 30 days prior written notice before annual renewal.</li>
+                <li><strong>Paid Subscriptions:</strong> After the trial period, continuous access requires renewing a monthly license for your chosen tier (Starter Academy, Professional Academy, or Enterprise Network).</li>
+                <li><strong>Price Modifications:</strong> {COMPANY_INFO.name} reserves the right to revise subscription fees upon 15 days prior notice before monthly renewal.</li>
               </ul>
             </section>
 

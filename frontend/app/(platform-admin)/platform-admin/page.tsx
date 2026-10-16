@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload, ArrowRight, ArrowLeft, User, FileSpreadsheet, FileUp, CheckCircle2, Download, AlertTriangle } from 'lucide-react';
+import { 
+  ShieldAlert, TrendingUp, Building2, Users, ExternalLink, Lock, CheckCircle, 
+  PauseCircle, XCircle, Database, Eye, EyeOff, PlusCircle, Check, AlertCircle, 
+  History, Calendar, CreditCard, Receipt, Search, Filter, Layers, Upload, 
+  ArrowRight, ArrowLeft, User, FileSpreadsheet, FileUp, CheckCircle2, Download, 
+  AlertTriangle, Tag, Edit, Trash2, Sparkles, Percent, DollarSign, Megaphone, Sliders 
+} from 'lucide-react';
 import { apiClient } from '../../../lib/api';
 import { isValidMobile } from '../../../lib/validation';
 import { downloadSampleExcelTemplate, parseExcelFile, ValidatedStudentRow } from '../../../lib/excel-import';
@@ -17,7 +23,51 @@ export default function PlatformAdminPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'tenants' | 'transactions' | 'overview'>('tenants');
+  const [activeTab, setActiveTab] = useState<'tenants' | 'transactions' | 'overview' | 'plans' | 'coupons'>('tenants');
+
+  // Dynamic Plans & Coupons state
+  const [plans, setPlans] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [bannerSettings, setBannerSettings] = useState<any>({ isEnabled: false, text: '', couponCode: '', badgeText: '' });
+  const [bannerForm, setBannerForm] = useState<any>({ isEnabled: false, text: '', couponCode: '', badgeText: '' });
+  const [savingBanner, setSavingBanner] = useState(false);
+  const [bannerSavedSuccess, setBannerSavedSuccess] = useState(false);
+
+  // Plan editing & modal state
+  const [editingPlan, setEditingPlan] = useState<any | null>(null);
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [planForm, setPlanForm] = useState({
+    name: '',
+    slug: '',
+    priceMonthly: 2999,
+    originalPrice: '' as string | number,
+    offerBadge: '',
+    studentLimit: 'Up to 1,500 Students',
+    maxStudents: 1500,
+    maxBranches: 6,
+    description: '',
+    featuresText: '',
+    popular: false,
+    isActive: true,
+    sortOrder: 0,
+  });
+  const [savingPlan, setSavingPlan] = useState(false);
+
+  // Coupon modal state
+  const [showCreateCouponModal, setShowCreateCouponModal] = useState(false);
+  const [couponForm, setCouponForm] = useState({
+    code: '',
+    discountType: 'PERCENTAGE' as 'PERCENTAGE' | 'FLAT',
+    discountValue: 20,
+    minOrderAmount: 0,
+    maxDiscountAmount: '' as string | number,
+    usageLimit: 500,
+    validUntil: '',
+    applicablePlans: ['ALL'],
+    isActive: true,
+    description: '',
+  });
+  const [savingCoupon, setSavingCoupon] = useState(false);
 
   const [tenantSearch, setTenantSearch] = useState('');
   const [tenantStatusFilter, setTenantStatusFilter] = useState('ALL');
@@ -89,14 +139,23 @@ export default function PlatformAdminPage() {
   const fetchAdminData = async (authToken: string) => {
     setLoading(true);
     try {
-      const [metricsRes, academiesRes, auditRes] = await Promise.all([
+      const [metricsRes, academiesRes, auditRes, plansRes, couponsRes, bannerRes] = await Promise.all([
         apiClient.get('/platform/metrics', { headers: { Authorization: `Bearer ${authToken}` } }),
         apiClient.get('/platform/academies', { headers: { Authorization: `Bearer ${authToken}` } }),
         apiClient.get('/platform/audit-logs', { headers: { Authorization: `Bearer ${authToken}` } }),
+        apiClient.get('/platform/plans', { headers: { Authorization: `Bearer ${authToken}` } }).catch(() => ({ data: [] })),
+        apiClient.get('/platform/coupons', { headers: { Authorization: `Bearer ${authToken}` } }).catch(() => ({ data: [] })),
+        apiClient.get('/platform/banner', { headers: { Authorization: `Bearer ${authToken}` } }).catch(() => ({ data: { isEnabled: false } })),
       ]);
       setMetrics(metricsRes.data);
       setAcademies(academiesRes.data);
       setAuditLogs(auditRes.data);
+      if (plansRes?.data) setPlans(plansRes.data);
+      if (couponsRes?.data) setCoupons(couponsRes.data);
+      if (bannerRes?.data) {
+        setBannerSettings(bannerRes.data);
+        setBannerForm(bannerRes.data);
+      }
     } catch (err: any) {
       console.error('Failed to fetch platform admin data:', err);
       if (err.response?.status === 401) {
@@ -105,6 +164,206 @@ export default function PlatformAdminPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBanner(true);
+    try {
+      const res = await apiClient.post('/platform/banner', bannerForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBannerSettings(res.data);
+      setBannerSavedSuccess(true);
+      setTimeout(() => setBannerSavedSuccess(false), 3000);
+    } catch (err: any) {
+      alert('Error updating banner: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingBanner(false);
+    }
+  };
+
+  const handleOpenEditPlan = (plan: any) => {
+    setEditingPlan(plan);
+    setPlanForm({
+      name: plan.name || '',
+      slug: plan.slug || '',
+      priceMonthly: plan.priceMonthly || 0,
+      originalPrice: plan.originalPrice || '',
+      offerBadge: plan.offerBadge || '',
+      studentLimit: plan.studentLimit || '',
+      maxStudents: plan.maxStudents ?? 400,
+      maxBranches: plan.maxBranches ?? 2,
+      description: plan.description || '',
+      featuresText: Array.isArray(plan.features) ? plan.features.join('\n') : '',
+      popular: Boolean(plan.popular),
+      isActive: plan.isActive !== undefined ? Boolean(plan.isActive) : true,
+      sortOrder: plan.sortOrder ?? 0,
+    });
+  };
+
+  const handleOpenCreatePlan = () => {
+    setEditingPlan(null);
+    setPlanForm({
+      name: '',
+      slug: '',
+      priceMonthly: 1999,
+      originalPrice: '',
+      offerBadge: '',
+      studentLimit: 'Up to 500 Students',
+      maxStudents: 500,
+      maxBranches: 3,
+      description: '',
+      featuresText: 'Up to 2 Branches\nAtomic FIFO Fee Engine\nStudent Profiles\nBasic Reports',
+      popular: false,
+      isActive: true,
+      sortOrder: plans.length + 1,
+    });
+    setShowCreatePlanModal(true);
+  };
+
+  const handleSavePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setSavingPlan(true);
+    try {
+      const features = planForm.featuresText
+        .split('\n')
+        .map((f) => f.trim())
+        .filter(Boolean);
+
+      const payload = {
+        name: planForm.name,
+        slug: planForm.slug,
+        priceMonthly: Number(planForm.priceMonthly),
+        originalPrice: planForm.originalPrice !== '' && Number(planForm.originalPrice) > 0 ? Number(planForm.originalPrice) : undefined,
+        offerBadge: planForm.offerBadge,
+        studentLimit: planForm.studentLimit,
+        maxStudents: Number(planForm.maxStudents),
+        maxBranches: Number(planForm.maxBranches),
+        description: planForm.description,
+        features,
+        popular: planForm.popular,
+        isActive: planForm.isActive,
+        sortOrder: Number(planForm.sortOrder),
+      };
+
+      if (editingPlan) {
+        await apiClient.patch(`/platform/plans/${editingPlan._id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setEditingPlan(null);
+      } else {
+        await apiClient.post('/platform/plans', payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setShowCreatePlanModal(false);
+      }
+
+      const res = await apiClient.get('/platform/plans', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPlans(res.data);
+      alert('Plan pricing & settings saved successfully! Changes are immediately live on the landing page.');
+    } catch (err: any) {
+      alert('Error saving plan: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingPlan(false);
+    }
+  };
+
+  const handleDeletePlan = async (planId: string, planName: string) => {
+    if (!confirm(`Are you sure you want to delete the plan "${planName}"?`)) return;
+    try {
+      await apiClient.post(`/platform/plans/${planId}/delete`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const res = await apiClient.get('/platform/plans', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPlans(res.data);
+    } catch (err: any) {
+      alert('Error deleting plan: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleCreateCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setSavingCoupon(true);
+    try {
+      const payload = {
+        code: couponForm.code,
+        discountType: couponForm.discountType,
+        discountValue: Number(couponForm.discountValue),
+        minOrderAmount: Number(couponForm.minOrderAmount) || 0,
+        maxDiscountAmount: couponForm.maxDiscountAmount ? Number(couponForm.maxDiscountAmount) : undefined,
+        usageLimit: couponForm.usageLimit ? Number(couponForm.usageLimit) : undefined,
+        validUntil: couponForm.validUntil ? new Date(couponForm.validUntil) : undefined,
+        applicablePlans: couponForm.applicablePlans,
+        isActive: couponForm.isActive,
+        description: couponForm.description,
+      };
+
+      await apiClient.post('/platform/coupons', payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setShowCreateCouponModal(false);
+      setCouponForm({
+        code: '',
+        discountType: 'PERCENTAGE',
+        discountValue: 20,
+        minOrderAmount: 0,
+        maxDiscountAmount: '',
+        usageLimit: 500,
+        validUntil: '',
+        applicablePlans: ['ALL'],
+        isActive: true,
+        description: '',
+      });
+
+      const res = await apiClient.get('/platform/coupons', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCoupons(res.data);
+      alert('Coupon created successfully! It is now active for subscriber checkout.');
+    } catch (err: any) {
+      alert('Error creating coupon: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingCoupon(false);
+    }
+  };
+
+  const handleToggleCoupon = async (coupon: any) => {
+    try {
+      await apiClient.patch(
+        `/platform/coupons/${coupon._id}`,
+        { isActive: !coupon.isActive },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const res = await apiClient.get('/platform/coupons', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCoupons(res.data);
+    } catch (err: any) {
+      alert('Error updating coupon: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: string, code: string) => {
+    if (!confirm(`Are you sure you want to delete coupon "${code}"?`)) return;
+    try {
+      await apiClient.post(`/platform/coupons/${couponId}/delete`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const res = await apiClient.get('/platform/coupons', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCoupons(res.data);
+    } catch (err: any) {
+      alert('Error deleting coupon: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -478,10 +737,10 @@ export default function PlatformAdminPage() {
 
         {/* Master Admin Interactive Tabs Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 max-w-full">
             <button
               onClick={() => setActiveTab('tenants')}
-              className={`px-5 py-3 rounded-2xl text-sm font-extrabold transition flex items-center space-x-2 ${
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition flex items-center space-x-2 shrink-0 ${
                 activeTab === 'tenants'
                   ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                   : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
@@ -493,7 +752,7 @@ export default function PlatformAdminPage() {
 
             <button
               onClick={() => setActiveTab('transactions')}
-              className={`px-5 py-3 rounded-2xl text-sm font-extrabold transition flex items-center space-x-2 ${
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition flex items-center space-x-2 shrink-0 ${
                 activeTab === 'transactions'
                   ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                   : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
@@ -504,8 +763,32 @@ export default function PlatformAdminPage() {
             </button>
 
             <button
+              onClick={() => setActiveTab('plans')}
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition flex items-center space-x-2 shrink-0 ${
+                activeTab === 'plans'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Sliders className="w-4 h-4" />
+              <span>Plans & Pricing Manager ({plans.length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('coupons')}
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition flex items-center space-x-2 shrink-0 ${
+                activeTab === 'coupons'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Tag className="w-4 h-4" />
+              <span>Coupons & Promo Offers ({coupons.length})</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('overview')}
-              className={`px-5 py-3 rounded-2xl text-sm font-extrabold transition flex items-center space-x-2 ${
+              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition flex items-center space-x-2 shrink-0 ${
                 activeTab === 'overview'
                   ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                   : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
@@ -695,10 +978,10 @@ export default function PlatformAdminPage() {
                       const displayAmount = isTrial || details.amount === 0
                         ? 'N/A'
                         : details.amount !== undefined && details.amount !== null && Number(details.amount) > 0
-                        ? `₹${Number(details.amount).toLocaleString('en-IN')} / yr`
+                        ? `₹${Number(details.amount).toLocaleString('en-IN')} / mo`
                         : details.plan === 'STARTER'
-                        ? '₹11,988 / yr'
-                        : '₹35,988 / yr';
+                        ? '₹999 / mo'
+                        : '₹2,999 / mo';
 
                       const subStart = formatDate(details.subscriptionStart || log.academyId?.createdAt || log.createdAt);
                       const subExpiry = formatDate(
@@ -709,7 +992,7 @@ export default function PlatformAdminPage() {
                               : new Date(new Date(log.createdAt).setDate(new Date(log.createdAt).getDate() + 14)))
                           : details.subscriptionExpiry ||
                             log.academyId?.subscriptionEndsAt ||
-                            new Date(new Date(log.createdAt).setFullYear(new Date(log.createdAt).getFullYear() + 1))
+                            new Date(new Date(log.createdAt).setMonth(new Date(log.createdAt).getMonth() + 1))
                       );
 
                       return (
@@ -788,39 +1071,828 @@ export default function PlatformAdminPage() {
         {/* TAB 3: FINANCIAL OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
-            <h2 className="text-xl font-extrabold text-slate-900">System Financial Breakdown & Tier Revenue</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-900">System Financial Breakdown & Tier Revenue</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Monthly recurring subscription tiers active across all academy tenants</p>
+              </div>
+
+              <button
+                onClick={() => setActiveTab('plans')}
+                className="inline-flex items-center space-x-1.5 text-xs bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold px-3.5 py-2 rounded-xl border border-orange-200 transition shrink-0"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Modify Tier Prices & Offers</span>
+              </button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter Tier (₹999/mo)</span>
-                <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹11,988 / yr</p>
-                <span className="text-xs text-slate-500 font-medium mt-1 block">Up to 400 Students per tenant</span>
-              </div>
+              {plans.length > 0 ? (
+                plans.map((plan) => (
+                  <div
+                    key={plan._id || plan.slug}
+                    className={`p-6 rounded-2xl border transition relative ${
+                      plan.popular
+                        ? 'bg-orange-50/50 border-orange-200 shadow-xs'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold uppercase tracking-wider ${plan.popular ? 'text-orange-600' : 'text-slate-500'}`}>
+                        {plan.name} (₹{plan.priceMonthly.toLocaleString('en-IN')}/mo)
+                      </span>
+                      {plan.offerBadge && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {plan.offerBadge}
+                        </span>
+                      )}
+                    </div>
 
-              <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-200">
-                <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Professional Tier (₹2,999/mo)</span>
-                <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹35,988 / yr</p>
-                <span className="text-xs text-orange-700 font-bold mt-1 block">Most Popular (Up to 1,500 Students)</span>
-              </div>
+                    <div className="mt-2 flex items-baseline space-x-2">
+                      <p className="text-3xl font-black text-slate-900 font-mono">
+                        ₹{plan.priceMonthly.toLocaleString('en-IN')} <span className="text-base font-semibold text-slate-500">/ mo</span>
+                      </p>
+                      {plan.originalPrice && plan.originalPrice > plan.priceMonthly && (
+                        <span className="text-xs text-slate-400 line-through font-mono">
+                          ₹{plan.originalPrice.toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-500 font-medium mt-1 block">
+                      {plan.studentLimit || (plan.maxStudents > 0 ? `Up to ${plan.maxStudents} Students` : 'Unlimited Students')}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter Tier (₹999/mo)</span>
+                    <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹999 / mo</p>
+                    <span className="text-xs text-slate-500 font-medium mt-1 block">Up to 400 Students per tenant</span>
+                  </div>
 
-              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Tier (₹7,999/mo)</span>
-                <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹95,988 / yr</p>
-                <span className="text-xs text-slate-500 font-medium mt-1 block">Unlimited Multi-Branch Chains & Students</span>
-              </div>
+                  <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-200">
+                    <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Professional Tier (₹2,999/mo)</span>
+                    <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹2,999 / mo</p>
+                    <span className="text-xs text-orange-700 font-bold mt-1 block">Most Popular (Up to 1,500 Students)</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Tier (₹7,999/mo)</span>
+                    <p className="text-3xl font-black text-slate-900 mt-2 font-mono">₹7,999 / mo</p>
+                    <span className="text-xs text-slate-500 font-medium mt-1 block">Unlimited Multi-Branch Chains & Students</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-3">
               <h3 className="text-sm font-extrabold text-slate-900">Platform Health & Scalability Architecture</h3>
               <ul className="text-xs text-slate-700 space-y-2 font-medium">
                 <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Multi-Tenant Request-Scoped Isolation (TenantContextService)</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Monthly Subscription Lifecycle & Auto-Renew Management</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Dynamic Price Control & Coupon Discount Engine Live Sync</li>
                 <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Atomic FIFO Fee Engine with Remainder Absorption</li>
                 <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2" /> Cashfree Payments HMAC-SHA256 Webhook Verification</li>
               </ul>
             </div>
           </div>
         )}
+
+        {/* TAB 4: PLANS & PRICING MANAGER (LIVE TO LANDING PAGE) */}
+        {activeTab === 'plans' && (
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div>
+                <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-orange-600 mb-1">
+                  <Sparkles className="w-4 h-4 text-orange-500" />
+                  <span>Real-Time Pricing & Tier Catalog</span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900">Plans & Dynamic Pricing Manager</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Update monthly rates, set strikethrough regular prices for offers, customize promo badges, and control student quotas. All changes sync immediately to the landing page and checkout.
+                </p>
+              </div>
+
+              <button
+                onClick={handleOpenCreatePlan}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition flex items-center space-x-2 text-xs shrink-0 cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Create Custom Tier</span>
+              </button>
+            </div>
+
+            {/* Plans Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {plans.map((plan) => {
+                const isPopular = plan.popular;
+                const hasDiscount = plan.originalPrice && plan.originalPrice > plan.priceMonthly;
+
+                return (
+                  <div
+                    key={plan._id || plan.slug}
+                    className={`rounded-3xl p-6 border flex flex-col justify-between space-y-5 transition relative shadow-sm ${
+                      isPopular
+                        ? 'border-2 border-orange-500 bg-orange-50/20 shadow-md'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    {isPopular && (
+                      <div className="absolute -top-3 right-6 bg-orange-500 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                        Most Popular
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[10px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
+                          {plan.slug}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            plan.isActive
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {plan.isActive ? 'Active on Web' : 'Hidden'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900">{plan.name}</h3>
+                        <p className="text-xs text-slate-500 font-medium mt-1 line-clamp-2">
+                          {plan.description || 'Standard monthly SaaS tier'}
+                        </p>
+                      </div>
+
+                      {/* Pricing Display */}
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                        <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                          <span>Monthly Rate</span>
+                          {hasDiscount && (
+                            <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">
+                              {plan.offerBadge || 'Special Offer'}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-baseline space-x-2">
+                          <span className="text-3xl font-black text-slate-900 font-mono">
+                            ₹{plan.priceMonthly.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium">/ month</span>
+                        </div>
+
+                        {hasDiscount && (
+                          <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1 font-mono">
+                            <span>Regular:</span>
+                            <span className="line-through">₹{plan.originalPrice.toLocaleString('en-IN')}</span>
+                            <span className="text-emerald-700 font-bold font-sans">
+                              (Save ₹{(plan.originalPrice - plan.priceMonthly).toLocaleString('en-IN')})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Capacity & Quotas */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Student Limit</span>
+                          <span className="font-extrabold text-slate-800 block mt-0.5">
+                            {plan.maxStudents > 0 ? `${plan.maxStudents} Students` : 'Unlimited'}
+                          </span>
+                        </div>
+
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Branch Limit</span>
+                          <span className="font-extrabold text-slate-800 block mt-0.5">
+                            {plan.maxBranches > 0 ? `Up to ${plan.maxBranches} Branches` : 'Unlimited'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Features */}
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Included Features ({plan.features?.length || 0})
+                        </span>
+                        <ul className="text-xs text-slate-700 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                          {plan.features?.map((feat: string, idx: number) => (
+                            <li key={idx} className="flex items-start space-x-1.5">
+                              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                              <span className="text-[11px] leading-tight font-medium">{feat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center space-x-2 border-t border-slate-100">
+                      <button
+                        onClick={() => handleOpenEditPlan(plan)}
+                        className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Edit Tier &amp; Offers</span>
+                      </button>
+
+                      {plan.slug !== 'STARTER' && plan.slug !== 'PROFESSIONAL' && plan.slug !== 'ENTERPRISE' && (
+                        <button
+                          onClick={() => handleDeletePlan(plan._id, plan.name)}
+                          className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 p-2.5 rounded-xl transition cursor-pointer"
+                          title="Delete Plan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: COUPONS & PROMO OFFERS */}
+        {activeTab === 'coupons' && (
+          <div className="space-y-8">
+            {/* 1. Promotional Announcement Banner Manager */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-orange-600 mb-1">
+                    <Megaphone className="w-4 h-4 text-orange-500" />
+                    <span>Global Landing Page Banner</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900">Promotional Announcement Banner</h2>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Display an interactive flash discount notification across the header of the landing page and pricing page.
+                  </p>
+                </div>
+
+                {bannerSavedSuccess && (
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5">
+                    <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    <span>Banner Published to Landing Page!</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Banner Live Preview */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Live Banner Preview (As seen by website visitors):
+                </span>
+                {bannerForm.isEnabled ? (
+                  <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 text-white py-3 px-4 rounded-2xl text-xs shadow-sm flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="bg-white/20 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider flex items-center space-x-1">
+                        <Sparkles className="w-3 h-3 text-amber-200" />
+                        <span>{bannerForm.badgeText || 'SPECIAL OFFER'}</span>
+                      </span>
+                      <span className="font-semibold text-white/95">{bannerForm.text || 'Flash Offer Announcement Text'}</span>
+                    </div>
+
+                    {bannerForm.couponCode && (
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <div className="bg-white text-slate-900 rounded-lg px-2.5 py-1 flex items-center space-x-1.5 font-mono text-[11px] font-black">
+                          <Tag className="w-3 h-3 text-orange-600" />
+                          <span>{bannerForm.couponCode}</span>
+                        </div>
+                        <span className="text-[10px] bg-black/30 px-2 py-1 rounded-lg font-bold">Copy Code</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-slate-100 border border-dashed border-slate-300 rounded-2xl p-4 text-center text-xs text-slate-500 font-medium">
+                    Banner is currently disabled. Toggle &quot;Enable Banner&quot; below to display on the landing page.
+                  </div>
+                )}
+              </div>
+
+              {/* Banner Edit Form */}
+              <form onSubmit={handleSaveBanner} className="space-y-4 pt-2">
+                <div className="flex items-center space-x-3 bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                  <input
+                    type="checkbox"
+                    id="bannerEnabled"
+                    checked={bannerForm.isEnabled}
+                    onChange={(e) => setBannerForm({ ...bannerForm, isEnabled: e.target.checked })}
+                    className="w-4 h-4 text-orange-600 rounded border-slate-300 cursor-pointer"
+                  />
+                  <label htmlFor="bannerEnabled" className="text-xs sm:text-sm font-bold text-slate-800 cursor-pointer">
+                    Enable Promotional Announcement Banner on Landing &amp; Pricing Pages
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">Banner Message Text *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Special Launch Offer: Get 20% OFF on all monthly subscriptions!"
+                      value={bannerForm.text}
+                      onChange={(e) => setBannerForm({ ...bannerForm, text: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">Promo Badge Label</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. LIMITED OFFER or 30% OFF"
+                      value={bannerForm.badgeText}
+                      onChange={(e) => setBannerForm({ ...bannerForm, badgeText: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-medium uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 uppercase">Highlighted Coupon Code (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. WELCOME20"
+                      value={bannerForm.couponCode}
+                      onChange={(e) => setBannerForm({ ...bannerForm, couponCode: e.target.value.toUpperCase().trim() })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-mono font-bold"
+                    />
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      disabled={savingBanner}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition text-xs cursor-pointer flex items-center justify-center space-x-1.5"
+                    >
+                      <span>{savingBanner ? 'Publishing...' : 'Save & Publish Banner'}</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            {/* 2. Coupons Management Table & Creation */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-orange-600 mb-1">
+                    <Tag className="w-4 h-4 text-orange-500" />
+                    <span>Discounts &amp; Promotional Codes</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900">Discount Coupons Management</h2>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Generate and manage promotional coupons for subscriber onboarding, monthly renewals, and special sales campaigns.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowCreateCouponModal(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2 text-xs shrink-0 cursor-pointer"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Create New Coupon</span>
+                </button>
+              </div>
+
+              {/* Coupons List */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-100 text-slate-700 uppercase font-bold border-b border-slate-200">
+                    <tr>
+                      <th className="p-3.5 whitespace-nowrap">Coupon Code</th>
+                      <th className="p-3.5 whitespace-nowrap">Discount Value</th>
+                      <th className="p-3.5 whitespace-nowrap">Min Order Value</th>
+                      <th className="p-3.5 whitespace-nowrap">Applicable Plans</th>
+                      <th className="p-3.5 whitespace-nowrap">Times Used</th>
+                      <th className="p-3.5 whitespace-nowrap">Valid Until</th>
+                      <th className="p-3.5 whitespace-nowrap">Status</th>
+                      <th className="p-3.5 whitespace-nowrap text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {coupons.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">
+                          No coupons created yet. Click &quot;Create New Coupon&quot; to generate promotional discount codes.
+                        </td>
+                      </tr>
+                    ) : (
+                      coupons.map((coupon) => (
+                        <tr key={coupon._id} className="hover:bg-slate-50 transition">
+                          <td className="p-3.5 font-mono font-black text-slate-900 text-sm whitespace-nowrap">
+                            <span className="bg-orange-50 border border-orange-200 text-orange-700 px-2.5 py-1 rounded-lg">
+                              {coupon.code}
+                            </span>
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap font-bold text-emerald-700 text-sm">
+                            {coupon.discountType === 'PERCENTAGE'
+                              ? `${coupon.discountValue}% OFF`
+                              : `₹${coupon.discountValue} FLAT OFF`}
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap font-mono">
+                            {coupon.minOrderAmount ? `₹${coupon.minOrderAmount}` : 'No minimum'}
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap font-semibold">
+                            {Array.isArray(coupon.applicablePlans) && coupon.applicablePlans.includes('ALL')
+                              ? 'All Monthly Plans'
+                              : coupon.applicablePlans?.join(', ')}
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap font-mono font-medium">
+                            {coupon.timesUsed || 0} {coupon.usageLimit ? `/ ${coupon.usageLimit}` : 'uses'}
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap text-slate-500">
+                            {coupon.validUntil ? formatDate(coupon.validUntil) : 'No Expiry'}
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                coupon.isActive
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-rose-100 text-rose-800'
+                              }`}
+                            >
+                              {coupon.isActive ? 'Active' : 'Disabled'}
+                            </span>
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap text-right space-x-2">
+                            <button
+                              onClick={() => handleToggleCoupon(coupon)}
+                              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition cursor-pointer ${
+                                coupon.isActive
+                                  ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                                  : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                              }`}
+                            >
+                              {coupon.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteCoupon(coupon._id, coupon.code)}
+                              className="text-rose-600 hover:text-rose-800 p-1 rounded transition cursor-pointer"
+                              title="Delete Coupon"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 inline" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* PLAN EDIT / CREATE MODAL */}
+      {(editingPlan || showCreatePlanModal) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full relative shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
+            <button
+              onClick={() => {
+                setEditingPlan(null);
+                setShowCreatePlanModal(false);
+              }}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-base cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div>
+              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-orange-600 mb-1">
+                <Sliders className="w-4 h-4 text-orange-500" />
+                <span>{editingPlan ? 'Edit Monthly Tier & Offer' : 'Create Custom Monthly Plan'}</span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900">
+                {editingPlan ? `Edit ${editingPlan.name}` : 'New Subscription Plan'}
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Updates will automatically reflect on the landing page, pricing page, and tenant subscription panel.
+              </p>
+            </div>
+
+            <form onSubmit={handleSavePlan} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Plan Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={planForm.name}
+                    onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Plan Slug / Identifier *</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={Boolean(editingPlan)}
+                    value={planForm.slug}
+                    onChange={(e) => setPlanForm({ ...planForm, slug: e.target.value.toUpperCase().trim() })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold uppercase disabled:opacity-60"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Monthly Price (₹ INR) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={planForm.priceMonthly}
+                    onChange={(e) => setPlanForm({ ...planForm, priceMonthly: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Original Price (Strikethrough) (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="e.g. 3999 (to show discount)"
+                    value={planForm.originalPrice}
+                    onChange={(e) => setPlanForm({ ...planForm, originalPrice: e.target.value ? Number(e.target.value) : '' })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Offer Badge Text</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Save 25% or Diwali Offer"
+                    value={planForm.offerBadge}
+                    onChange={(e) => setPlanForm({ ...planForm, offerBadge: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Student Quota Limit (-1 for Unlimited)</label>
+                  <input
+                    type="number"
+                    value={planForm.maxStudents}
+                    onChange={(e) => setPlanForm({ ...planForm, maxStudents: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Student Limit Label</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Up to 1,500 Students"
+                    value={planForm.studentLimit}
+                    onChange={(e) => setPlanForm({ ...planForm, studentLimit: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Max Total Branches</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={planForm.maxBranches}
+                    onChange={(e) => setPlanForm({ ...planForm, maxBranches: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase">Plan Description</label>
+                <input
+                  type="text"
+                  placeholder="Short description of who this plan is best suited for"
+                  value={planForm.description}
+                  onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Features List (One feature per line)
+                </label>
+                <textarea
+                  rows={4}
+                  value={planForm.featuresText}
+                  onChange={(e) => setPlanForm({ ...planForm, featuresText: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 font-medium focus:outline-none"
+                  placeholder="Atomic FIFO Fee Engine&#10;Up to 6 Branches&#10;Digital ID Cards"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <label className="flex items-center space-x-2 text-xs font-bold text-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={planForm.popular}
+                    onChange={(e) => setPlanForm({ ...planForm, popular: e.target.checked })}
+                    className="w-4 h-4 text-orange-600 rounded"
+                  />
+                  <span>Mark as Most Popular</span>
+                </label>
+
+                <label className="flex items-center space-x-2 text-xs font-bold text-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={planForm.isActive}
+                    onChange={(e) => setPlanForm({ ...planForm, isActive: e.target.checked })}
+                    className="w-4 h-4 text-emerald-600 rounded"
+                  />
+                  <span>Active on Website</span>
+                </label>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingPlan(null);
+                    setShowCreatePlanModal(false);
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={savingPlan}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition text-xs cursor-pointer"
+                >
+                  {savingPlan ? 'Saving Changes...' : 'Save Plan & Update Landing Page'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE COUPON MODAL */}
+      {showCreateCouponModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-900 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full relative shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto">
+            <button
+              onClick={() => setShowCreateCouponModal(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 font-bold text-base cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div>
+              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1">
+                <Tag className="w-4 h-4 text-emerald-600" />
+                <span>Coupon Generator</span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900">Create Promotional Coupon</h2>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Subscribers can enter this coupon code at checkout to receive an instant discount on their monthly subscription.
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateCoupon} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase">Coupon Code *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. WELCOME20 or DIWALI50"
+                  value={couponForm.code}
+                  onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase().trim() })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-black uppercase"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Discount Type *</label>
+                  <select
+                    value={couponForm.discountType}
+                    onChange={(e) => setCouponForm({ ...couponForm, discountType: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold"
+                  >
+                    <option value="PERCENTAGE">Percentage (%) Off</option>
+                    <option value="FLAT">Flat (₹ INR) Off</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    {couponForm.discountType === 'PERCENTAGE' ? 'Discount Percentage (%) *' : 'Discount Amount (₹) *'}
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={couponForm.discountValue}
+                    onChange={(e) => setCouponForm({ ...couponForm, discountValue: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Min Order Amount (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="0 for no minimum"
+                    value={couponForm.minOrderAmount}
+                    onChange={(e) => setCouponForm({ ...couponForm, minOrderAmount: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Max Cap (₹, for % type)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Optional cap amount"
+                    value={couponForm.maxDiscountAmount}
+                    onChange={(e) => setCouponForm({ ...couponForm, maxDiscountAmount: e.target.value ? Number(e.target.value) : '' })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Usage Limit</label>
+                  <input
+                    type="number"
+                    min={1}
+                    placeholder="e.g. 500"
+                    value={couponForm.usageLimit}
+                    onChange={(e) => setCouponForm({ ...couponForm, usageLimit: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Expiry Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={couponForm.validUntil}
+                    onChange={(e) => setCouponForm({ ...couponForm, validUntil: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase">Coupon Description / Note</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 20% discount on monthly subscription"
+                  value={couponForm.description}
+                  onChange={(e) => setCouponForm({ ...couponForm, description: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateCouponModal(false)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={savingCoupon}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition text-xs cursor-pointer"
+                >
+                  {savingCoupon ? 'Creating...' : 'Create & Activate Coupon'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Master Admin Offline Academy Registration Modal - 4-Step Guided Onboarding Wizard */}
       {showOfflineModal && (

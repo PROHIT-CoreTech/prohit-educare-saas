@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
@@ -11,11 +11,16 @@ import { User, UserDocument } from '../../database/schemas/user.schema';
 import { Payment, PaymentDocument } from '../../database/schemas/payment.schema';
 import { FeeSchedule, FeeScheduleDocument } from '../../database/schemas/fee-schedule.schema';
 import { ClassBatch, ClassBatchDocument } from '../../database/schemas/class-batch.schema';
+import { SubscriptionPlan, SubscriptionPlanDocument } from '../../database/schemas/subscription-plan.schema';
+import { Coupon, CouponDocument } from '../../database/schemas/coupon.schema';
+import { PlatformSetting, PlatformSettingDocument } from '../../database/schemas/platform-setting.schema';
 import { isValidMobile } from '../../common/utils/phone-validation.util';
 import { getStudentLimitByPlan } from '../../common/utils/subscription-plan.util';
 
 @Injectable()
-export class PlatformService {
+export class PlatformService implements OnModuleInit {
+  private readonly logger = new Logger(PlatformService.name);
+
   constructor(
     @InjectModel(PlatformUser.name) private platformUserModel: Model<PlatformUserDocument>,
     @InjectModel(PlatformAuditLog.name) private platformAuditLogModel: Model<PlatformAuditLogDocument>,
@@ -25,8 +30,138 @@ export class PlatformService {
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
     @InjectModel(FeeSchedule.name) private feeScheduleModel: Model<FeeScheduleDocument>,
     @InjectModel(ClassBatch.name) private classBatchModel: Model<ClassBatchDocument>,
+    @InjectModel(SubscriptionPlan.name) private subscriptionPlanModel: Model<SubscriptionPlanDocument>,
+    @InjectModel(Coupon.name) private couponModel: Model<CouponDocument>,
+    @InjectModel(PlatformSetting.name) private platformSettingModel: Model<PlatformSettingDocument>,
     private jwtService: JwtService,
   ) {}
+
+  async onModuleInit() {
+    await this.seedDefaultPlansAndSettings();
+  }
+
+  /**
+   * Initializes default subscription plans, sample coupon, and promo banner if not present
+   */
+  async seedDefaultPlansAndSettings() {
+    try {
+      const planCount = await this.subscriptionPlanModel.countDocuments();
+      if (planCount === 0) {
+        this.logger.log('Seeding default monthly subscription plans...');
+        await this.subscriptionPlanModel.create([
+          {
+            name: 'Starter Tier',
+            slug: 'STARTER',
+            priceMonthly: 999,
+            originalPrice: 1499,
+            offerBadge: 'Save 33%',
+            studentLimit: 'Up to 400 Students',
+            maxStudents: 400,
+            maxBranches: 2,
+            description: 'Perfect for local coaching classes & independent single-branch academies.',
+            features: [
+              'Up to 1 Branch + Main Branch (Total 2 Branches)',
+              'Atomic FIFO Fee Engine',
+              'Student Roster & Contact Profiles (Up to 400)',
+              'Basic Financial & Fee Reports',
+              'Digital Canvas Receipt Generation',
+              'Printable Student ID Card PDF',
+              'Standard Subdomain',
+              'Standard Email Support',
+            ],
+            popular: false,
+            isActive: true,
+            sortOrder: 1,
+          },
+          {
+            name: 'Professional Tier',
+            slug: 'PROFESSIONAL',
+            priceMonthly: 2999,
+            originalPrice: 3999,
+            offerBadge: 'Most Popular',
+            studentLimit: 'Up to 1,500 Students',
+            maxStudents: 1500,
+            maxBranches: 6,
+            description: 'Ideal for growing academies needing full academic batch management & analytics.',
+            features: [
+              'All Starter Tier Features (Up to 1,500 Students)',
+              'Up to 5 Branches + Main Branch (Total 6 Branches)',
+              'Academics & Batch Stream Locks (Science/Commerce/Arts)',
+              'Multiple Batch Schedules (Morning/Afternoon)',
+              'Advance Credit Balance Auto-Settlement',
+              'Instant WhatsApp Receipt Sharing',
+              'Custom Primary Brand Color & Logo',
+              'Audit-Ready Financial Statements PDF',
+              'Priority WhatsApp & Phone Support',
+            ],
+            popular: true,
+            isActive: true,
+            sortOrder: 2,
+          },
+          {
+            name: 'Enterprise Tier',
+            slug: 'ENTERPRISE',
+            priceMonthly: 7999,
+            originalPrice: 9999,
+            offerBadge: 'Full Scalability',
+            studentLimit: 'Unlimited Students',
+            maxStudents: -1,
+            maxBranches: 13,
+            description: 'For large educational chains requiring custom domain aliases & master admin inspection.',
+            features: [
+              'All Professional Tier Features (Unlimited Students)',
+              'Up to 12 Branches + Main Branch (Total 13 Branches)',
+              'Multi-Branch Scoping & Consolidated Reports',
+              'Platform Admin Master Console',
+              'Custom Subdomain & Primary Color Branding',
+              'Dedicated Account Manager & 24/7 SLA Support',
+              'Raw Data Export & Bulk Imports',
+            ],
+            popular: false,
+            isActive: true,
+            sortOrder: 3,
+          },
+        ]);
+        this.logger.log('Default monthly subscription plans seeded.');
+      }
+
+      const couponCount = await this.couponModel.countDocuments();
+      if (couponCount === 0) {
+        this.logger.log('Seeding default launch coupon...');
+        const oneYearExpiry = new Date();
+        oneYearExpiry.setFullYear(oneYearExpiry.getFullYear() + 1);
+        await this.couponModel.create({
+          code: 'WELCOME20',
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+          minOrderAmount: 0,
+          maxDiscountAmount: 1000,
+          applicablePlans: ['ALL'],
+          validFrom: new Date(),
+          validUntil: oneYearExpiry,
+          usageLimit: 500,
+          timesUsed: 0,
+          isActive: true,
+          description: 'Welcome Launch Offer - 20% OFF on all monthly plans!',
+        });
+      }
+
+      const bannerSetting = await this.platformSettingModel.findOne({ key: 'PROMOTIONAL_BANNER' }).exec();
+      if (!bannerSetting) {
+        await this.platformSettingModel.create({
+          key: 'PROMOTIONAL_BANNER',
+          value: {
+            isEnabled: true,
+            text: 'Special Monthly Launch Offer: Get 20% OFF using coupon code WELCOME20 at checkout!',
+            couponCode: 'WELCOME20',
+            badgeText: 'LIMITED OFFER',
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Could not seed default plans/settings: ${err.message}`);
+    }
+  }
 
   async login(email: string, pass: string) {
     const user = await this.platformUserModel.findOne({ email: email.toLowerCase().trim() }).exec();
@@ -115,13 +250,13 @@ export class PlatformService {
           details: {
             academyName: academy.name,
             academySlug: academy.slug,
-            plan: isTrial ? 'TRIAL_14_DAYS' : 'PROFESSIONAL',
-            amount: isTrial ? 0 : 35988,
+            plan: isTrial ? 'TRIAL_14_DAYS' : (academy.subscriptionPlanKey || 'PROFESSIONAL'),
+            amount: isTrial ? 0 : 2999,
             paymentMode: isTrial ? 'FREE_TRIAL' : 'OFFLINE_CASH',
             subscriptionStart: academy.createdAt,
             subscriptionExpiry:
               academy.subscriptionStatus === 'ACTIVE'
-                ? academy.subscriptionEndsAt || new Date(new Date(academy.createdAt).setFullYear(new Date(academy.createdAt).getFullYear() + 1))
+                ? academy.subscriptionEndsAt || new Date(new Date(academy.createdAt).setMonth(new Date(academy.createdAt).getMonth() + 1))
                 : academy.trialEndsAt,
           },
         });
@@ -137,7 +272,7 @@ export class PlatformService {
     academy.subscriptionStatus = status;
     if (status === 'ACTIVE' && !academy.subscriptionEndsAt) {
       const subEndsAt = new Date();
-      subEndsAt.setFullYear(subEndsAt.getFullYear() + 1);
+      subEndsAt.setMonth(subEndsAt.getMonth() + 1);
       academy.subscriptionEndsAt = subEndsAt;
     }
     await academy.save();
@@ -216,7 +351,7 @@ export class PlatformService {
 
     const status = isTrialPlan ? 'TRIAL' : (dto.subscriptionStatus || 'ACTIVE');
     const subEndsAt = new Date();
-    subEndsAt.setFullYear(subEndsAt.getFullYear() + 1);
+    subEndsAt.setMonth(subEndsAt.getMonth() + 1);
 
     const rawTypes: string[] = Array.isArray(dto.institutionTypes) && dto.institutionTypes.length > 0
       ? dto.institutionTypes
@@ -229,6 +364,20 @@ export class PlatformService {
       : dto.educationBoard
       ? [dto.educationBoard]
       : ['SSC / State Board'];
+
+    const planKey = dto.plan?.toUpperCase().trim() || 'PROFESSIONAL';
+
+    let planMonthlyAmount = 2999;
+    if (dto.plan) {
+      const planDoc = await this.subscriptionPlanModel.findOne({ slug: planKey }).exec();
+      if (planDoc) {
+        planMonthlyAmount = planDoc.priceMonthly;
+      } else if (planKey === 'STARTER') {
+        planMonthlyAmount = 999;
+      } else if (planKey === 'ENTERPRISE') {
+        planMonthlyAmount = 7999;
+      }
+    }
 
     const academy = await this.academyModel.create({
       name: dto.name.trim(),
@@ -243,6 +392,7 @@ export class PlatformService {
       institutionTypes: rawTypes,
       educationBoard: rawBoards[0],
       educationBoards: rawBoards,
+      subscriptionPlanKey: isTrialPlan ? 'TRIAL' : planKey,
       subscriptionStatus: status,
       trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       subscriptionEndsAt: status === 'ACTIVE' ? subEndsAt : undefined,
@@ -268,8 +418,8 @@ export class PlatformService {
       details: {
         academyName: academy.name,
         academySlug: academy.slug,
-        plan: isTrialPlan ? '14-Day Free Trial' : (dto.plan || 'PROFESSIONAL'),
-        amount: isTrialPlan ? 0 : dto.plan === 'STARTER' ? 11988 : dto.plan === 'ENTERPRISE' ? 95988 : 35988,
+        plan: isTrialPlan ? '14-Day Free Trial' : `${planKey} (Monthly)`,
+        amount: isTrialPlan ? 0 : planMonthlyAmount,
         paymentMode: isTrialPlan ? '14_DAY_FREE_TRIAL' : (dto.paymentMode || 'OFFLINE_CASH'),
         paymentReference: dto.paymentReference || (isTrialPlan ? '14-Day Free Trial Activated' : 'N/A'),
         subscriptionStart: academy.createdAt || new Date(),
@@ -577,4 +727,159 @@ export class PlatformService {
       academy,
     };
   }
+
+  // ==========================================
+  // DYNAMIC PRICING & SUBSCRIPTION PLANS
+  // ==========================================
+
+  async getPublicPlans() {
+    return this.subscriptionPlanModel
+      .find({ isActive: true })
+      .sort({ sortOrder: 1, priceMonthly: 1 })
+      .exec();
+  }
+
+  async getAllPlans() {
+    return this.subscriptionPlanModel
+      .find()
+      .sort({ sortOrder: 1, priceMonthly: 1 })
+      .exec();
+  }
+
+  async createPlan(dto: Partial<SubscriptionPlan>) {
+    if (!dto.name || !dto.slug || dto.priceMonthly === undefined) {
+      throw new BadRequestException('Plan name, slug, and monthly price are required');
+    }
+    const cleanSlug = dto.slug.toUpperCase().trim();
+    const existing = await this.subscriptionPlanModel.findOne({ slug: cleanSlug }).exec();
+    if (existing) {
+      throw new BadRequestException(`Plan with slug '${cleanSlug}' already exists`);
+    }
+
+    return this.subscriptionPlanModel.create({
+      ...dto,
+      slug: cleanSlug,
+      priceMonthly: Number(dto.priceMonthly),
+      originalPrice: dto.originalPrice ? Number(dto.originalPrice) : undefined,
+      maxStudents: dto.maxStudents !== undefined ? Number(dto.maxStudents) : 400,
+      maxBranches: dto.maxBranches !== undefined ? Number(dto.maxBranches) : 2,
+      features: Array.isArray(dto.features) ? dto.features : [],
+      popular: Boolean(dto.popular),
+      isActive: dto.isActive !== undefined ? Boolean(dto.isActive) : true,
+      sortOrder: dto.sortOrder !== undefined ? Number(dto.sortOrder) : 0,
+    });
+  }
+
+  async updatePlan(id: string, dto: Partial<SubscriptionPlan>) {
+    const plan = await this.subscriptionPlanModel.findById(id).exec();
+    if (!plan) throw new NotFoundException('Subscription plan not found');
+
+    if (dto.name !== undefined) plan.name = dto.name;
+    if (dto.priceMonthly !== undefined) plan.priceMonthly = Number(dto.priceMonthly);
+    if (dto.originalPrice !== undefined) plan.originalPrice = Number(dto.originalPrice);
+    if (dto.offerBadge !== undefined) plan.offerBadge = dto.offerBadge;
+    if (dto.studentLimit !== undefined) plan.studentLimit = dto.studentLimit;
+    if (dto.maxStudents !== undefined) plan.maxStudents = Number(dto.maxStudents);
+    if (dto.maxBranches !== undefined) plan.maxBranches = Number(dto.maxBranches);
+    if (dto.description !== undefined) plan.description = dto.description;
+    if (dto.features !== undefined) plan.features = dto.features;
+    if (dto.popular !== undefined) plan.popular = Boolean(dto.popular);
+    if (dto.isActive !== undefined) plan.isActive = Boolean(dto.isActive);
+    if (dto.sortOrder !== undefined) plan.sortOrder = Number(dto.sortOrder);
+
+    await plan.save();
+    return plan;
+  }
+
+  async deletePlan(id: string) {
+    const plan = await this.subscriptionPlanModel.findById(id).exec();
+    if (!plan) throw new NotFoundException('Subscription plan not found');
+    await this.subscriptionPlanModel.findByIdAndDelete(id).exec();
+    return { message: 'Plan deleted successfully', id };
+  }
+
+  // ==========================================
+  // COUPONS & DISCOUNTS MANAGEMENT
+  // ==========================================
+
+  async getAllCoupons() {
+    return this.couponModel.find().sort({ createdAt: -1 }).exec();
+  }
+
+  async createCoupon(dto: Partial<Coupon>) {
+    if (!dto.code || dto.discountValue === undefined) {
+      throw new BadRequestException('Coupon code and discount value are required');
+    }
+    const cleanCode = dto.code.toUpperCase().trim();
+    const existing = await this.couponModel.findOne({ code: cleanCode }).exec();
+    if (existing) {
+      throw new BadRequestException(`Coupon code '${cleanCode}' already exists`);
+    }
+
+    return this.couponModel.create({
+      ...dto,
+      code: cleanCode,
+      discountType: dto.discountType || 'PERCENTAGE',
+      discountValue: Number(dto.discountValue),
+      minOrderAmount: dto.minOrderAmount ? Number(dto.minOrderAmount) : 0,
+      maxDiscountAmount: dto.maxDiscountAmount ? Number(dto.maxDiscountAmount) : undefined,
+      usageLimit: dto.usageLimit ? Number(dto.usageLimit) : undefined,
+      validFrom: dto.validFrom ? new Date(dto.validFrom) : new Date(),
+      validUntil: dto.validUntil ? new Date(dto.validUntil) : undefined,
+      isActive: dto.isActive !== undefined ? Boolean(dto.isActive) : true,
+      applicablePlans: Array.isArray(dto.applicablePlans) && dto.applicablePlans.length > 0 ? dto.applicablePlans : ['ALL'],
+    });
+  }
+
+  async updateCoupon(id: string, dto: Partial<Coupon>) {
+    const coupon = await this.couponModel.findById(id).exec();
+    if (!coupon) throw new NotFoundException('Coupon not found');
+
+    if (dto.discountValue !== undefined) coupon.discountValue = Number(dto.discountValue);
+    if (dto.discountType !== undefined) coupon.discountType = dto.discountType;
+    if (dto.minOrderAmount !== undefined) coupon.minOrderAmount = Number(dto.minOrderAmount);
+    if (dto.maxDiscountAmount !== undefined) coupon.maxDiscountAmount = Number(dto.maxDiscountAmount);
+    if (dto.usageLimit !== undefined) coupon.usageLimit = Number(dto.usageLimit);
+    if (dto.validUntil !== undefined) coupon.validUntil = dto.validUntil ? new Date(dto.validUntil) : undefined;
+    if (dto.isActive !== undefined) coupon.isActive = Boolean(dto.isActive);
+    if (dto.description !== undefined) coupon.description = dto.description;
+    if (dto.applicablePlans !== undefined) coupon.applicablePlans = dto.applicablePlans;
+
+    await coupon.save();
+    return coupon;
+  }
+
+  async deleteCoupon(id: string) {
+    const coupon = await this.couponModel.findById(id).exec();
+    if (!coupon) throw new NotFoundException('Coupon not found');
+    await this.couponModel.findByIdAndDelete(id).exec();
+    return { message: 'Coupon deleted successfully', id };
+  }
+
+  // ==========================================
+  // PROMOTIONAL BANNER & ANNOUNCEMENTS
+  // ==========================================
+
+  async getPublicBanner() {
+    const setting = await this.platformSettingModel.findOne({ key: 'PROMOTIONAL_BANNER' }).exec();
+    if (!setting || !setting.value || !setting.value.isEnabled) {
+      return { isEnabled: false };
+    }
+    return setting.value;
+  }
+
+  async getBannerSettings() {
+    const setting = await this.platformSettingModel.findOne({ key: 'PROMOTIONAL_BANNER' }).exec();
+    return setting?.value || { isEnabled: false, text: '', couponCode: '', badgeText: '' };
+  }
+
+  async updateBannerSettings(value: any) {
+    const updated = await this.platformSettingModel.findOneAndUpdate(
+      { key: 'PROMOTIONAL_BANNER' },
+      { key: 'PROMOTIONAL_BANNER', value },
+      { upsert: true, new: true },
+    ).exec();
+    return updated.value;
+  }
 }
+

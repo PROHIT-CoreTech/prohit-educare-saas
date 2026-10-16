@@ -1,21 +1,33 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Check, ArrowRight, ShieldCheck, Sparkles, HelpCircle, 
-  CreditCard, ArrowLeft, Zap, Building2, Users 
+  CreditCard, ArrowLeft, Zap, Building2, Users, Tag 
 } from 'lucide-react';
 import ComplianceNavbar from '../components/ComplianceNavbar';
 import ComplianceFooter from '../components/ComplianceFooter';
-import { COMPANY_INFO } from '../../../lib/company-info';
-
-export const metadata = {
-  title: 'Pricing & Plans | PROHIT Educare - Multi-Tenant SaaS ERP',
-  description: 'Simple, transparent INR pricing plans for PROHIT Educare SaaS platform by PROHIT CoreTech. Starter, Professional, and Enterprise tiers.',
-};
+import PromoAnnouncementBanner from '../components/PromoAnnouncementBanner';
+import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../../lib/pricing-plans';
 
 export default function PricingPage() {
+  const [plans, setPlans] = useState<PricingPlan[]>(DEFAULT_PLANS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPublicPlans()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setPlans(data);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-orange-500 selection:text-white font-sans flex flex-col justify-between">
+      <PromoAnnouncementBanner />
       <ComplianceNavbar />
 
       <main className="flex-1 py-12 sm:py-16">
@@ -31,101 +43,100 @@ export default function PricingPage() {
             </Link>
             <div className="inline-flex items-center space-x-1.5 bg-orange-100 text-orange-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-              <span>100% Transparent INR Pricing</span>
+              <span>100% Transparent Monthly INR Pricing</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-              Simple, Transparent Plans for Every Academy Size
+              Flexible Monthly Plans for Every Academy Size
             </h1>
             <p className="mt-3 text-sm sm:text-lg text-slate-600 font-medium">
-              Zero hidden transaction fees. Start with a 14-day full-access trial, then subscribe annually with Cashfree Payment Gateway security.
+              Zero annual lock-in. Start with a 14-day full-access trial, then subscribe monthly with Cashfree Payment Gateway security. Cancel anytime.
             </p>
           </div>
 
           {/* Pricing Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-16">
-            {/* 1. Starter Plan */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:border-slate-300 transition shadow-xs">
-              <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter Academy</span>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono">₹999</span>
-                  <span className="text-slate-500 text-sm ml-2 font-medium">/ month</span>
+            {plans.map((plan) => {
+              const isPopular = plan.popular;
+              const hasDiscount = plan.originalPrice && plan.originalPrice > plan.priceMonthly;
+
+              return (
+                <div
+                  key={plan.slug || plan.name}
+                  className={`bg-white rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition relative shadow-sm ${
+                    isPopular
+                      ? 'border-2 border-orange-500 shadow-xl bg-gradient-to-b from-orange-50/20 to-white'
+                      : 'border border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-md whitespace-nowrap">
+                      {plan.offerBadge || 'Most Popular'}
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        {plan.studentLimit || (plan.maxStudents > 0 ? `Up to ${plan.maxStudents} Students` : 'Unlimited Students')}
+                      </span>
+                      {hasDiscount && !isPopular && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {plan.offerBadge || 'Special Offer'}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-2">{plan.name}</h3>
+                    {plan.description && (
+                      <p className="text-xs text-slate-500 font-medium mt-1">{plan.description}</p>
+                    )}
+
+                    <div className="mt-4 pt-3 border-t border-slate-100">
+                      {hasDiscount && (
+                        <div className="flex items-center space-x-2 text-xs">
+                          <span className="text-slate-400 line-through font-mono font-semibold">
+                            ₹{plan.originalPrice?.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[11px]">
+                            {plan.offerBadge || 'Discounted'}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-baseline mt-1">
+                        <span className="text-4xl sm:text-5xl font-black text-slate-900 font-mono">
+                          ₹{plan.priceMonthly.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-slate-500 text-sm ml-2 font-medium">/ month</span>
+                      </div>
+                      <p className="text-slate-500 text-xs mt-1.5 font-medium">
+                        Billed monthly • Cancel anytime
+                      </p>
+                    </div>
+
+                    <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-700 font-medium border-t border-slate-100 pt-5">
+                      {plan.features.map((feat, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0 mt-0.5" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Link
+                    href={plan.slug === 'ENTERPRISE' ? '/contact' : '/#pricing'}
+                    className={`mt-6 sm:mt-8 w-full font-bold py-3.5 rounded-2xl transition text-center text-xs sm:text-sm block ${
+                      isPopular
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
+                    }`}
+                  >
+                    {plan.slug === 'ENTERPRISE' ? 'Contact Enterprise Sales' : 'Start 14-Day Free Trial'}
+                  </Link>
                 </div>
-                <p className="text-slate-500 text-xs mt-2 font-mono font-semibold">Billed annually at ₹11,988</p>
-
-                <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-700 font-medium">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Up to 200 Active Students</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Atomic FIFO Fee Engine</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Printable Student ID Card PDF</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Standard Subdomain</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Standard Email Support</li>
-                </ul>
-              </div>
-
-              <Link
-                href="/#pricing"
-                className="mt-6 sm:mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-3.5 rounded-2xl transition border border-slate-200 text-center text-xs sm:text-sm block"
-              >
-                Start 14-Day Free Trial
-              </Link>
-            </div>
-
-            {/* 2. Professional Plan (Highlighted) */}
-            <div className="bg-white border-2 border-orange-500 rounded-3xl p-6 sm:p-8 flex flex-col justify-between relative shadow-xl">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-md whitespace-nowrap">
-                Most Popular
-              </div>
-              <div>
-                <span className="text-xs font-extrabold text-orange-600 uppercase tracking-wider">Professional Academy</span>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 font-mono">₹2,999</span>
-                  <span className="text-slate-600 text-sm ml-2 font-medium">/ month</span>
-                </div>
-                <p className="text-orange-700 text-xs mt-2 font-mono font-bold">Billed annually at ₹35,988</p>
-
-                <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-800 font-medium">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Up to 1,000 Active Students</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Atomic FIFO Fee Engine</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Digital Student ID Card PDF</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Instant WhatsApp Receipt Sharing</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Custom Primary Brand Color &amp; Logo</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Priority WhatsApp &amp; Phone Support</li>
-                </ul>
-              </div>
-
-              <Link
-                href="/#pricing"
-                className="mt-6 sm:mt-8 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-orange-500/20 transition text-center text-xs sm:text-sm block"
-              >
-                Start 14-Day Free Trial
-              </Link>
-            </div>
-
-            {/* 3. Enterprise Plan */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:border-slate-300 transition shadow-xs">
-              <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Network</span>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono">₹7,999</span>
-                  <span className="text-slate-500 text-sm ml-2 font-medium">/ month</span>
-                </div>
-                <p className="text-slate-500 text-xs mt-2 font-medium">Multi-Branch Coaching Chains</p>
-
-                <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-700 font-medium">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Unlimited Active Students</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Multi-Branch Scoping &amp; Consolidated Reports</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Platform Admin Master Console</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Dedicated Account Manager &amp; 24/7 SLA</li>
-                </ul>
-              </div>
-
-              <Link
-                href="/contact"
-                className="mt-6 sm:mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-3.5 rounded-2xl transition border border-slate-200 text-center text-xs sm:text-sm block"
-              >
-                Contact Enterprise Sales
-              </Link>
-            </div>
+              );
+            })}
           </div>
 
           {/* Payment Gateway Trust Badge */}
@@ -153,16 +164,23 @@ export default function PricingPage() {
             
             <div className="space-y-4 text-xs sm:text-sm">
               <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-1.5">
-                <h4 className="font-bold text-slate-900">How does the 14-day free trial work?</h4>
+                <h4 className="font-bold text-slate-900">How does the monthly subscription work?</h4>
                 <p className="text-slate-600">
-                  You get immediate access to all features on your custom subdomain upon signing up. No payment method or credit card is required. You can upgrade to a paid annual plan anytime during or after your trial.
+                  All subscriptions are billed on a flexible monthly basis with zero annual lock-in. You can renew your subscription month-to-month, apply valid coupon codes for promotional discounts, and pause or cancel anytime from your academy portal.
                 </p>
               </div>
 
               <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-1.5">
-                <h4 className="font-bold text-slate-900">What is your refund policy?</h4>
+                <h4 className="font-bold text-slate-900">How does the 14-day free trial work?</h4>
                 <p className="text-slate-600">
-                  Because we provide a 14-day full-access trial to evaluate all features before purchasing, paid subscriptions are <strong>strictly non-refundable</strong>. Please refer to our <Link href="/refund-policy" className="text-orange-600 font-semibold underline">Refund &amp; Cancellation Policy</Link> for details.
+                  You get immediate access to all features on your custom subdomain upon signing up. No payment method or credit card is required. You can upgrade to a paid monthly plan anytime during or after your trial.
+                </p>
+              </div>
+
+              <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-1.5">
+                <h4 className="font-bold text-slate-900">Can I apply promo coupons or discount offers?</h4>
+                <p className="text-slate-600">
+                  Yes! During monthly renewal or checkout, enter your promo coupon code (e.g. WELCOME20) into the coupon box. The discount is calculated and subtracted instantly before routing to the secure Cashfree checkout.
                 </p>
               </div>
 

@@ -1,21 +1,115 @@
 import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as crypto from 'crypto';
 import { Academy, AcademyDocument } from '../../database/schemas/academy.schema';
+import { SubscriptionPlan, SubscriptionPlanDocument } from '../../database/schemas/subscription-plan.schema';
+import { Coupon, CouponDocument } from '../../database/schemas/coupon.schema';
+import { PlatformAuditLog, PlatformAuditLogDocument } from '../../database/schemas/platform-audit-log.schema';
 
 @Injectable()
 export class BillingService {
   private readonly logger = new Logger(BillingService.name);
 
-  constructor(@InjectModel(Academy.name) private academyModel: Model<AcademyDocument>) {}
+  constructor(
+    @InjectModel(Academy.name) private academyModel: Model<AcademyDocument>,
+    @InjectModel(SubscriptionPlan.name) private subscriptionPlanModel: Model<SubscriptionPlanDocument>,
+    @InjectModel(Coupon.name) private couponModel: Model<CouponDocument>,
+    @InjectModel(PlatformAuditLog.name) private platformAuditLogModel: Model<PlatformAuditLogDocument>,
+  ) {}
+
+  /**
+   * Validates a promotional coupon code against a plan and order amount
+   */
+  async validateCoupon(code: string, planSlug: string, orderAmount?: number) {
+    if (!code) throw new BadRequestException('Coupon code is required');
+    const cleanCode = code.toUpperCase().trim();
+    const coupon = await this.couponModel.findOne({ code: cleanCode, isActive: true }).exec();
+
+    if (!coupon) {
+      throw new BadRequestException(`Coupon code '${cleanCode}' is invalid or expired.`);
+    }
+
+    const now = new Date();
+    if (coupon.validFrom && new Date(coupon.validFrom) > now) {
+      throw new BadRequestException(`Coupon code '${cleanCode}' is not active yet.`);
+    }
+
+    if (coupon.validUntil && new Date(coupon.validUntil) < now) {
+      throw new BadRequestException(`Coupon code '${cleanCode}' has expired.`);
+    }
+
+    if (coupon.usageLimit && coupon.timesUsed >= coupon.usageLimit) {
+      throw new BadRequestException(`Coupon code '${cleanCode}' usage limit has been reached.`);
+    }
+
+    const planKey = (planSlug || '').toUpperCase().trim();
+    if (
+      coupon.applicablePlans &&
+      coupon.applicablePlans.length > 0 &&
+      !coupon.applicablePlans.includes('ALL') &&
+      !coupon.applicablePlans.map((p) => p.toUpperCase().trim()).includes(planKey)
+    ) {
+      throw new BadRequestException(`Coupon '${cleanCode}' is not applicable to the ${planSlug} tier.`);
+    }
+
+    let baseAmount = orderAmount;
+    if (!baseAmount || baseAmount <= 0) {
+      const planDoc = await this.subscriptionPlanModel.findOne({ slug: planKey }).exec();
+      baseAmount = planDoc ? planDoc.priceMonthly : planKey === 'STARTER' ? 999 : planKey === 'ENTERPRISE' ? 7999 : 2999;
+    }
+
+    if (coupon.minOrderAmount && baseAmount < coupon.minOrderAmount) {
+      throw new BadRequestException(`Minimum order value for coupon '${cleanCode}' is ₹${coupon.minOrderAmount}.`);
+    }
+
+    let discountAmount = 0;
+    if (coupon.discountType === 'PERCENTAGE') {
+      discountAmount = Math.round((baseAmount * coupon.discountValue) / 100);
+      if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+        discountAmount = coupon.maxDiscountAmount;
+      }
+    } else {
+      discountAmount = Math.min(coupon.discountValue, baseAmount);
+    }
+
+    const finalAmount = Math.max(0, baseAmount - discountAmount);
+
+    return {
+      isValid: true,
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: coupon.discountValue,
+      discountAmount,
+      originalAmount: baseAmount,
+      finalAmount,
+      description: coupon.description || `${coupon.discountType === 'PERCENTAGE' ? coupon.discountValue + '%' : '₹' + coupon.discountValue} discount applied`,
+    };
+  }
 
   /**
    * Generates a Cashfree Order Session ID for Frontend Drop Checkout
    */
-  async createCashfreeOrder(academyId: string, plan: string, amount: number, customerEmail: string, customerPhone: string) {
+  async createCashfreeOrder(
+    academyId: string,
+    plan: string,
+    amount: number,
+    customerEmail: string,
+    customerPhone: string,
+    couponCode?: string,
+  ) {
     const academy = await this.academyModel.findById(academyId).exec();
     if (!academy) throw new NotFoundException('Academy tenant not found');
+
+    let finalAmount = amount;
+    if (couponCode) {
+      try {
+        const validation = await this.validateCoupon(couponCode, plan, amount);
+        finalAmount = validation.finalAmount;
+      } catch (err: any) {
+        this.logger.warn(`Coupon validation failed during checkout: ${err.message}`);
+      }
+    }
 
     const orderId = `ORD_SUB_${academy.slug.toUpperCase()}_${Date.now()}`;
     const appId = process.env.CASHFREE_APP_ID || '';
@@ -23,14 +117,17 @@ export class BillingService {
     const env = process.env.CASHFREE_ENV || 'SANDBOX';
 
     academy.cashfreeOrderId = orderId;
+    if (couponCode) {
+      academy.appliedCoupon = couponCode.toUpperCase().trim();
+    }
     await academy.save();
 
-    this.logger.log(`Created Cashfree Subscription Order ${orderId} for ${academy.name} (${plan}: ₹${amount})`);
+    this.logger.log(`Created Cashfree Monthly Subscription Order ${orderId} for ${academy.name} (${plan}: ₹${finalAmount})`);
 
     return {
       status: 'success',
       orderId,
-      orderAmount: amount,
+      orderAmount: finalAmount,
       orderCurrency: 'INR',
       paymentSessionId: `session_${orderId}_cf_token`,
       environment: env,
@@ -73,6 +170,7 @@ export class BillingService {
       academyId: academy._id,
       name: academy.name,
       slug: academy.slug,
+      subscriptionPlanKey: academy.subscriptionPlanKey || 'PROFESSIONAL',
       subscriptionStatus: isTrialExpired ? 'EXPIRED' : academy.subscriptionStatus,
       trialEndsAt: academy.trialEndsAt,
       subscriptionEndsAt: academy.subscriptionEndsAt,
@@ -80,31 +178,51 @@ export class BillingService {
       daysRemaining,
       isTrialExpired,
       cashfreeOrderId: academy.cashfreeOrderId,
+      appliedCoupon: academy.appliedCoupon,
     };
   }
 
-  async confirmSubscriptionRenewal(academyId: string, plan: string, orderId?: string) {
+  async confirmSubscriptionRenewal(academyId: string, plan: string, orderId?: string, couponCode?: string) {
     const academy = await this.academyModel.findById(academyId).exec();
     if (!academy) throw new NotFoundException('Academy not found');
 
-    const currentEnd = academy.subscriptionEndsAt && new Date(academy.subscriptionEndsAt) > new Date()
-      ? new Date(academy.subscriptionEndsAt)
-      : new Date();
+    const currentEnd =
+      academy.subscriptionEndsAt && new Date(academy.subscriptionEndsAt) > new Date()
+        ? new Date(academy.subscriptionEndsAt)
+        : new Date();
 
-    currentEnd.setFullYear(currentEnd.getFullYear() + 1);
+    // 1 Month Monthly Subscription
+    currentEnd.setMonth(currentEnd.getMonth() + 1);
+
     academy.subscriptionStatus = 'ACTIVE';
     academy.subscriptionEndsAt = currentEnd;
+    academy.subscriptionPlanKey = plan || 'PROFESSIONAL';
+
     if (orderId) {
       academy.cashfreeOrderId = orderId;
     }
+
+    let couponDiscountText = '';
+    if (couponCode) {
+      const code = couponCode.toUpperCase().trim();
+      academy.appliedCoupon = code;
+      const couponDoc = await this.couponModel.findOne({ code }).exec();
+      if (couponDoc) {
+        couponDoc.timesUsed = (couponDoc.timesUsed || 0) + 1;
+        await couponDoc.save();
+        couponDiscountText = ` (Coupon ${code} applied)`;
+      }
+    }
+
     await academy.save();
 
-    this.logger.log(`Subscription activated/renewed for ${academy.name} (${plan}) until ${currentEnd.toISOString()}`);
+    this.logger.log(`Monthly Subscription renewed for ${academy.name} (${plan}${couponDiscountText}) until ${currentEnd.toISOString()}`);
 
     return {
-      message: `Subscription successfully renewed for ${plan}!`,
+      message: `Monthly Subscription successfully renewed for ${plan}${couponDiscountText}!`,
       status: 'ACTIVE',
       subscriptionEndsAt: currentEnd,
+      subscriptionPlanKey: academy.subscriptionPlanKey,
     };
   }
 
@@ -180,11 +298,11 @@ export class BillingService {
         eventType === 'SUBSCRIPTION_STATUS_CHANGE'
       ) {
         const currentEnd = academy.subscriptionEndsAt ? new Date(academy.subscriptionEndsAt) : new Date();
-        currentEnd.setFullYear(currentEnd.getFullYear() + 1);
+        currentEnd.setMonth(currentEnd.getMonth() + 1);
         academy.subscriptionStatus = 'ACTIVE';
         academy.subscriptionEndsAt = currentEnd;
         await academy.save();
-        this.logger.log(`Activated subscription for ${academy.name} until ${currentEnd.toISOString()}`);
+        this.logger.log(`Activated monthly subscription for ${academy.name} until ${currentEnd.toISOString()}`);
       } else if (eventType === 'PAYMENT_FAILED_WEBHOOK' || eventType === 'SUBSCRIPTION_CANCELLED') {
         academy.subscriptionStatus = 'CANCELLED';
         await academy.save();

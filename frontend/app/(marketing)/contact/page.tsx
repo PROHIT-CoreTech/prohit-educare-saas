@@ -248,7 +248,7 @@ export default function ContactUsPage() {
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-orange-500 font-medium cursor-pointer"
                       >
                         <option value="General Inquiry">General Inquiry</option>
-                        <option value="Pricing & Annual Subscription">Pricing &amp; Annual Subscription</option>
+                        <option value="Pricing & Monthly Subscription">Pricing &amp; Monthly Subscription</option>
                         <option value="Custom Enterprise Coaching Chain">Custom Enterprise Coaching Chain</option>
                         <option value="Technical & Implementation Support">Technical &amp; Implementation Support</option>
                         <option value="Billing & Cashfree Invoice Support">Billing &amp; Cashfree Invoice Support</option>

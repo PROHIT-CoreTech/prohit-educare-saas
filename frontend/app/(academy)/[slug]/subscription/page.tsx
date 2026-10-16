@@ -1,82 +1,71 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Sparkles, Check, CreditCard, Calendar, Clock, AlertCircle, RefreshCw, Lock, Zap, Award, Layers } from 'lucide-react';
+import {
+  ShieldCheck,
+  Sparkles,
+  Check,
+  CreditCard,
+  Calendar,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+  Lock,
+  Zap,
+  Award,
+  Layers,
+  Tag,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+} from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
-
-const SUBSCRIPTION_PLANS = [
-  {
-    id: 'STARTER',
-    name: 'Starter Tier',
-    monthlyPrice: 999,
-    annualPrice: 11988,
-    studentLimit: 'Up to 400 Students',
-    description: 'Perfect for local coaching classes & independent single-branch academies.',
-    features: [
-      'Up to 1 Branch + Main Branch (Total 2 Branches)',
-      'Atomic FIFO Fee Engine',
-      'Student Roster & Contact Profiles (Up to 400)',
-      'Basic Financial & Fee Reports',
-      'Digital Canvas Receipt Generation',
-    ],
-    popular: false,
-  },
-  {
-    id: 'PROFESSIONAL',
-    name: 'Professional Tier',
-    monthlyPrice: 2999,
-    annualPrice: 35988,
-    studentLimit: 'Up to 1,500 Students',
-    description: 'Ideal for growing academies needing full academic batch management & analytics.',
-    features: [
-      'All Starter Tier Features (Up to 1,500 Students)',
-      'Up to 5 Branches + Main Branch (Total 6 Branches)',
-      'Academics & Batch Stream Locks (Science/Commerce/Arts)',
-      'Multiple Batch Schedules (Morning/Afternoon)',
-      'Advance Credit Balance Auto-Settlement',
-      'Audit-Ready Financial Statements PDF',
-      'Priority Platform Email Support',
-    ],
-    popular: true,
-  },
-  {
-    id: 'ENTERPRISE',
-    name: 'Enterprise Tier',
-    monthlyPrice: 7999,
-    annualPrice: 95988,
-    studentLimit: 'Unlimited Students',
-    description: 'For large educational chains requiring custom domain aliases & master admin inspection.',
-    features: [
-      'All Professional Tier Features (Unlimited Students)',
-      'Up to 12 Branches + Main Branch (Total 13 Branches)',
-      'Multi-Branch Support & Custom Branding',
-      'Master Admin Console Integration',
-      'Custom Subdomain & Primary Color Branding',
-      'Dedicated Account Manager & 24/7 SLA Support',
-      'Raw Data Export & Bulk Imports',
-    ],
-    popular: false,
-  },
-];
+import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../../../lib/pricing-plans';
 
 export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<any>(null);
+  const [plans, setPlans] = useState<PricingPlan[]>(DEFAULT_PLANS);
   const [loading, setLoading] = useState(true);
-  const [selectedPlan, setSelectedPlan] = useState<string>('PROFESSIONAL');
-  const [checkoutModal, setCheckoutModal] = useState<any>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('PROFESSIONAL');
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [couponValidating, setCouponValidating] = useState<boolean>(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountType: string;
+    discountValue: number;
+    discountAmount: number;
+    finalAmount: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string>('');
   const [processing, setProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<string>('');
   const [showOfflineNoticeModal, setShowOfflineNoticeModal] = useState<boolean>(false);
+  const [selectedPlanForRenewal, setSelectedPlanForRenewal] = useState<PricingPlan | null>(null);
 
   useEffect(() => {
     fetchSubscription();
+    loadPlans();
   }, []);
+
+  const loadPlans = async () => {
+    try {
+      const data = await fetchPublicPlans();
+      if (data && data.length > 0) {
+        setPlans(data);
+      }
+    } catch (err) {
+      console.error('Failed to load dynamic plans, using defaults', err);
+    }
+  };
 
   const fetchSubscription = async () => {
     setLoading(true);
     try {
       const res = await apiClient.get('/billing/my-subscription');
       setSubscription(res.data);
+      if (res.data?.subscriptionPlanKey) {
+        setSelectedPlanId(res.data.subscriptionPlanKey);
+      }
     } catch (err: any) {
       console.error(err);
     } finally {
@@ -84,31 +73,55 @@ export default function SubscriptionPage() {
     }
   };
 
-  const handleInitiateRenewal = async (planId: string) => {
-    const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId) || SUBSCRIPTION_PLANS[1];
-    setShowOfflineNoticeModal(true);
-  };
+  const handleApplyCoupon = async (planKey?: string) => {
+    const targetPlanKey = planKey || selectedPlanId;
+    const plan = plans.find((p) => (p.slug || p.key) === targetPlanKey) || plans[1] || plans[0];
+    const code = couponCode.trim().toUpperCase();
 
-  const handleConfirmPayment = async () => {
-    if (!checkoutModal) return;
-    setProcessing(true);
+    if (!code) {
+      setCouponError('Please enter a coupon code.');
+      return;
+    }
+
+    setCouponValidating(true);
+    setCouponError('');
     try {
-      const res = await apiClient.post('/billing/verify-renewal', {
-        plan: checkoutModal.plan,
-        orderId: checkoutModal.orderId,
+      const res = await apiClient.post('/billing/validate-coupon', {
+        code,
+        plan: plan.slug || plan.key,
+        amount: plan.priceMonthly,
       });
 
-      setPaymentSuccess(res.data.message || 'Subscription successfully renewed!');
-      fetchSubscription();
-      setTimeout(() => {
-        setCheckoutModal(null);
-        setPaymentSuccess('');
-      }, 2500);
+      if (res.data?.valid) {
+        setAppliedCoupon({
+          code: res.data.code,
+          discountType: res.data.discountType,
+          discountValue: res.data.discountValue,
+          discountAmount: res.data.discountAmount,
+          finalAmount: res.data.finalAmount,
+        });
+        setCouponError('');
+      } else {
+        setCouponError(res.data?.message || 'Invalid coupon code');
+        setAppliedCoupon(null);
+      }
     } catch (err: any) {
-      alert('Payment activation failed: ' + (err.response?.data?.message || err.message));
+      setCouponError(err.response?.data?.message || 'Failed to validate coupon');
+      setAppliedCoupon(null);
     } finally {
-      setProcessing(false);
+      setCouponValidating(false);
     }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
+  const handleInitiateRenewal = (plan: PricingPlan) => {
+    setSelectedPlanForRenewal(plan);
+    setShowOfflineNoticeModal(true);
   };
 
   const formatDate = (dateStr?: string) => {
@@ -127,10 +140,12 @@ export default function SubscriptionPage() {
         <div>
           <div className="flex items-center space-x-2 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-1">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Academy SaaS Subscription & Billing</span>
+            <span>Academy SaaS Subscription &amp; Billing</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Subscription & Plan Management</h1>
-          <p className="text-sm text-slate-500 font-medium mt-0.5">View license status, trial period, and renew online via Cashfree Gateway</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">Monthly Subscription &amp; Plan Management</h1>
+          <p className="text-sm text-slate-500 font-medium mt-0.5">
+            Flexible monthly plans, discount coupons, and payment gateway activation
+          </p>
         </div>
 
         {subscription && (
@@ -162,14 +177,14 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Trial / License Countdown</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Trial / Monthly Countdown</span>
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-orange-500" />
                 <p className="text-2xl font-black text-slate-900 font-mono">
                   {subscription.subscriptionStatus === 'TRIAL'
                     ? `${subscription.trialDaysRemaining} Days Left`
                     : subscription.subscriptionStatus === 'ACTIVE'
-                    ? '1 Year Active'
+                    ? 'Active'
                     : 'Expired'}
                 </p>
               </div>
@@ -181,12 +196,12 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment Gateway Engine</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Billing Model</span>
               <div className="flex items-center space-x-2">
                 <CreditCard className="w-5 h-5 text-emerald-600" />
-                <p className="text-lg font-extrabold text-emerald-700">Cashfree PG Verified</p>
+                <p className="text-lg font-extrabold text-emerald-700">Monthly Recurring</p>
               </div>
-              <span className="text-xs text-slate-500 font-medium block">HMAC-SHA256 Encrypted Payments</span>
+              <span className="text-xs text-slate-500 font-medium block">Zero Lock-in &bull; Cancel Anytime</span>
             </div>
           </div>
 
@@ -195,7 +210,7 @@ export default function SubscriptionPage() {
               <div className="flex items-center space-x-3 text-rose-800">
                 <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
                 <p className="text-xs font-bold">
-                  Your 14-day free trial has expired. Select a plan below to activate your annual subscription and restore full platform privileges.
+                  Your 14-day free trial has expired. Select a monthly plan below to restore full platform privileges.
                 </p>
               </div>
             </div>
@@ -203,66 +218,159 @@ export default function SubscriptionPage() {
         </div>
       )}
 
+      {/* Promotional Coupon Apply Bar */}
+      <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/5 border border-orange-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-2xl bg-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Tag className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-slate-900">Have a promotional discount coupon?</h4>
+            <p className="text-xs text-slate-600 font-medium">
+              Apply coupon codes (e.g. <span className="font-mono font-bold text-orange-600">WELCOME20</span>) for instant monthly subscription discounts.
+            </p>
+          </div>
+        </div>
+
+        <div className="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {appliedCoupon ? (
+            <div className="flex items-center space-x-2 bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-2 rounded-xl text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span>
+                Applied: <strong className="font-mono">{appliedCoupon.code}</strong> ({appliedCoupon.discountType === 'PERCENT' ? `${appliedCoupon.discountValue}% OFF` : `₹${appliedCoupon.discountValue} OFF`})
+              </span>
+              <button
+                onClick={handleRemoveCoupon}
+                className="text-xs text-rose-600 hover:text-rose-800 underline ml-2 cursor-pointer font-bold"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Enter Coupon Code"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                className="bg-white border border-slate-300 rounded-xl px-4 py-2 text-xs font-mono font-bold uppercase focus:outline-hidden focus:border-orange-500 w-full sm:w-44 text-slate-900"
+              />
+              <button
+                onClick={() => handleApplyCoupon()}
+                disabled={couponValidating}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm transition cursor-pointer flex-shrink-0 disabled:opacity-50"
+              >
+                {couponValidating ? 'Checking...' : 'Apply Code'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {couponError && (
+        <div className="text-xs font-bold text-rose-600 flex items-center space-x-1.5 px-2">
+          <XCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{couponError}</span>
+        </div>
+      )}
+
       {/* Plan Selection Grid */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900">Select Subscription Tier</h2>
-          <p className="text-xs text-slate-500 font-medium">All plans are billed annually with Cashfree Payment Gateway security</p>
+          <h2 className="text-xl font-extrabold text-slate-900">Select Monthly Subscription Tier</h2>
+          <p className="text-xs text-slate-500 font-medium">
+            Dynamic monthly pricing managed via Platform Admin Console. Billed monthly with zero lock-in.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {SUBSCRIPTION_PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-white border rounded-3xl p-6 shadow-sm relative flex flex-col justify-between space-y-6 transition ${
-                plan.popular ? 'border-2 border-orange-500 shadow-md bg-orange-50/20' : 'border-slate-200'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3.5 right-6 bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                  Most Popular
-                </div>
-              )}
+          {plans.map((plan) => {
+            const hasDiscount = plan.originalPrice && plan.originalPrice > plan.priceMonthly;
+            const effectiveMonthly = appliedCoupon
+              ? appliedCoupon.discountType === 'PERCENT'
+                ? Math.round(plan.priceMonthly * (1 - appliedCoupon.discountValue / 100))
+                : Math.max(0, plan.priceMonthly - appliedCoupon.discountValue)
+              : plan.priceMonthly;
 
-              <div className="space-y-4">
-                <div>
-                  <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">{plan.studentLimit}</span>
-                  <h3 className="text-xl font-black text-slate-900 mt-1">{plan.name}</h3>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">{plan.description}</p>
-                </div>
-
-                <div className="border-t border-b border-slate-200 py-4">
-                  <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl font-black text-slate-900 font-mono">₹{plan.monthlyPrice.toLocaleString('en-IN')}</span>
-                    <span className="text-xs text-slate-500 font-medium">/ month</span>
-                  </div>
-                  <span className="text-xs text-slate-500 mt-1 block font-mono font-semibold">Billed annually at ₹{plan.annualPrice.toLocaleString('en-IN')}/yr</span>
-                </div>
-
-                <ul className="space-y-2.5 text-xs text-slate-700">
-                  {plan.features.map((feat, idx) => (
-                    <li key={idx} className="flex items-start space-x-2">
-                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span className="font-medium">{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <button
-                onClick={() => handleInitiateRenewal(plan.id)}
-                disabled={processing}
-                className={`w-full font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm cursor-pointer ${
-                  plan.popular
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
+            return (
+              <div
+                key={plan.slug || plan.key || plan.name}
+                className={`bg-white border rounded-3xl p-6 shadow-sm relative flex flex-col justify-between space-y-6 transition ${
+                  plan.popular ? 'border-2 border-orange-500 shadow-md bg-orange-50/20' : 'border-slate-200'
                 }`}
               >
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>{subscription?.subscriptionStatus === 'EXPIRED' ? 'Activate Subscription' : 'Renew / Activate License (Offline Mode)'}</span>
-              </button>
-            </div>
-          ))}
+                <div className="flex items-center justify-between">
+                  {plan.popular ? (
+                    <span className="bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      Most Popular
+                    </span>
+                  ) : <span />}
+
+                  {plan.offerBadge && (
+                    <span className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      {plan.offerBadge}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">{plan.studentLimit}</span>
+                    <h3 className="text-xl font-black text-slate-900 mt-1">{plan.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1 font-medium">{plan.description}</p>
+                  </div>
+
+                  <div className="border-t border-b border-slate-200 py-4">
+                    {hasDiscount && (
+                      <span className="text-xs text-slate-400 line-through font-mono font-semibold block mb-0.5">
+                        ₹{plan.originalPrice?.toLocaleString('en-IN')} / month
+                      </span>
+                    )}
+
+                    <div className="flex items-baseline space-x-1">
+                      <span className="text-3xl font-black text-slate-900 font-mono">
+                        ₹{effectiveMonthly.toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-xs text-slate-500 font-medium">/ month</span>
+                    </div>
+
+                    {appliedCoupon ? (
+                      <span className="text-xs text-emerald-600 font-bold block mt-1 font-mono">
+                        Coupon &quot;{appliedCoupon.code}&quot; applied (-₹{(plan.priceMonthly - effectiveMonthly).toLocaleString('en-IN')})
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-500 mt-1 block font-mono font-semibold">
+                        Monthly auto-renewal &bull; Cancel anytime
+                      </span>
+                    )}
+                  </div>
+
+                  <ul className="space-y-2.5 text-xs text-slate-700">
+                    {plan.features.map((feat, idx) => (
+                      <li key={idx} className="flex items-start space-x-2">
+                        <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        <span className="font-medium">{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => handleInitiateRenewal(plan)}
+                  disabled={processing}
+                  className={`w-full font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-sm cursor-pointer ${
+                    plan.popular
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>
+                    {subscription?.subscriptionStatus === 'EXPIRED' ? 'Activate Monthly Subscription' : 'Renew / Subscribe (Offline Mode)'}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -280,11 +388,39 @@ export default function SubscriptionPage() {
               <AlertCircle className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900">Online Gateway Disabled (Offline Sales Mode)</h3>
+              <h3 className="text-lg font-black text-slate-900">
+                Monthly Renewal for {selectedPlanForRenewal?.name || 'Selected Tier'}
+              </h3>
               <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">
-                Online payment gateway renewal is currently disabled for offline sales mode. Please contact Product Owner or your Account Manager to renew or upgrade your academy license.
+                Online payment gateway renewal is in offline sales mode. Please share your coupon code &amp; academy ID with your PROHIT Account Manager to renew or upgrade your monthly subscription instantly.
               </p>
             </div>
+
+            {selectedPlanForRenewal && (
+              <div className="bg-orange-50/50 border border-orange-200 p-3 rounded-2xl text-xs text-left space-y-1">
+                <div className="flex justify-between">
+                  <span className="font-semibold text-slate-600">Selected Plan:</span>
+                  <span className="font-bold text-slate-900">{selectedPlanForRenewal.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-slate-600">Rate:</span>
+                  <span className="font-mono font-bold text-orange-600">
+                    ₹{selectedPlanForRenewal.priceMonthly.toLocaleString('en-IN')} / month
+                  </span>
+                </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-emerald-700 pt-1 border-t border-orange-200/60">
+                    <span className="font-semibold">Discount Applied ({appliedCoupon.code}):</span>
+                    <span className="font-mono font-black">
+                      ₹{appliedCoupon.discountType === 'PERCENT'
+                        ? Math.round(selectedPlanForRenewal.priceMonthly * (1 - appliedCoupon.discountValue / 100)).toLocaleString('en-IN')
+                        : Math.max(0, selectedPlanForRenewal.priceMonthly - appliedCoupon.discountValue).toLocaleString('en-IN')} / month
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs text-slate-600 font-mono space-y-1 text-left">
               <p><span className="font-bold text-slate-800">Product Support:</span> PROHIT CoreTech</p>
               <p><span className="font-bold text-slate-800">Phone:</span> +91 97739 69033</p>

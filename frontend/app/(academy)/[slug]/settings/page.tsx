@@ -1310,7 +1310,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   {subscription?.subscriptionStatus === 'ACTIVE'
                     ? subscription?.subscriptionEndsAt
                       ? new Date(subscription.subscriptionEndsAt).toLocaleDateString('en-IN')
-                      : 'Active Annual Plan'
+                      : 'Active Monthly Plan'
                     : subscription?.trialEndsAt
                     ? new Date(subscription.trialEndsAt).toLocaleDateString('en-IN')
                     : 'Active Trial'}
@@ -1321,7 +1321,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             <div className="bg-orange-50 p-4 rounded-2xl border border-orange-100 text-center min-w-[160px]">
               <div className="text-2xl font-black text-orange-600 font-mono">
                 {subscription?.subscriptionStatus === 'ACTIVE'
-                  ? '1 Year Active'
+                  ? 'Active License'
                   : `${subscription?.trialDaysRemaining ?? subscription?.daysRemaining ?? 14} Days`}
               </div>
               <span className="text-[11px] text-slate-600 font-bold">

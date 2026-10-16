@@ -11,6 +11,11 @@ export class BillingController {
     private readonly tenantContextService: TenantContextService,
   ) {}
 
+  @Post('validate-coupon')
+  async validateCoupon(@Body() body: { code: string; plan: string; amount?: number }) {
+    return this.billingService.validateCoupon(body.code, body.plan, body.amount);
+  }
+
   @UseGuards(AcademyAuthGuard)
   @Get('my-subscription')
   async getMySubscription() {
@@ -20,22 +25,23 @@ export class BillingController {
 
   @UseGuards(AcademyAuthGuard)
   @Post('renew-subscription')
-  async renewSubscription(@Body() body: { plan: string; amount: number; customerEmail?: string; customerPhone?: string }) {
+  async renewSubscription(@Body() body: { plan: string; amount: number; customerEmail?: string; customerPhone?: string; couponCode?: string }) {
     const academyId = this.tenantContextService.academyId.toString();
     return this.billingService.createCashfreeOrder(
       academyId,
       body.plan || 'PROFESSIONAL',
-      body.amount || 35988,
+      body.amount || 2999,
       body.customerEmail || '',
       body.customerPhone || '',
+      body.couponCode,
     );
   }
 
   @UseGuards(AcademyAuthGuard)
   @Post('verify-renewal')
-  async verifyRenewal(@Body() body: { plan: string; orderId?: string }) {
+  async verifyRenewal(@Body() body: { plan: string; orderId?: string; couponCode?: string }) {
     const academyId = this.tenantContextService.academyId.toString();
-    return this.billingService.confirmSubscriptionRenewal(academyId, body.plan, body.orderId);
+    return this.billingService.confirmSubscriptionRenewal(academyId, body.plan, body.orderId, body.couponCode);
   }
 
   @Post('create-cashfree-order')

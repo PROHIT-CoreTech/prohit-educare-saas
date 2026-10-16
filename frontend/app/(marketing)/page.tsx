@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { apiClient } from '../../lib/api';
 import { isValidMobile } from '../../lib/validation';
 import ComplianceFooter from './components/ComplianceFooter';
+import PromoAnnouncementBanner from './components/PromoAnnouncementBanner';
+import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../lib/pricing-plans';
 
 export default function MarketingPage() {
   const [slug, setSlug] = useState('');
@@ -23,6 +25,15 @@ export default function MarketingPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<'idcard' | 'fees' | 'timetable' | 'dashboard'>('idcard');
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
+  const [dynamicPlans, setDynamicPlans] = useState<PricingPlan[]>(DEFAULT_PLANS);
+
+  useEffect(() => {
+    fetchPublicPlans().then((data) => {
+      if (data && data.length > 0) {
+        setDynamicPlans(data);
+      }
+    });
+  }, []);
 
   // Metrics Count-Up Animation State & Refs
   const metricsRef = useRef<HTMLDivElement>(null);
@@ -163,6 +174,9 @@ export default function MarketingPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-orange-500 selection:text-white font-sans overflow-x-hidden">
       {/* Light Radial Glow Effect */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_center,rgba(249,115,22,0.06),transparent_65%)] pointer-events-none z-0" />
+
+      {/* Dynamic Promotional Offer Banner */}
+      <PromoAnnouncementBanner />
 
       {/* Header Navigation - Mobile Responsive */}
       <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-xl sticky top-0 z-50 shadow-xs">
@@ -835,92 +849,99 @@ export default function MarketingPage() {
       <section id="pricing" className="py-16 sm:py-24 relative bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900">Simple, Transparent Indian Rupee Pricing</h2>
-            <p className="text-slate-600 mt-2 sm:mt-3 text-sm sm:text-lg font-medium">No hidden transaction fees. Pick a plan that fits your academy size.</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900">Simple, Transparent Monthly INR Pricing</h2>
+            <p className="text-slate-600 mt-2 sm:mt-3 text-sm sm:text-lg font-medium">No hidden fees, no annual lock-in. Pick a flexible monthly plan that fits your academy size.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {/* Starter Plan */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:border-slate-300 transition shadow-xs">
-              <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Starter Academy</span>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono">₹999</span>
-                  <span className="text-slate-500 text-sm ml-2 font-medium">/ month</span>
+            {dynamicPlans.map((plan) => {
+              const isPopular = plan.popular;
+              const hasDiscount = plan.originalPrice && plan.originalPrice > plan.priceMonthly;
+
+              return (
+                <div
+                  key={plan.slug || plan.name}
+                  className={`rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition relative shadow-sm ${
+                    isPopular
+                      ? 'bg-orange-50/40 border-2 border-orange-500 shadow-xl'
+                      : 'bg-slate-50 border border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-md whitespace-nowrap">
+                      {plan.offerBadge || 'Most Popular'}
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-bold uppercase tracking-wider ${isPopular ? 'text-orange-600' : 'text-slate-500'}`}>
+                        {plan.name}
+                      </span>
+                      {hasDiscount && !isPopular && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {plan.offerBadge || 'Special Offer'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-4">
+                      {hasDiscount && (
+                        <div className="flex items-center space-x-2 text-xs mb-1">
+                          <span className="text-slate-400 line-through font-mono font-semibold">
+                            ₹{plan.originalPrice?.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px]">
+                            {plan.offerBadge || 'Discount'}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-baseline">
+                        <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono">
+                          ₹{plan.priceMonthly.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-slate-500 text-sm ml-2 font-medium">/ month</span>
+                      </div>
+                      <p className="text-slate-500 text-xs mt-1.5 font-medium">Billed monthly • Cancel anytime</p>
+                    </div>
+
+                    <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-700 font-medium border-t border-slate-200/60 pt-5">
+                      <li className="flex items-center font-bold text-slate-900">
+                        <Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" />
+                        <span>{plan.studentLimit || (plan.maxStudents > 0 ? `Up to ${plan.maxStudents} Active Students` : 'Unlimited Students')}</span>
+                      </li>
+                      {plan.features.map((feat, idx) => (
+                        <li key={idx} className="flex items-center">
+                          <Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {plan.slug === 'ENTERPRISE' ? (
+                    <Link
+                      href="/contact"
+                      className="mt-6 sm:mt-8 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl sm:rounded-2xl transition border border-slate-200 cursor-pointer text-xs sm:text-sm shadow-xs block text-center"
+                    >
+                      Contact Enterprise Sales
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className={`mt-6 sm:mt-8 w-full font-bold py-3 sm:py-3.5 rounded-xl sm:rounded-2xl transition cursor-pointer text-xs sm:text-sm ${
+                        isPopular
+                          ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20'
+                          : 'bg-white hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-xs'
+                      }`}
+                    >
+                      Start 14-Day Free Trial
+                    </button>
+                  )}
                 </div>
-                <p className="text-slate-500 text-xs mt-2 font-mono font-semibold">Billed annually at ₹11,988</p>
-
-                <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-700 font-medium">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Up to 200 Active Students</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Atomic FIFO Fee Engine</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Digital Student ID Card PDF</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Standard Subdomain</li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => setShowModal(true)}
-                className="mt-6 sm:mt-8 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl sm:rounded-2xl transition border border-slate-200 cursor-pointer text-xs sm:text-sm shadow-xs"
-              >
-                Start 14-Day Free Trial
-              </button>
-            </div>
-
-            {/* Professional Plan (Highlighted) */}
-            <div className="bg-orange-50/40 border-2 border-orange-500 rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col justify-between relative shadow-xl">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-md whitespace-nowrap">
-                Most Popular
-              </div>
-              <div>
-                <span className="text-xs font-extrabold text-orange-600 uppercase tracking-wider">Professional Academy</span>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 font-mono">₹2,999</span>
-                  <span className="text-slate-600 text-sm ml-2 font-medium">/ month</span>
-                </div>
-                <p className="text-orange-700 text-xs mt-2 font-mono font-bold">Billed annually at ₹35,988</p>
-
-                <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-800 font-medium">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Up to 1,000 Active Students</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Atomic FIFO Fee Engine</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Digital Student ID Card PDF</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Instant WhatsApp Receipt Sharing</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Custom Primary Brand Color</li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => setShowModal(true)}
-                className="mt-6 sm:mt-8 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-xl sm:rounded-2xl shadow-lg shadow-orange-500/20 transition cursor-pointer text-xs sm:text-sm"
-              >
-                Start 14-Day Free Trial
-              </button>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:border-slate-300 transition shadow-xs">
-              <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Network</span>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono">₹7,999</span>
-                  <span className="text-slate-500 text-sm ml-2 font-medium">/ month</span>
-                </div>
-                <p className="text-slate-500 text-xs mt-2 font-medium">Multi-Branch Coaching Chains</p>
-
-                <ul className="mt-6 sm:mt-8 space-y-3 text-xs sm:text-sm text-slate-700 font-medium">
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Unlimited Active Students</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Multi-Branch Scoping & Reports</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Platform Admin Console Access</li>
-                  <li className="flex items-center"><Check className="w-4 h-4 text-emerald-600 mr-2.5 shrink-0" /> Priority 24/7 SLA Support</li>
-                </ul>
-              </div>
-
-              <Link
-                href="/contact"
-                className="mt-6 sm:mt-8 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl sm:rounded-2xl transition border border-slate-200 cursor-pointer text-xs sm:text-sm shadow-xs block text-center"
-              >
-                Contact Enterprise Sales
-              </Link>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -47,6 +47,9 @@ export class Academy {
   @Prop({ type: Types.ObjectId, ref: 'SubscriptionPlan', required: false })
   planId?: Types.ObjectId;
 
+  @Prop({ default: 'PROFESSIONAL' })
+  subscriptionPlanKey?: string;
+
   @Prop({ required: true, enum: ['TRIAL', 'ACTIVE', 'PAUSED', 'CANCELLED'], default: 'TRIAL' })
   subscriptionStatus: string;
 
@@ -55,6 +58,9 @@ export class Academy {
 
   @Prop({ required: false })
   subscriptionEndsAt?: Date;
+
+  @Prop({ required: false })
+  appliedCoupon?: string;
 
   @Prop({ required: false })
   cashfreeCustomerId?: string;
