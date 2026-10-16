@@ -12,7 +12,7 @@ export class ClassBatch {
   @Prop({ type: Types.ObjectId, ref: 'Branch', required: false, index: true })
   branchId?: Types.ObjectId;
 
-  @Prop({ required: true, min: 1, max: 15 })
+  @Prop({ required: true, min: -4, max: 15 })
   standard: number;
 
   @Prop({ required: true, enum: ['english', 'marathi', 'semi_english', 'hindi'] })

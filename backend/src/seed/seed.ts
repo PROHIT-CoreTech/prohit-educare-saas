@@ -67,6 +67,15 @@ async function seed() {
     subscriptionStatus: 'ACTIVE',
     trialEndsAt: trialEnds,
     primaryColor: '#4f46e5',
+    institutionType: 'Kindergarten / Pre-Primary',
+    institutionTypes: [
+      'Kindergarten / Pre-Primary',
+      'Primary School',
+      'High School',
+      'Jr. College (Science)',
+    ],
+    educationBoard: 'SSC / State Board',
+    educationBoards: ['SSC / State Board', 'CBSE'],
   });
 
   const userA = await User.create({
@@ -79,7 +88,39 @@ async function seed() {
     isActive: true,
   });
 
-  // Class Batches for Academy A
+  // Class Batches for Academy A (Kindergarten + High School + Jr. College)
+  const classADayCare = await ClassBatch.create({
+    academyId: academyA._id,
+    standard: -4,
+    medium: 'english',
+    section: 'none',
+    batchName: 'Day Care Little Angels',
+  });
+
+  const classANursery = await ClassBatch.create({
+    academyId: academyA._id,
+    standard: -2,
+    medium: 'english',
+    section: 'none',
+    batchName: 'Nursery Joyful Steps',
+  });
+
+  const classAJrKG = await ClassBatch.create({
+    academyId: academyA._id,
+    standard: -1,
+    medium: 'english',
+    section: 'none',
+    batchName: 'Jr KG Sunbeams',
+  });
+
+  const classASrKG = await ClassBatch.create({
+    academyId: academyA._id,
+    standard: 0,
+    medium: 'english',
+    section: 'none',
+    batchName: 'Sr KG Champions',
+  });
+
   const classA10 = await ClassBatch.create({
     academyId: academyA._id,
     standard: 10,
@@ -97,6 +138,18 @@ async function seed() {
   });
 
   // Fee Structures for Academy A
+  const feeStructKG = await FeeStructure.create({
+    academyId: academyA._id,
+    standard: -1,
+    name: 'Jr KG Annual Tuition Fee',
+    totalAmount: 24000,
+    installmentsCount: 2,
+    installmentBreakdown: [
+      { installmentNo: 1, dueDate: new Date('2026-06-01'), amount: 12000 },
+      { installmentNo: 2, dueDate: new Date('2026-10-01'), amount: 12000 },
+    ],
+  });
+
   const feeStructA10 = await FeeStructure.create({
     academyId: academyA._id,
     standard: 10,
@@ -169,6 +222,41 @@ async function seed() {
     allocations: [],
     advanceAdded: 500,
     createdByUserId: userA._id,
+  });
+
+  const studentA_KG = await Student.create({
+    academyId: academyA._id,
+    studentCode: 'STU-0002',
+    name: 'Anaya Joshi',
+    parentName: 'Gaurav Joshi',
+    parentPhone: '9876500003',
+    parentEmail: 'gaurav.joshi@example.com',
+    classBatchId: classAJrKG._id,
+    standard: -1,
+    status: 'ACTIVE',
+    advanceBalance: 0,
+  });
+
+  await FeeSchedule.create({
+    academyId: academyA._id,
+    studentId: studentA_KG._id,
+    feeStructureId: feeStructKG._id,
+    installmentNo: 1,
+    dueDate: new Date('2026-06-01'),
+    amount: 12000,
+    paidAmount: 12000,
+    status: 'PAID',
+  });
+
+  await FeeSchedule.create({
+    academyId: academyA._id,
+    studentId: studentA_KG._id,
+    feeStructureId: feeStructKG._id,
+    installmentNo: 2,
+    dueDate: new Date('2026-10-01'),
+    amount: 12000,
+    paidAmount: 0,
+    status: 'PENDING',
   });
 
   console.log(`Academy A (${academyA.slug}) seeded with Admin: ${userA.email}`);

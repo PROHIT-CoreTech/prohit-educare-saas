@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '../../../../lib/api';
+import { formatStandardFull } from '../../../../lib/standards';
 
 const COMMON_SUBJECTS = [
   'Mathematics',
@@ -660,7 +661,7 @@ export default function ExamsTab({
               <option value="all">All Standards</option>
               {allowedStandards.map((std) => (
                 <option key={std} value={std}>
-                  Std {std}th
+                  {formatStandardFull(std)}
                 </option>
               ))}
             </select>

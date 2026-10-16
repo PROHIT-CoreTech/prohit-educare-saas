@@ -6,6 +6,7 @@ import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCirc
 import { apiClient } from '../../../../lib/api';
 import { isValidMobile } from '../../../../lib/validation';
 import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../../../lib/pricing-plans';
+import { ALL_STANDARDS, ALL_ACADEMIC_LEVELS, formatStandard, formatStandardFull } from '../../../../lib/standards';
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription' | 'security'>('profile');
@@ -66,7 +67,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       const types = academyInfo.institutionTypes && academyInfo.institutionTypes.length > 0
         ? academyInfo.institutionTypes.join(' ')
         : academyInfo.institutionType || '';
-      if (types.includes('Primary School')) setSelectedFeeCategory('primary');
+      if (types.includes('Kindergarten') || types.includes('Pre-Primary') || types.includes('Day Care')) setSelectedFeeCategory('kindergarten');
+      else if (types.includes('Primary School')) setSelectedFeeCategory('primary');
       else if (types.includes('Mid Primary')) setSelectedFeeCategory('middle');
       else if (types.includes('High School')) setSelectedFeeCategory('secondary');
       else if (types.includes('Jr. College')) setSelectedFeeCategory('higher_secondary');
@@ -92,6 +94,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [selectedFeeCategory, setSelectedFeeCategory] = useState<string>('all');
 
   const availableStandardOptions = [
+    'Day Care', 'Playgroup', 'Nursery', 'Jr KG', 'Sr KG',
     '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th',
     '10th Eng', '10th Mar', '11th Sci', '11th Com', '11th Arts',
     '12th Sci', '12th Com', '12th Arts', '13th', '14th', '15th',
@@ -99,6 +102,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const feeCategories = useMemo(() => {
     return [
+      {
+        id: 'kindergarten',
+        title: 'Kindergarten & Pre-Primary',
+        subtitle: 'Day Care, Playgroup, Nursery, Jr KG & Sr KG (Early Childhood Foundation)',
+        badge: 'Day Care - Sr KG',
+        gradient: 'from-pink-500 to-rose-500',
+        badgeStyle: 'bg-pink-50 text-pink-800 border-pink-200',
+        items: feeStructures.filter((f) => f.standard <= 0),
+      },
       {
         id: 'primary',
         title: 'Primary School',
@@ -290,7 +302,9 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const handleOpenNewFeeModal = () => {
     setEditingFeeId(null);
     const inst = academyInfo?.institutionType || '';
-    const defaultStd = inst.includes('Primary School')
+    const defaultStd = inst.includes('Kindergarten') || inst.includes('Pre-Primary') || inst.includes('Day Care')
+      ? 0
+      : inst.includes('Primary School')
       ? 5
       : inst.includes('Mid Primary')
       ? 8
@@ -327,7 +341,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const handleOpenEditFeeModal = (fs: any) => {
     setEditingFeeId(fs._id);
     setFeeForm({
-      standard: fs.standard || 10,
+      standard: fs.standard !== undefined && fs.standard !== null ? fs.standard : 10,
       medium: fs.medium || 'english',
       stream: fs.stream || 'science',
       board: fs.board || academyInfo?.educationBoard || 'SSC / State Board',
@@ -767,6 +781,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 border border-slate-200 p-3 rounded-2xl">
                   {[
+                    'Kindergarten / Pre-Primary',
                     'Primary School',
                     'Mid Primary',
                     'High School',
@@ -1127,7 +1142,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
                                 <span className="bg-orange-50 text-orange-700 text-xs font-black px-3 py-1 rounded-xl border border-orange-200 font-mono">
-                                  Std {fs.standard}th
+                                  {formatStandardFull(fs.standard)}
                                 </span>
 
                                 <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${streamBadgeClass}`}>
@@ -1620,7 +1635,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
             <form onSubmit={handleSaveFeeStructure} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1 - 15)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard / Academic Level</label>
                 <select
                   value={feeForm.standard}
                   onChange={(e) => {
@@ -1634,9 +1649,9 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
                 >
-                  {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
-                    <option key={std} value={std}>
-                      Standard {std}th {std >= 13 ? '(College/Degree)' : std >= 11 ? '(Higher Secondary)' : ''}
+                  {ALL_STANDARDS.map((s) => (
+                    <option key={s.standard} value={s.standard}>
+                      {s.fullLabel}
                     </option>
                   ))}
                 </select>

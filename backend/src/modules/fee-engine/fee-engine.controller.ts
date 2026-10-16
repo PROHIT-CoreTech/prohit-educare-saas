@@ -40,7 +40,7 @@ export class FeeEngineController {
     }
     return this.feeEngineService.assignCustomFeeToStudent({
       studentId: body.studentId,
-      standard: body.standard || 10,
+      standard: body.standard !== undefined && body.standard !== null ? body.standard : 10,
       discountAmount: body.discountAmount || 0,
       paymentType: body.paymentType || 'FULL',
       installmentCount: body.installmentCount || 1,

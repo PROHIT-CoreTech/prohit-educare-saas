@@ -10,6 +10,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
+import { ALL_STANDARDS, formatStandardFull } from '../../../../lib/standards';
 
 export default function ReportsPage() {
   const [overview, setOverview] = useState<any>(null);
@@ -148,10 +149,10 @@ export default function ReportsPage() {
                   }}
                   className="bg-transparent font-semibold text-slate-900 focus:outline-none cursor-pointer"
                 >
-                  <option value="all">All Standards (1st - 15th)</option>
-                  {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
-                    <option key={std} value={String(std)}>
-                      Standard {std}th
+                  <option value="all">All Standards (Day Care - 15th)</option>
+                  {ALL_STANDARDS.map((s) => (
+                    <option key={s.standard} value={String(s.standard)}>
+                      {s.fullLabel}
                     </option>
                   ))}
                 </select>
@@ -184,7 +185,7 @@ export default function ReportsPage() {
                         <td className="p-4 font-semibold text-slate-900">{p.studentId?.name || 'Student'}</td>
                         <td className="p-4">
                           <span className="bg-slate-100 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">
-                            Std {p.studentId?.standard || '10'}th
+                            {formatStandardFull(p.studentId?.standard)}
                           </span>
                         </td>
                         <td className="p-4 text-emerald-600 font-bold font-mono">

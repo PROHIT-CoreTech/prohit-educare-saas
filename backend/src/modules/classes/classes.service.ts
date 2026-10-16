@@ -70,7 +70,8 @@ export class ClassesService implements OnModuleInit {
     } catch (error: any) {
       this.logger.error('Class Batch creation error details:', error);
       if (error.code === 11000) {
-        throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for Std ${dto.standard} (${dto.medium}${dto.section !== 'none' ? ' - ' + dto.section : ''}).`);
+        const stdDisplay = dto.standard === -4 ? 'Day Care' : dto.standard === -3 ? 'Playgroup' : dto.standard === -2 ? 'Nursery' : dto.standard === -1 ? 'Jr KG' : dto.standard === 0 ? 'Sr KG' : `Std ${dto.standard}`;
+        throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for ${stdDisplay} (${dto.medium}${dto.section !== 'none' ? ' - ' + dto.section : ''}).`);
       }
       throw new BadRequestException(`Failed to create class batch: ${error.message || 'Unknown database error'}`);
     }

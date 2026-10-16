@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle, Search, X, ChevronDown, User, History, Eye, Calendar } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
+import { formatStandardFull } from '../../../../lib/standards';
 
 export default function FeeEnginePage() {
   const [students, setStudents] = useState<any[]>([]);
@@ -121,7 +122,7 @@ export default function FeeEnginePage() {
       const studentObj = students.find((s) => s._id === selectedStudentId);
       const payload = {
         studentId: selectedStudentId,
-        standard: studentObj?.standard || 10,
+        standard: studentObj?.standard !== undefined && studentObj?.standard !== null ? studentObj.standard : 10,
         discountAmount: studentObj?.discountAmount || 0,
         paymentType: studentObj?.paymentType || 'FULL',
         installmentCount: studentObj?.installmentCount || 1,
@@ -520,7 +521,7 @@ export default function FeeEnginePage() {
                   <div className="flex items-center space-x-2 text-slate-600 font-medium">
                     <span className="font-mono text-[11px] font-bold text-orange-700">{selectedStudent.studentCode || 'STU-CODE'}</span>
                     <span>•</span>
-                    <span>Std {selectedStudent.standard}th</span>
+                    <span>{formatStandardFull(selectedStudent.standard)}</span>
                     {selectedStudent.parentPhone && (
                       <>
                         <span>•</span>
@@ -586,7 +587,7 @@ export default function FeeEnginePage() {
                               {s.studentCode || 'STU-CODE'}
                             </span>
                             <span>•</span>
-                            <span>Std {s.standard}th</span>
+                            <span>{formatStandardFull(s.standard)}</span>
                             {s.parentName && (
                               <>
                                 <span>•</span>
@@ -651,7 +652,7 @@ export default function FeeEnginePage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs uppercase">
-                    Std {feeSummary.student?.standard}th - {feeSummary.student?.standard <= 10 ? (feeSummary.student?.medium || 'English') : (feeSummary.student?.stream || 'General')}
+                    {formatStandardFull(feeSummary.student?.standard)} - {feeSummary.student?.standard <= 10 ? (feeSummary.student?.medium || 'English') : (feeSummary.student?.stream || 'General')}
                   </span>
                   <span className="bg-white text-slate-800 text-xs font-bold px-3 py-1 rounded-full border border-slate-200 uppercase">
                     {feeSummary.student?.paymentType === 'INSTALLMENT' ? `${feeSummary.student?.installmentCount || 3} Installments Split` : '1 Full Payment'}

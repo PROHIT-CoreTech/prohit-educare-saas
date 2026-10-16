@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { isValidMobile } from './validation';
+import { parseStandardString } from './standards';
 
 export interface RawStudentRow {
   name: string;
@@ -159,7 +160,7 @@ export async function parseExcelFile(file: File): Promise<ValidatedStudentRow[]>
           const parentPhone = String(row['Parent Phone'] || row['parent_phone'] || row['Phone'] || '').trim();
           const parentEmail = String(row['Parent Email'] || row['parent_email'] || '').trim();
           const stdRaw = row['Standard'] || row['standard'] || row['Std'] || 10;
-          const standard = Number(stdRaw) || 10;
+          const standard = parseStandardString(stdRaw);
           const medium = String(row['Medium'] || row['medium'] || (standard >= 11 ? 'english' : 'english')).trim().toLowerCase();
           const stream = String(row['Stream'] || row['stream'] || (standard >= 11 ? 'science' : 'none')).trim().toLowerCase();
           const rollNo = String(row['Roll No'] || row['roll_no'] || '').trim();
@@ -184,9 +185,9 @@ export async function parseExcelFile(file: File): Promise<ValidatedStudentRow[]>
           } else if (emergencyPhone && !isValidMobile(emergencyPhone)) {
             isValid = false;
             error = 'Invalid Emergency Phone (Must be 10 digits starting with 6-9)';
-          } else if (standard < 1 || standard > 15) {
+          } else if (standard < -4 || standard > 15) {
             isValid = false;
-            error = 'Standard must be a number between 1 and 15';
+            error = 'Standard must be between Day Care (-4) and 15th';
           }
 
           return {

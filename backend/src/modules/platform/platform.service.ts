@@ -583,9 +583,19 @@ export class PlatformService implements OnModuleInit {
         continue;
       }
 
-      const std = Number(row.standard) || 10;
-      if (std < 1 || std > 15) {
-        errors.push(`Row ${rowNum}: Standard must be a number between 1 and 15`);
+      let std = Number(row.standard);
+      if (isNaN(std)) {
+        const rawStr = String(row.standard || '').toLowerCase().trim();
+        if (rawStr.includes('day care') || rawStr.includes('daycare')) std = -4;
+        else if (rawStr.includes('play') || rawStr.includes('pg')) std = -3;
+        else if (rawStr.includes('nurs')) std = -2;
+        else if (rawStr.includes('jr') || rawStr.includes('junior') || rawStr.includes('lkg')) std = -1;
+        else if (rawStr.includes('sr') || rawStr.includes('senior') || rawStr.includes('ukg') || rawStr === 'kg') std = 0;
+        else std = 10;
+      }
+
+      if (std < -4 || std > 15) {
+        errors.push(`Row ${rowNum}: Standard must be between -4 (Day Care) and 15`);
         continue;
       }
 
@@ -600,9 +610,22 @@ export class PlatformService implements OnModuleInit {
       }).exec();
 
       if (!classBatch) {
+        const stdLabel =
+          std === -4
+            ? 'Day Care'
+            : std === -3
+            ? 'Playgroup'
+            : std === -2
+            ? 'Nursery'
+            : std === -1
+            ? 'Jr KG'
+            : std === 0
+            ? 'Sr KG'
+            : `${std}th Standard`;
+
         const batchName = std >= 11 
           ? `Class ${std}th Standard (${stream.toUpperCase()})` 
-          : `Class ${std}th Standard (${medium.toUpperCase()})`;
+          : `Class ${stdLabel} (${medium.toUpperCase()})`;
         classBatch = await this.classBatchModel.create({
           academyId: academy._id,
           standard: std,

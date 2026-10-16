@@ -2255,6 +2255,7 @@ export default function PlatformAdminPage() {
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
                       {[
+                        'Kindergarten / Pre-Primary',
                         'Primary School',
                         'Mid Primary',
                         'High School',

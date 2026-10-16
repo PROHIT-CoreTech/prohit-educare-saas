@@ -5,8 +5,14 @@ import Link from 'next/link';
 import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import { isValidMobile } from '../../../../lib/validation';
+import { ALL_STANDARDS, formatStandard, formatStandardFull } from '../../../../lib/standards';
 
 const DEFAULT_BATCH_PRESETS = [
+  { id: 'preset_daycare_eng', standard: -4, medium: 'english', section: 'none', batchName: 'Class Day Care (Early Years)' },
+  { id: 'preset_playgroup_eng', standard: -3, medium: 'english', section: 'none', batchName: 'Class Playgroup (Toddlers)' },
+  { id: 'preset_nursery_eng', standard: -2, medium: 'english', section: 'none', batchName: 'Class Nursery (Foundational)' },
+  { id: 'preset_jrkg_eng', standard: -1, medium: 'english', section: 'none', batchName: 'Class Jr KG (English Medium)' },
+  { id: 'preset_srkg_eng', standard: 0, medium: 'english', section: 'none', batchName: 'Class Sr KG (English Medium)' },
   { id: 'preset_10_eng', standard: 10, medium: 'english', section: 'none', batchName: 'Class 10th (English Medium)' },
   { id: 'preset_10_mar', standard: 10, medium: 'marathi', section: 'none', batchName: 'Class 10th (Marathi Medium)' },
   { id: 'preset_10_semi', standard: 10, medium: 'semi_english', section: 'none', batchName: 'Class 10th (Semi-English Medium)' },
@@ -459,7 +465,7 @@ export default function StudentsPage() {
   // Open March - April Promotion Modal
   const handleOpenPromoteModal = (student: any) => {
     setSelectedStudentForPromote(student);
-    const nextStd = Math.min(15, (student.standard || 10) + 1);
+    const nextStd = Math.min(15, (student.standard !== undefined && student.standard !== null ? student.standard : 10) + 1);
     const defaultMed = nextStd <= 10 ? (student.medium || 'english') : 'english';
     const defaultStr = nextStd >= 11 ? (student.stream === 'none' ? 'science' : (student.stream || 'science')) : 'none';
 
@@ -799,7 +805,7 @@ export default function StudentsPage() {
                     <td className="p-4 font-medium">
                       <div className="flex items-center space-x-1.5">
                         <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-200">
-                          Std {stu.standard}th - {stu.classBatchId?.batchName || 'General Batch'}
+                          {formatStandardFull(stu.standard)} - {stu.classBatchId?.batchName || 'General Batch'}
                         </span>
                         <span className="bg-slate-100 text-slate-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-slate-200 uppercase">
                           {stu.standard <= 10
@@ -912,7 +918,7 @@ export default function StudentsPage() {
               </div>
               <h2 className="text-xl font-black text-slate-900">Promote / Continue Student</h2>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Promote <strong className="text-slate-900">{selectedStudentForPromote.name}</strong> from Standard {selectedStudentForPromote.standard}th to the next standard and initialize the new academic fee schedule.
+                Promote <strong className="text-slate-900">{selectedStudentForPromote.name}</strong> from {formatStandardFull(selectedStudentForPromote.standard)} to the next standard and initialize the new academic fee schedule.
               </p>
             </div>
 
@@ -924,9 +930,9 @@ export default function StudentsPage() {
                   onChange={(e) => handlePromoteStandardChange(Number(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold text-sm"
                 >
-                  {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
-                    <option key={std} value={std}>
-                      Std {std}th {std >= 13 ? '(Degree)' : std >= 11 ? '(Science/Comm/Arts)' : ''}
+                  {ALL_STANDARDS.map((s) => (
+                    <option key={s.standard} value={s.standard}>
+                      {s.fullLabel}
                     </option>
                   ))}
                 </select>
@@ -1203,15 +1209,15 @@ export default function StudentsPage() {
 
               {/* Standard Selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard (1st - 15th) *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard / Academic Level *</label>
                 <select
                   value={formData.standard}
                   onChange={(e) => handleStandardChange(Number(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
                 >
-                  {Array.from({ length: 15 }, (_, i) => i + 1).map((std) => (
-                    <option key={std} value={std}>
-                      Std {std}th {std >= 13 ? '(Degree)' : std >= 11 ? '(Science/Comm/Arts)' : ''}
+                  {ALL_STANDARDS.map((s) => (
+                    <option key={s.standard} value={s.standard}>
+                      {s.fullLabel}
                     </option>
                   ))}
                 </select>
@@ -1683,14 +1689,14 @@ export default function StudentsPage() {
                     <div className="flex items-center space-x-1">
                       <span className="font-bold text-slate-600">COURSE:</span>
                       <span className="font-extrabold text-slate-900">
-                        Std {selectedIdCardStudent.standard}th {selectedIdCardStudent.stream !== 'none' ? `(${selectedIdCardStudent.stream.toUpperCase()})` : ''}
+                        {formatStandardFull(selectedIdCardStudent.standard)} {selectedIdCardStudent.stream !== 'none' ? `(${selectedIdCardStudent.stream.toUpperCase()})` : ''}
                       </span>
                     </div>
 
                     <div className="flex items-center space-x-1">
                       <span className="font-bold text-slate-600">BATCH:</span>
                       <span className="font-bold text-slate-800 truncate max-w-[140px]">
-                        {selectedIdCardStudent.classBatchId?.batchName || `Std ${selectedIdCardStudent.standard}th Batch`}
+                        {selectedIdCardStudent.classBatchId?.batchName || `${formatStandardFull(selectedIdCardStudent.standard)} Batch`}
                       </span>
                     </div>
 

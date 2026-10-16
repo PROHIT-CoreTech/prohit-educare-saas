@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import ExamsTab from './exams-tab';
+import { formatStandard, formatStandardFull, getStandardsForAcademicLevels } from '../../../../lib/standards';
 
 export default function AcademicsPage({ params }: { params: { slug: string } }) {
   const [activeSubTab, setActiveSubTab] = useState<'batches' | 'roster' | 'attendance' | 'exams'>('batches');
@@ -89,18 +90,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       ? academyInfo.institutionTypes
       : [academyInfo?.institutionType || 'High School'];
 
-    const stds = new Set<number>();
-    types.forEach((typeStr: string) => {
-      if (typeStr.includes('Primary School')) [1, 2, 3, 4, 5].forEach((s) => stds.add(s));
-      if (typeStr.includes('Mid Primary')) [6, 7, 8].forEach((s) => stds.add(s));
-      if (typeStr.includes('High School')) [9, 10].forEach((s) => stds.add(s));
-      if (typeStr.includes('Jr. College')) [11, 12].forEach((s) => stds.add(s));
-      if (typeStr.includes('Under Graduate')) [13, 14, 15].forEach((s) => stds.add(s));
-      if (typeStr.includes('Other')) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].forEach((s) => stds.add(s));
-    });
-
-    if (stds.size === 0) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].forEach((s) => stds.add(s));
-    return Array.from(stds).sort((a, b) => a - b);
+    return getStandardsForAcademicLevels(types);
   }, [academyInfo]);
 
   useEffect(() => {
@@ -654,11 +644,11 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
                 <div key={group.standard} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                   <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-xl bg-orange-100 border border-orange-200 flex items-center justify-center font-black text-orange-600 text-sm font-mono">
-                        {group.standard}
+                      <div className="w-12 h-9 rounded-xl bg-orange-100 border border-orange-200 flex items-center justify-center font-black text-orange-600 text-xs font-mono px-1 text-center">
+                        {formatStandard(group.standard)}
                       </div>
                       <div>
-                        <h2 className="text-base font-extrabold text-slate-900">Standard {group.standard}th</h2>
+                        <h2 className="text-base font-extrabold text-slate-900">{formatStandardFull(group.standard)}</h2>
                         <span className="text-[11px] text-slate-500 font-medium">
                           {group.batches.length} {group.batches.length === 1 ? 'Batch' : 'Batches'} Configured
                         </span>
@@ -711,7 +701,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
               {filteredClasses.map((c) => (
                 <div key={c._id} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-3 hover:border-orange-300 transition">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">Std {c.standard}th Batch</span>
+                    <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">{formatStandardFull(c.standard)} Batch</span>
                     <span className="bg-orange-50 text-orange-700 text-xs px-2.5 py-1 rounded-full uppercase font-bold border border-orange-200">
                       {c.medium === 'semi_english' ? 'Semi-English' : c.medium === 'marathi' ? 'Marathi' : c.medium === 'hindi' ? 'Hindi' : 'English'}
                     </span>
@@ -1225,7 +1215,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
                 >
                   {allowedStandards.map((std) => (
                     <option key={std} value={std}>
-                      Std {std}th {std <= 5 ? '(Primary School)' : std <= 8 ? '(Middle School)' : std <= 10 ? '(High School)' : std <= 12 ? '(Junior College)' : '(Undergraduate / Degree)'}
+                      {formatStandardFull(std)}
                     </option>
                   ))}
                 </select>
