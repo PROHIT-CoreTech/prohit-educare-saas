@@ -28,9 +28,25 @@ import {
   Upload,
 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
+import ExamsTab from './exams-tab';
 
 export default function AcademicsPage({ params }: { params: { slug: string } }) {
-  const [activeSubTab, setActiveSubTab] = useState<'batches' | 'roster' | 'attendance'>('batches');
+  const [activeSubTab, setActiveSubTab] = useState<'batches' | 'roster' | 'attendance' | 'exams'>('batches');
+  const [initialExamStudentId, setInitialExamStudentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      const studentId = urlParams.get('studentId');
+      if (tab === 'exams') {
+        setActiveSubTab('exams');
+      }
+      if (studentId) {
+        setInitialExamStudentId(studentId);
+      }
+    }
+  }, []);
 
   // Batches state
   const [classes, setClasses] = useState<any[]>([]);
@@ -486,6 +502,25 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
         >
           <UserCheck className="w-4 h-4" />
           <span>Roster-Driven Faculty Attendance</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('exams')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition ${
+            activeSubTab === 'exams'
+              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          <span>Exams & Test Results</span>
+          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider ${
+            activeSubTab === 'exams'
+              ? 'bg-orange-600 text-orange-100 border-orange-400'
+              : 'bg-amber-100 text-amber-800 border-amber-300'
+          }`}>
+            PRO / ENT
+          </span>
         </button>
       </div>
 
@@ -1144,6 +1179,17 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
           </div>
         </div>
       )}
+
+          {/* SUB-TAB 4: EXAMS & TEST RESULTS */}
+          {activeSubTab === 'exams' && (
+            <ExamsTab
+              academyInfo={academyInfo}
+              classes={classes}
+              allowedStandards={allowedStandards}
+              initialStudentId={initialExamStudentId}
+              slug={params.slug}
+            />
+          )}
         </>
       )}
 

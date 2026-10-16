@@ -5,6 +5,7 @@ import { ExamMarksController } from './exam-marks.controller';
 import { ExamMarksService } from './exam-marks.service';
 import { ExamMark, ExamMarkSchema } from '../../database/schemas/exam-mark.schema';
 import { Academy, AcademySchema } from '../../database/schemas/academy.schema';
+import { ExamTierGuard } from '../../common/guards/exam-tier.guard';
 import { TenantContextService } from '../../common/services/tenant-context.service';
 
 @Module({
@@ -18,7 +19,7 @@ import { TenantContextService } from '../../common/services/tenant-context.servi
     }),
   ],
   controllers: [ExamMarksController],
-  providers: [ExamMarksService, TenantContextService],
+  providers: [ExamMarksService, TenantContextService, ExamTierGuard],
   exports: [ExamMarksService],
 })
 export class ExamMarksModule {}

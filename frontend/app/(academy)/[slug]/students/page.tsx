@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import { isValidMobile } from '../../../../lib/validation';
@@ -842,6 +843,16 @@ export default function StudentsPage() {
                           <CreditCard className="w-3.5 h-3.5" />
                           <span>Digital ID Card</span>
                         </button>
+
+                        {/* Test Results / Exam Marks Button */}
+                        <Link
+                          href={`academics?tab=exams&studentId=${stu._id}`}
+                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-200 transition flex items-center space-x-1 cursor-pointer"
+                          title="View & Add Test Results for this student"
+                        >
+                          <Award className="w-3.5 h-3.5" />
+                          <span>Test Results</span>
+                        </Link>
 
                         {/* Promote / Continue Next Standard Button */}
                         <button

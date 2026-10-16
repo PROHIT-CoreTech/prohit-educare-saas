@@ -55,6 +55,8 @@ export const DEFAULT_PLANS: PricingPlan[] = [
     description: 'Ideal for growing academies needing full academic batch management & analytics.',
     features: [
       'All Starter Tier Features (Up to 1,500 Students)',
+      'Student Test Results & Academic Examination Engine',
+      'Official Printable Student Report Cards & Result Slips',
       'Up to 5 Branches + Main Branch (Total 6 Branches)',
       'Academics & Batch Stream Locks (Science/Commerce/Arts)',
       'Multiple Batch Schedules (Morning/Afternoon)',
@@ -80,6 +82,7 @@ export const DEFAULT_PLANS: PricingPlan[] = [
     description: 'For large educational chains requiring custom domain aliases & master admin inspection.',
     features: [
       'All Professional Tier Features (Unlimited Students)',
+      'Full Academic Examination Engine & Batch Analytics',
       'Up to 12 Branches + Main Branch (Total 13 Branches)',
       'Multi-Branch Scoping & Consolidated Reports',
       'Platform Admin Master Console',

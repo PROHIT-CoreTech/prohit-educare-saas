@@ -63,4 +63,31 @@ export function getBranchLimitByPlan(planKey?: string): number {
   }
 }
 
+/**
+ * Helper to determine if an academy has access to the Student Test Results & Examination engine.
+ * Gated exclusively to Professional Tier and Enterprise Tier.
+ */
+export function hasExamMarksAccess(planKey?: string, status?: string): boolean {
+  if (!planKey) return false;
+
+  const key = planKey.toUpperCase().trim();
+
+  // Exclude Starter tier
+  if (key === 'STARTER' || key === 'STARTER_999') {
+    return false;
+  }
+
+  // Exclusively allow Professional Tier and Enterprise Tier
+  if (
+    key.includes('PROFESSIONAL') ||
+    key.includes('PRO') ||
+    key.includes('ENTERPRISE') ||
+    key.includes('UNLIMITED')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 

@@ -17,6 +17,9 @@ export class ExamMark {
   @Prop({ required: true, trim: true })
   examName: string;
 
+  @Prop({ default: 'Unit Test', trim: true })
+  examType: string;
+
   @Prop({ required: true, trim: true })
   subject: string;
 
@@ -26,8 +29,14 @@ export class ExamMark {
   @Prop({ required: true, min: 1 })
   totalMarks: number;
 
+  @Prop({ default: 0 })
+  percentage: number;
+
   @Prop({ default: '' })
   grade: string;
+
+  @Prop({ default: '', trim: true })
+  remarks: string;
 
   @Prop({ required: true, type: Date, default: Date.now })
   examDate: Date;
@@ -35,3 +44,4 @@ export class ExamMark {
 
 export const ExamMarkSchema = SchemaFactory.createForClass(ExamMark);
 ExamMarkSchema.index({ academyId: 1, classBatchId: 1, examName: 1 });
+ExamMarkSchema.index({ academyId: 1, studentId: 1, examDate: -1 });
