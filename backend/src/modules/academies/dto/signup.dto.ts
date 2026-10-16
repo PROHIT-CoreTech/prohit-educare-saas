@@ -58,4 +58,12 @@ export class SignupAcademyDto {
   @IsArray()
   @IsString({ each: true })
   educationBoards?: string[];
+
+  @IsOptional()
+  @IsString()
+  plan?: string;
+
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 }

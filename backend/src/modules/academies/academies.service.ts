@@ -77,6 +77,9 @@ export class AcademiesService {
       ? [dto.educationBoard]
       : ['SSC / State Board'];
 
+    const selectedPlanKey = dto.plan ? dto.plan.toUpperCase().trim() : 'PROFESSIONAL';
+    const appliedCoupon = dto.couponCode ? dto.couponCode.toUpperCase().trim() : undefined;
+
     const academy = await this.academyModel.create({
       name: dto.name,
       slug,
@@ -90,6 +93,8 @@ export class AcademiesService {
       institutionTypes: rawTypes,
       educationBoard: rawBoards[0],
       educationBoards: rawBoards,
+      subscriptionPlanKey: selectedPlanKey,
+      appliedCoupon,
       subscriptionStatus: 'TRIAL',
       trialEndsAt,
     });

@@ -5,7 +5,7 @@ import {
   Shield, Zap, CreditCard, Sparkles, CheckCircle2, XCircle, ArrowRight, 
   BookOpen, Users, BarChart3, Check, ShieldAlert, Eye, EyeOff, Upload, 
   Printer, Calendar, Clock, Layers, Award, FileText, Share2, Laptop, 
-  ChevronRight, Star, GraduationCap, Building2, CheckCircle
+  ChevronRight, Star, GraduationCap, Building2, CheckCircle, Tag
 } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '../../lib/api';
@@ -27,13 +27,88 @@ export default function MarketingPage() {
   const [onboardingStep, setOnboardingStep] = useState<number>(1);
   const [dynamicPlans, setDynamicPlans] = useState<PricingPlan[]>(DEFAULT_PLANS);
 
+  // Selected subscription tier for onboarding
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+  const [signupCouponCode, setSignupCouponCode] = useState<string>('');
+  const [validatingSignupCoupon, setValidatingSignupCoupon] = useState<boolean>(false);
+  const [appliedSignupCoupon, setAppliedSignupCoupon] = useState<{
+    code: string;
+    discountType: string;
+    discountValue: number;
+    discountAmount: number;
+    finalAmount: number;
+  } | null>(null);
+  const [signupCouponError, setSignupCouponError] = useState<string>('');
+
   useEffect(() => {
     fetchPublicPlans().then((data) => {
-      if (data && data.length > 0) {
-        setDynamicPlans(data);
+      const activePlans = data && data.length > 0 ? data : DEFAULT_PLANS;
+      setDynamicPlans(activePlans);
+
+      // Support direct query param onboarding from pricing page e.g. /?plan=ENTERPRISE
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const planParam = urlParams.get('plan');
+        if (planParam) {
+          const match = activePlans.find((p) => (p.slug || '').toUpperCase() === planParam.toUpperCase());
+          if (match) {
+            setSelectedPlan(match);
+            setShowModal(true);
+            setOnboardingStep(1);
+          }
+        }
       }
     });
   }, []);
+
+  const handleOpenTrialSignup = () => {
+    setSelectedPlan(null);
+    setAppliedSignupCoupon(null);
+    setSignupCouponCode('');
+    setSignupCouponError('');
+    setShowModal(true);
+    setOnboardingStep(1);
+  };
+
+  const handleOpenPlanSignup = (plan: PricingPlan) => {
+    setSelectedPlan(plan);
+    setAppliedSignupCoupon(null);
+    setSignupCouponCode('');
+    setSignupCouponError('');
+    setShowModal(true);
+    setOnboardingStep(1);
+  };
+
+  const handleApplySignupCoupon = async () => {
+    if (!signupCouponCode.trim() || !selectedPlan) return;
+    setValidatingSignupCoupon(true);
+    setSignupCouponError('');
+    try {
+      const res = await apiClient.post('/billing/validate-coupon', {
+        code: signupCouponCode.trim().toUpperCase(),
+        plan: selectedPlan.slug || selectedPlan.key,
+        amount: selectedPlan.priceMonthly,
+      });
+      if (res.data?.valid) {
+        setAppliedSignupCoupon({
+          code: res.data.code,
+          discountType: res.data.discountType,
+          discountValue: res.data.discountValue,
+          discountAmount: res.data.discountAmount,
+          finalAmount: res.data.finalAmount,
+        });
+        setSignupCouponError('');
+      } else {
+        setSignupCouponError(res.data?.message || 'Invalid coupon code');
+        setAppliedSignupCoupon(null);
+      }
+    } catch (err: any) {
+      setSignupCouponError(err.response?.data?.message || 'Invalid coupon code');
+      setAppliedSignupCoupon(null);
+    } finally {
+      setValidatingSignupCoupon(false);
+    }
+  };
 
   // Metrics Count-Up Animation State & Refs
   const metricsRef = useRef<HTMLDivElement>(null);
@@ -145,6 +220,8 @@ export default function MarketingPage() {
         ...signupForm,
         institutionType: signupForm.institutionTypes?.[0] || signupForm.institutionType || 'High School',
         educationBoard: signupForm.educationBoards?.[0] || signupForm.educationBoard || 'SSC / State Board',
+        plan: selectedPlan ? (selectedPlan.slug || selectedPlan.key) : 'TRIAL',
+        couponCode: appliedSignupCoupon ? appliedSignupCoupon.code : undefined,
       };
       const res = await apiClient.post('/academies/signup', payload);
       if (res.data.token) {
@@ -215,7 +292,7 @@ export default function MarketingPage() {
 
             {/* Start Free Trial CTA Button */}
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => handleOpenTrialSignup()}
               className="bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold px-3.5 py-2 sm:px-6 sm:py-2.5 rounded-xl shadow-md shadow-orange-500/20 transition duration-200 flex items-center space-x-1.5 shrink-0 cursor-pointer whitespace-nowrap"
             >
               <span>Start Free Trial</span>
@@ -263,8 +340,7 @@ export default function MarketingPage() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      setShowModal(true);
-                      setOnboardingStep(1);
+                      handleOpenTrialSignup();
                     }
                   }}
                   className="bg-transparent text-slate-900 placeholder-slate-400 focus:outline-none w-full font-bold text-sm sm:text-base min-w-0"
@@ -275,10 +351,7 @@ export default function MarketingPage() {
               </div>
 
               <button
-                onClick={() => {
-                  setShowModal(true);
-                  setOnboardingStep(1);
-                }}
+                onClick={() => handleOpenTrialSignup()}
                 className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-6 py-3 rounded-xl sm:rounded-2xl transition shadow-md shadow-orange-500/20 shrink-0 cursor-pointer"
               >
                 Claim Now
@@ -607,7 +680,7 @@ export default function MarketingPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => handleOpenTrialSignup()}
                     className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-md shadow-orange-500/20 shrink-0 cursor-pointer text-center"
                   >
                     Launch Academy Tenant
@@ -920,25 +993,16 @@ export default function MarketingPage() {
                     </ul>
                   </div>
 
-                  {plan.slug === 'ENTERPRISE' ? (
-                    <Link
-                      href="/contact"
-                      className="mt-6 sm:mt-8 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl sm:rounded-2xl transition border border-slate-200 cursor-pointer text-xs sm:text-sm shadow-xs block text-center"
-                    >
-                      Contact Enterprise Sales
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => setShowModal(true)}
-                      className={`mt-6 sm:mt-8 w-full font-bold py-3 sm:py-3.5 rounded-xl sm:rounded-2xl transition cursor-pointer text-xs sm:text-sm ${
-                        isPopular
-                          ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20'
-                          : 'bg-white hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-xs'
-                      }`}
-                    >
-                      Start 14-Day Free Trial
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleOpenPlanSignup(plan)}
+                    className={`mt-6 sm:mt-8 w-full font-bold py-3 sm:py-3.5 rounded-xl sm:rounded-2xl transition cursor-pointer text-xs sm:text-sm ${
+                      isPopular
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20'
+                        : 'bg-white hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-xs'
+                    }`}
+                  >
+                    Subscribe to {plan.name}
+                  </button>
                 </div>
               );
             })}
@@ -967,11 +1031,19 @@ export default function MarketingPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 flex-wrap gap-1">
                     <span className="bg-orange-100 text-orange-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       Step {onboardingStep} of 4
                     </span>
-                    <span className="text-xs font-bold text-slate-500">14-Day Free Trial Setup</span>
+                    {selectedPlan ? (
+                      <span className="text-xs font-bold text-orange-700 bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full font-mono">
+                        {selectedPlan.name} (₹{selectedPlan.priceMonthly.toLocaleString('en-IN')}/mo)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                        14-Day Free Trial
+                      </span>
+                    )}
                   </div>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
                     {onboardingStep === 1 && '1. Academy Identity & Subdomain'}
@@ -1003,6 +1075,79 @@ export default function MarketingPage() {
               {/* STEP 1: ACADEMY IDENTITY & SUBDOMAIN */}
               {onboardingStep === 1 && (
                 <div className="space-y-4">
+                  {/* Selected Plan Summary Banner */}
+                  {selectedPlan && (
+                    <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border border-orange-200 rounded-2xl p-3.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                          <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Selected Subscription</span>
+                        </div>
+                        <span className="text-xs font-extrabold text-orange-600 bg-white px-2.5 py-0.5 rounded-lg border border-orange-200 font-mono">
+                          ₹{appliedSignupCoupon
+                            ? (appliedSignupCoupon.discountType === 'PERCENT'
+                                ? Math.round(selectedPlan.priceMonthly * (1 - appliedSignupCoupon.discountValue / 100))
+                                : Math.max(0, selectedPlan.priceMonthly - appliedSignupCoupon.discountValue)
+                              ).toLocaleString('en-IN')
+                            : selectedPlan.priceMonthly.toLocaleString('en-IN')
+                          } / mo
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-600">
+                        <span className="font-bold text-slate-800">{selectedPlan.name} &bull; {selectedPlan.studentLimit}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowModal(false);
+                            const el = document.getElementById('pricing');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="text-orange-600 hover:text-orange-800 underline font-bold cursor-pointer text-[11px]"
+                        >
+                          Change Tier
+                        </button>
+                      </div>
+
+                      {/* Optional Coupon Code Input during Onboarding */}
+                      <div className="pt-1.5 border-t border-orange-200/60">
+                        {appliedSignupCoupon ? (
+                          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1.5 text-xs text-emerald-800">
+                            <span className="font-bold">
+                              Coupon <strong>{appliedSignupCoupon.code}</strong> applied ({appliedSignupCoupon.discountType === 'PERCENT' ? `${appliedSignupCoupon.discountValue}% OFF` : `₹${appliedSignupCoupon.discountValue} OFF`})
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setAppliedSignupCoupon(null)}
+                              className="text-rose-600 underline font-bold text-[11px] cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              placeholder="Have a Coupon Code?"
+                              value={signupCouponCode}
+                              onChange={(e) => setSignupCouponCode(e.target.value.toUpperCase())}
+                              className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 w-full uppercase focus:outline-none focus:border-orange-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplySignupCoupon}
+                              disabled={validatingSignupCoupon || !signupCouponCode.trim()}
+                              className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0"
+                            >
+                              {validatingSignupCoupon ? 'Checking...' : 'Apply'}
+                            </button>
+                          </div>
+                        )}
+                        {signupCouponError && (
+                          <p className="text-[11px] text-rose-600 font-bold mt-1">{signupCouponError}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Official Academy Name *</label>
                     <input
@@ -1459,6 +1604,10 @@ export default function MarketingPage() {
                     <span className="font-extrabold text-orange-950 block text-sm">Tenant Setup Summary:</span>
                     <div className="text-orange-900 space-y-0.5 font-medium">
                       <p>• Subdomain: <span className="font-bold font-mono">https://{signupForm.slug || 'demo'}.educare.prohitcoretech.com</span></p>
+                      <p>• Selected Tier: <span className="font-bold font-mono">{selectedPlan ? `${selectedPlan.name} (₹${selectedPlan.priceMonthly.toLocaleString('en-IN')}/mo)` : '14-Day Free Trial (All Features)'}</span></p>
+                      {appliedSignupCoupon && (
+                        <p>• Coupon Applied: <span className="font-bold text-emerald-700 font-mono">{appliedSignupCoupon.code} (-₹{(selectedPlan ? selectedPlan.priceMonthly - appliedSignupCoupon.finalAmount : 0).toLocaleString('en-IN')})</span></p>
+                      )}
                       <p>• Offerings: <span className="font-bold">{signupForm.institutionTypes?.join(', ')}</span></p>
                       <p>• Boards: <span className="font-bold">{signupForm.educationBoards?.join(', ')}</span></p>
                     </div>

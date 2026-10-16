@@ -125,14 +125,14 @@ export default function PricingPage() {
                   </div>
 
                   <Link
-                    href={plan.slug === 'ENTERPRISE' ? '/contact' : '/#pricing'}
-                    className={`mt-6 sm:mt-8 w-full font-bold py-3.5 rounded-2xl transition text-center text-xs sm:text-sm block ${
+                    href={`/?plan=${plan.slug}#pricing`}
+                    className={`mt-6 sm:mt-8 w-full font-bold py-3.5 rounded-2xl transition text-center text-xs sm:text-sm block cursor-pointer ${
                       isPopular
                         ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200'
                     }`}
                   >
-                    {plan.slug === 'ENTERPRISE' ? 'Contact Enterprise Sales' : 'Start 14-Day Free Trial'}
+                    Subscribe to {plan.name}
                   </Link>
                 </div>
               );
