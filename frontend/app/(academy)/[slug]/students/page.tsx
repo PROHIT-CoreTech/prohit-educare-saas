@@ -4,7 +4,15 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
-import { isValidMobile } from '../../../../lib/validation';
+import {
+  isValidMobile,
+  isValidEmail,
+  isValidName,
+  isValidStandard,
+  isValidAmount,
+  isValidInstallmentCount,
+  formatValidationErrorMessage,
+} from '../../../../lib/validation';
 import { ALL_STANDARDS, formatStandard, formatStandardFull } from '../../../../lib/standards';
 
 const DEFAULT_BATCH_PRESETS = [
@@ -143,9 +151,11 @@ export default function StudentsPage() {
     validUpto: '31-MAR-2027',
   });
   const [isUpdatingStudent, setIsUpdatingStudent] = useState(false);
+  const [editFormError, setEditFormError] = useState('');
 
   const handleOpenEditModal = (stu: any) => {
     setEditingStudent(stu);
+    setEditFormError('');
     setEditFormData({
       name: stu.name || '',
       parentName: stu.parentName || '',
@@ -166,14 +176,29 @@ export default function StudentsPage() {
   const handleSaveEditedStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingStudent) return;
+    setEditFormError('');
+
+    if (!isValidName(editFormData.name)) {
+      setEditFormError("Student's full name is required (at least 2 characters).");
+      return;
+    }
+    if (!isValidName(editFormData.parentName)) {
+      setEditFormError("Parent's full name is required (at least 2 characters).");
+      return;
+    }
     if (!isValidMobile(editFormData.parentPhone)) {
-      alert('Invalid Mobile Number: Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      setEditFormError('Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+    if (editFormData.parentEmail && !isValidEmail(editFormData.parentEmail)) {
+      setEditFormError('Please enter a valid email address or leave it blank.');
       return;
     }
     if (editFormData.emergencyPhone && !isValidMobile(editFormData.emergencyPhone)) {
-      alert('Invalid Emergency Phone: Please enter a valid 10-digit mobile number starting with 6-9.');
+      setEditFormError('Emergency phone must be a valid 10-digit mobile number starting with 6-9.');
       return;
     }
+
     setIsUpdatingStudent(true);
     try {
       await apiClient.patch(`/students/${editingStudent._id}`, editFormData);
@@ -181,7 +206,7 @@ export default function StudentsPage() {
       setEditingStudent(null);
       fetchData();
     } catch (err: any) {
-      alert('Failed to update student profile: ' + (err.response?.data?.message || err.message));
+      setEditFormError(formatValidationErrorMessage(err, 'Failed to update student profile. Please check inputs and try again.'));
     } finally {
       setIsUpdatingStudent(false);
     }
@@ -201,6 +226,7 @@ export default function StudentsPage() {
     customTotalFee: 35000,
   });
   const [isPromoting, setIsPromoting] = useState(false);
+  const [promoteFormError, setPromoteFormError] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -225,6 +251,7 @@ export default function StudentsPage() {
     customTotalFee: 35000,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const [authError, setAuthError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -352,51 +379,98 @@ export default function StudentsPage() {
 
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
+
+    if (!isValidName(formData.name)) {
+      setFormError("Student's full name is required (at least 2 characters).");
+      return;
+    }
+    if (!isValidName(formData.parentName)) {
+      setFormError("Parent's full name is required (at least 2 characters).");
+      return;
+    }
     if (!isValidMobile(formData.parentPhone)) {
-      alert('Invalid Mobile Number: Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+      setFormError('Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+    if (formData.parentEmail && !isValidEmail(formData.parentEmail)) {
+      setFormError('Please enter a valid parent email address or leave it blank.');
       return;
     }
     if (formData.emergencyPhone && !isValidMobile(formData.emergencyPhone)) {
-      alert('Invalid Emergency Phone: Please enter a valid 10-digit mobile number starting with 6-9.');
+      setFormError('Emergency phone must be a valid 10-digit mobile number starting with 6-9.');
       return;
     }
+    if (!isValidStandard(formData.standard)) {
+      setFormError('Please select a valid academic standard / level.');
+      return;
+    }
+
+    const feeAmount = Number(formData.customTotalFee);
+    if (isNaN(feeAmount) || feeAmount < 0) {
+      setFormError('Net billed fee must be a valid positive amount.');
+      return;
+    }
+
+    const discountAmt = Number(formData.discountAmount) || 0;
+    if (discountAmt < 0) {
+      setFormError('Discount amount cannot be negative.');
+      return;
+    }
+    if (discountAmt > feeAmount) {
+      setFormError(`Discount amount (₹${discountAmt.toLocaleString('en-IN')}) cannot exceed the total fee (₹${feeAmount.toLocaleString('en-IN')}).`);
+      return;
+    }
+
+    if (formData.paymentType === 'INSTALLMENT') {
+      const instCount = Number(formData.installmentCount);
+      if (!isValidInstallmentCount(instCount)) {
+        setFormError('Number of installments must be an integer between 1 and 24.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('prohit_auth_token') : null;
       if (!token) {
         setAuthError(true);
-        alert('Authentication Required: You are not signed in or your session has expired. Please sign in to enroll students.');
+        setFormError('Authentication Required: You are not signed in or your session has expired. Please sign in to enroll students.');
         setIsSubmitting(false);
         return;
       }
 
       let targetBatchId = formData.classBatchId;
 
-      if (targetBatchId.startsWith('preset_')) {
-        let preset = DEFAULT_BATCH_PRESETS.find((p) => p.id === targetBatchId);
-        if (!preset) {
-          preset = {
-            id: `preset_${formData.standard}`,
-            standard: formData.standard,
-            medium: formData.standard <= 10 ? formData.medium : 'english',
-            section: formData.standard >= 11 ? formData.stream : 'none',
-            batchName: `Class ${formData.standard}th Standard Batch`,
-          };
-        }
+      // Check if an existing batch in the classes list already matches
+      const existingMatch = classes.find(
+        (c: any) =>
+          c.standard === formData.standard &&
+          (formData.standard >= 11 ? c.section === formData.stream : c.medium === formData.medium)
+      );
+
+      if (existingMatch && (targetBatchId.startsWith('preset_') || !targetBatchId)) {
+        targetBatchId = existingMatch._id;
+      } else if (targetBatchId.startsWith('preset_')) {
+        let preset = DEFAULT_BATCH_PRESETS.find((p) => p.id === targetBatchId || p.standard === formData.standard);
+        const stdLabel = formatStandard(formData.standard);
+        const medLabel = formData.standard >= 11 ? (formData.stream || 'science').toUpperCase() : (formData.medium || 'english').toUpperCase();
+        const batchName = preset ? preset.batchName : `Class ${stdLabel} (${medLabel} Medium)`;
+
         const newBatchRes = await apiClient.post('/classes', {
-          standard: preset.standard,
-          medium: formData.standard <= 10 ? formData.medium : preset.medium,
-          section: formData.standard >= 11 ? formData.stream : preset.section,
-          batchName: preset.batchName,
+          standard: formData.standard,
+          medium: formData.standard <= 10 ? formData.medium : preset?.medium || 'english',
+          section: formData.standard >= 11 ? formData.stream : preset?.section || 'none',
+          batchName,
         });
         targetBatchId = newBatchRes.data._id;
       }
 
       await apiClient.post('/students', {
-        name: formData.name,
-        parentName: formData.parentName,
-        parentPhone: formData.parentPhone,
-        parentEmail: formData.parentEmail,
+        name: formData.name.trim(),
+        parentName: formData.parentName.trim(),
+        parentPhone: formData.parentPhone.trim(),
+        parentEmail: formData.parentEmail ? formData.parentEmail.trim() : undefined,
         classBatchId: targetBatchId,
         standard: formData.standard,
         medium: formData.standard <= 10 ? formData.medium : 'english',
@@ -404,18 +478,19 @@ export default function StudentsPage() {
         photoUrl: formData.photoUrl,
         gender: formData.gender || 'MALE',
         bloodGroup: formData.bloodGroup,
-        emergencyContactName: formData.emergencyContactName || formData.parentName,
-        emergencyPhone: formData.emergencyPhone || formData.parentPhone,
-        address: formData.address,
-        rollNo: formData.rollNo,
+        emergencyContactName: (formData.emergencyContactName || formData.parentName).trim(),
+        emergencyPhone: (formData.emergencyPhone || formData.parentPhone).trim(),
+        address: formData.address ? formData.address.trim() : '',
+        rollNo: formData.rollNo ? formData.rollNo.trim() : '',
         validUpto: formData.validUpto,
-        discountAmount: Number(formData.discountAmount) || 0,
+        discountAmount: discountAmt,
         paymentType: formData.paymentType,
         installmentCount: formData.paymentType === 'INSTALLMENT' ? Number(formData.installmentCount) : 1,
-        customTotalFee: Number(formData.customTotalFee) || 35000,
+        customTotalFee: feeAmount,
       });
 
       setShowAddModal(false);
+      setFormError('');
       setFormData({
         name: '',
         parentName: '',
@@ -442,9 +517,9 @@ export default function StudentsPage() {
     } catch (err: any) {
       if (err.response?.status === 401 || err.response?.data?.message?.includes('Authorization')) {
         setAuthError(true);
-        alert('Authentication Required: Your session has expired or you are not logged in. Please sign in to your academy again.');
+        setFormError('Authentication Required: Your session has expired or you are not logged in. Please sign in to your academy again.');
       } else {
-        alert('Error enrolling student: ' + (err.response?.data?.message || err.message));
+        setFormError(formatValidationErrorMessage(err, 'Failed to enroll student. Please check all inputs and try again.'));
       }
     } finally {
       setIsSubmitting(false);
@@ -532,26 +607,61 @@ export default function StudentsPage() {
   const handlePromoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudentForPromote) return;
+    setPromoteFormError('');
+
+    if (!isValidStandard(promoteFormData.targetStandard)) {
+      setPromoteFormError('Please select a valid academic level / standard to promote into.');
+      return;
+    }
+
+    const feeAmount = Number(promoteFormData.customTotalFee);
+    if (isNaN(feeAmount) || feeAmount < 0) {
+      setPromoteFormError('Net fee amount must be a valid positive amount.');
+      return;
+    }
+
+    const discountAmt = Number(promoteFormData.discountAmount) || 0;
+    if (discountAmt < 0) {
+      setPromoteFormError('Discount amount cannot be negative.');
+      return;
+    }
+    if (discountAmt > feeAmount) {
+      setPromoteFormError(`Discount amount (₹${discountAmt.toLocaleString('en-IN')}) cannot exceed the total fee (₹${feeAmount.toLocaleString('en-IN')}).`);
+      return;
+    }
+
+    if (promoteFormData.paymentType === 'INSTALLMENT') {
+      const instCount = Number(promoteFormData.installmentCount);
+      if (!isValidInstallmentCount(instCount)) {
+        setPromoteFormError('Number of installments must be an integer between 1 and 24.');
+        return;
+      }
+    }
+
     setIsPromoting(true);
     try {
       let targetBatchId = promoteFormData.classBatchId;
 
-      if (targetBatchId.startsWith('preset_')) {
-        let preset = DEFAULT_BATCH_PRESETS.find((p) => p.id === targetBatchId);
-        if (!preset) {
-          preset = {
-            id: `preset_${promoteFormData.targetStandard}`,
-            standard: promoteFormData.targetStandard,
-            medium: promoteFormData.targetStandard <= 10 ? promoteFormData.medium : 'english',
-            section: promoteFormData.targetStandard >= 11 ? promoteFormData.stream : 'none',
-            batchName: `Class ${promoteFormData.targetStandard}th Standard Batch`,
-          };
-        }
+      // Check if existing batch already matches
+      const existingMatch = classes.find(
+        (c: any) =>
+          c.standard === promoteFormData.targetStandard &&
+          (promoteFormData.targetStandard >= 11 ? c.section === promoteFormData.stream : c.medium === promoteFormData.medium)
+      );
+
+      if (existingMatch && (targetBatchId.startsWith('preset_') || !targetBatchId)) {
+        targetBatchId = existingMatch._id;
+      } else if (targetBatchId.startsWith('preset_')) {
+        let preset = DEFAULT_BATCH_PRESETS.find((p) => p.id === targetBatchId || p.standard === promoteFormData.targetStandard);
+        const stdLabel = formatStandard(promoteFormData.targetStandard);
+        const medLabel = promoteFormData.targetStandard >= 11 ? (promoteFormData.stream || 'science').toUpperCase() : (promoteFormData.medium || 'english').toUpperCase();
+        const batchName = preset ? preset.batchName : `Class ${stdLabel} (${medLabel} Medium)`;
+
         const newBatchRes = await apiClient.post('/classes', {
-          standard: preset.standard,
-          medium: promoteFormData.targetStandard <= 10 ? promoteFormData.medium : preset.medium,
-          section: promoteFormData.targetStandard >= 11 ? promoteFormData.stream : preset.section,
-          batchName: preset.batchName,
+          standard: promoteFormData.targetStandard,
+          medium: promoteFormData.targetStandard <= 10 ? promoteFormData.medium : preset?.medium || 'english',
+          section: promoteFormData.targetStandard >= 11 ? promoteFormData.stream : preset?.section || 'none',
+          batchName,
         });
         targetBatchId = newBatchRes.data._id;
       }
@@ -561,17 +671,18 @@ export default function StudentsPage() {
         classBatchId: targetBatchId,
         medium: promoteFormData.targetStandard <= 10 ? promoteFormData.medium : 'english',
         stream: promoteFormData.targetStandard >= 11 ? promoteFormData.stream : 'none',
-        discountAmount: Number(promoteFormData.discountAmount) || 0,
+        discountAmount: discountAmt,
         paymentType: promoteFormData.paymentType,
         installmentCount: promoteFormData.paymentType === 'INSTALLMENT' ? Number(promoteFormData.installmentCount) : 1,
-        customTotalFee: Number(promoteFormData.customTotalFee) || 35000,
+        customTotalFee: feeAmount,
       });
 
       setShowPromoteModal(false);
       setSelectedStudentForPromote(null);
+      setPromoteFormError('');
       fetchData();
     } catch (err: any) {
-      alert('Error promoting student: ' + (err.response?.data?.message || err.message));
+      setPromoteFormError(formatValidationErrorMessage(err, 'Failed to promote student. Please verify all inputs and try again.'));
     } finally {
       setIsPromoting(false);
     }
@@ -923,6 +1034,22 @@ export default function StudentsPage() {
             </div>
 
             <form onSubmit={handlePromoteSubmit} className="space-y-4">
+              {promoteFormError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{promoteFormError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPromoteFormError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Target Next Standard *</label>
                 <select
@@ -1076,6 +1203,22 @@ export default function StudentsPage() {
             </div>
 
             <form onSubmit={handleCreateStudent} className="space-y-4">
+              {formError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{formError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               {/* Photo Upload Provision */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
                 <label className="block text-xs font-bold text-slate-700 uppercase">Student Passport Photo & Gender *</label>
@@ -1383,6 +1526,22 @@ export default function StudentsPage() {
             </div>
 
             <form onSubmit={handleSaveEditedStudent} className="space-y-4">
+              {editFormError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{editFormError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditFormError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               {/* Photo Upload Provision */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
                 <label className="block text-xs font-bold text-slate-700 uppercase">Update Passport Photo & Gender</label>

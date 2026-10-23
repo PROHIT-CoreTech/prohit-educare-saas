@@ -9,7 +9,13 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '../../lib/api';
-import { isValidMobile } from '../../lib/validation';
+import {
+  isValidMobile,
+  isValidEmail,
+  isValidName,
+  isValidPassword,
+  formatValidationErrorMessage,
+} from '../../lib/validation';
 import ComplianceFooter from './components/ComplianceFooter';
 import PromoAnnouncementBanner from './components/PromoAnnouncementBanner';
 import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../lib/pricing-plans';
@@ -209,12 +215,34 @@ export default function MarketingPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (signupForm.phone && !isValidMobile(signupForm.phone)) {
-      setSignupMessage('Invalid Mobile Number: Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+    setSignupMessage('');
+
+    if (!isValidName(signupForm.name)) {
+      setSignupMessage('Academy name is required (at least 2 characters).');
       return;
     }
+    if (!signupForm.slug || !/^[a-z0-9-]+$/.test(signupForm.slug)) {
+      setSignupMessage('Academy portal URL (slug) must contain only lowercase letters, numbers, and hyphens.');
+      return;
+    }
+    if (!isValidName(signupForm.adminName)) {
+      setSignupMessage('Admin / Director full name is required (at least 2 characters).');
+      return;
+    }
+    if (!isValidEmail(signupForm.adminEmail)) {
+      setSignupMessage('Please provide a valid administrator email address.');
+      return;
+    }
+    if (!isValidPassword(signupForm.adminPassword, 6)) {
+      setSignupMessage('Account password must be at least 6 characters long.');
+      return;
+    }
+    if (signupForm.phone && !isValidMobile(signupForm.phone)) {
+      setSignupMessage('Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+
     setSubmitting(true);
-    setSignupMessage('');
     try {
       const payload = {
         ...signupForm,
@@ -235,13 +263,7 @@ export default function MarketingPage() {
         }, 200);
       }
     } catch (err: any) {
-      const rawMsg = err.response?.data?.message;
-      const msgStr = Array.isArray(rawMsg)
-        ? rawMsg.join(', ')
-        : typeof rawMsg === 'string'
-        ? rawMsg
-        : 'Signup failed. Please try again.';
-      setSignupMessage(msgStr);
+      setSignupMessage(formatValidationErrorMessage(err, 'Signup failed. Please verify your details and try again.'));
     } finally {
       setSubmitting(false);
     }

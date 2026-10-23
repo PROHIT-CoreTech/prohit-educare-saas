@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, Plus, Edit3, ShieldCheck, MapPin, Phone, Mail, Users, CheckCircle2, AlertCircle, Sparkles, Layers } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
+import {
+  isValidMobile,
+  isValidEmail,
+  isValidName,
+  formatValidationErrorMessage,
+} from '../../../../lib/validation';
 
 export default function BranchesPage() {
   const [branches, setBranches] = useState<any[]>([]);
@@ -12,6 +18,8 @@ export default function BranchesPage() {
   const [editingBranch, setEditingBranch] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [editFormError, setEditFormError] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -52,18 +60,30 @@ export default function BranchesPage() {
 
   const handleCreateBranch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      alert('Please enter a valid branch name');
+    setFormError('');
+
+    if (!isValidName(formData.name)) {
+      setFormError('Branch name is required (at least 2 characters).');
       return;
     }
+    if (formData.phone && !isValidMobile(formData.phone)) {
+      setFormError('Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+    if (formData.email && !isValidEmail(formData.email)) {
+      setFormError('Please enter a valid email address or leave it blank.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await apiClient.post('/branches', formData);
       setShowAddModal(false);
+      setFormError('');
       setFormData({ name: '', code: '', address: '', phone: '', email: '' });
       fetchBranchesData();
     } catch (err: any) {
-      alert('Error creating branch: ' + (err.response?.data?.message || err.message));
+      setFormError(formatValidationErrorMessage(err, 'Failed to create branch. Please check inputs and try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,14 +92,30 @@ export default function BranchesPage() {
   const handleUpdateBranch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingBranch) return;
+    setEditFormError('');
+
+    if (!isValidName(editFormData.name)) {
+      setEditFormError('Branch name is required (at least 2 characters).');
+      return;
+    }
+    if (editFormData.phone && !isValidMobile(editFormData.phone)) {
+      setEditFormError('Contact phone must be a valid 10-digit mobile number starting with 6-9.');
+      return;
+    }
+    if (editFormData.email && !isValidEmail(editFormData.email)) {
+      setEditFormError('Please enter a valid email address or leave it blank.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await apiClient.patch(`/branches/${editingBranch._id}`, editFormData);
       setShowEditModal(false);
+      setEditFormError('');
       setEditingBranch(null);
       fetchBranchesData();
     } catch (err: any) {
-      alert('Error updating branch: ' + (err.response?.data?.message || err.message));
+      setEditFormError(formatValidationErrorMessage(err, 'Failed to update branch. Please check inputs and try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -87,6 +123,7 @@ export default function BranchesPage() {
 
   const openEditModal = (b: any) => {
     setEditingBranch(b);
+    setEditFormError('');
     setEditFormData({
       name: b.name || '',
       code: b.code || '',
@@ -272,6 +309,22 @@ export default function BranchesPage() {
             </div>
 
             <form onSubmit={handleCreateBranch} className="space-y-4">
+              {formError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{formError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1">Branch Name *</label>
                 <input
@@ -371,6 +424,22 @@ export default function BranchesPage() {
             </div>
 
             <form onSubmit={handleUpdateBranch} className="space-y-4">
+              {editFormError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{editFormError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditFormError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1">Branch Name *</label>
                 <input

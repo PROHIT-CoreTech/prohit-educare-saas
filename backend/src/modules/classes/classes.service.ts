@@ -46,32 +46,73 @@ export class ClassesService implements OnModuleInit {
     await this.ensureSyncedIndexes();
     const academyId = this.tenantContextService.academyId;
 
-    if (dto.standard >= 11) {
-      if (dto.medium !== 'english') {
-        throw new BadRequestException('Standard 11 and above is locked to "english" medium');
+    const stdNum = Number(dto.standard);
+    if (isNaN(stdNum) || stdNum < -4 || stdNum > 15) {
+      throw new BadRequestException('Academic standard must be a valid number between -4 (Day Care) and 15 (TY Degree).');
+    }
+
+    const medium = (dto.medium || 'english').toLowerCase().trim();
+    if (!['english', 'marathi', 'semi_english', 'hindi'].includes(medium)) {
+      throw new BadRequestException('Medium must be one of: english, marathi, semi_english, hindi.');
+    }
+
+    let section = 'none';
+    if (stdNum >= 11) {
+      if (medium !== 'english') {
+        throw new BadRequestException('Standard 11 and above is locked to "english" medium.');
       }
-      if (!dto.section || !['science', 'commerce', 'arts'].includes(dto.section)) {
-        throw new BadRequestException('Section (science, commerce, or arts) is required for standard 11 and above');
+      section = (dto.section || '').toLowerCase().trim();
+      if (!['science', 'commerce', 'arts'].includes(section)) {
+        throw new BadRequestException('Section (science, commerce, or arts) is required for standard 11 and above.');
       }
-    } else {
-      dto.section = 'none';
+    }
+
+    const stdDisplay = stdNum === -4 ? 'Day Care' : stdNum === -3 ? 'Playgroup' : stdNum === -2 ? 'Nursery' : stdNum === -1 ? 'Jr KG' : stdNum === 0 ? 'Sr KG' : `Std ${stdNum}`;
+    let batchName = (dto.batchName || '').trim();
+    if (!batchName) {
+      batchName = `Class ${stdDisplay} (${medium.toUpperCase()}${section !== 'none' ? ' - ' + section.toUpperCase() : ''})`;
+    }
+
+    // Idempotent resolution: Return existing batch if one already exists for this exact signature
+    const existing = await this.classBatchModel.findOne({
+      academyId,
+      standard: stdNum,
+      medium,
+      section,
+      batchName,
+    }).exec();
+
+    if (existing) {
+      return existing;
     }
 
     try {
       const batch = await this.classBatchModel.create({
         academyId,
-        standard: dto.standard,
-        medium: dto.medium,
-        section: dto.section,
-        batchName: dto.batchName,
+        standard: stdNum,
+        medium,
+        section,
+        batchName,
       });
 
       return batch;
     } catch (error: any) {
       this.logger.error('Class Batch creation error details:', error);
       if (error.code === 11000) {
-        const stdDisplay = dto.standard === -4 ? 'Day Care' : dto.standard === -3 ? 'Playgroup' : dto.standard === -2 ? 'Nursery' : dto.standard === -1 ? 'Jr KG' : dto.standard === 0 ? 'Sr KG' : `Std ${dto.standard}`;
-        throw new BadRequestException(`A class batch named "${dto.batchName}" already exists for ${stdDisplay} (${dto.medium}${dto.section !== 'none' ? ' - ' + dto.section : ''}).`);
+        const fallbackExisting = await this.classBatchModel.findOne({
+          academyId,
+          standard: stdNum,
+          medium,
+          section,
+          batchName,
+        }).exec();
+        if (fallbackExisting) return fallbackExisting;
+
+        throw new BadRequestException(`A class batch named "${batchName}" already exists for ${stdDisplay} (${medium}${section !== 'none' ? ' - ' + section : ''}).`);
+      }
+      if (error.name === 'ValidationError') {
+        const msgs = Object.values(error.errors || {}).map((e: any) => e.message).join(', ');
+        throw new BadRequestException(`Class batch validation error: ${msgs}`);
       }
       throw new BadRequestException(`Failed to create class batch: ${error.message || 'Unknown database error'}`);
     }

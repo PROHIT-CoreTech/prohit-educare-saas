@@ -42,11 +42,41 @@ export class StudentsService {
     installmentCount?: number;
     customTotalFee?: number;
   }) {
+    if (!dto.name || dto.name.trim().length < 2) {
+      throw new BadRequestException('Student name is required and must be at least 2 characters.');
+    }
+    if (!dto.parentName || dto.parentName.trim().length < 2) {
+      throw new BadRequestException('Parent name is required and must be at least 2 characters.');
+    }
     if (!isValidMobile(dto.parentPhone)) {
       throw new BadRequestException('Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000');
     }
+    if (dto.parentEmail && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(dto.parentEmail.trim())) {
+      throw new BadRequestException('Please provide a valid parent email address or leave it empty.');
+    }
     if (dto.emergencyPhone && !isValidMobile(dto.emergencyPhone)) {
       throw new BadRequestException('Emergency phone must be a valid 10-digit mobile number starting with 6-9');
+    }
+
+    const stdNum = Number(dto.standard);
+    if (isNaN(stdNum) || stdNum < -4 || stdNum > 15) {
+      throw new BadRequestException('Academic level (standard) must be between -4 (Day Care) and 15 (TY Degree).');
+    }
+
+    if (dto.customTotalFee !== undefined && dto.customTotalFee < 0) {
+      throw new BadRequestException('Net fee amount cannot be negative.');
+    }
+
+    if (dto.discountAmount !== undefined && dto.discountAmount < 0) {
+      throw new BadRequestException('Discount amount cannot be negative.');
+    }
+
+    if (dto.discountAmount && dto.customTotalFee && dto.discountAmount > dto.customTotalFee) {
+      throw new BadRequestException('Discount amount cannot exceed the net total fee.');
+    }
+
+    if (dto.paymentType === 'INSTALLMENT' && (dto.installmentCount !== undefined && (dto.installmentCount < 1 || dto.installmentCount > 24))) {
+      throw new BadRequestException('Installment count must be between 1 and 24.');
     }
     const academyId = this.tenantContextService.academyId;
 
@@ -139,8 +169,17 @@ export class StudentsService {
 
   async update(id: string, dto: Partial<Student>) {
     const academyId = this.tenantContextService.academyId;
+    if (dto.name !== undefined && dto.name.trim().length < 2) {
+      throw new BadRequestException('Student name must be at least 2 characters.');
+    }
+    if (dto.parentName !== undefined && dto.parentName.trim().length < 2) {
+      throw new BadRequestException('Parent name must be at least 2 characters.');
+    }
     if (dto.parentPhone && !isValidMobile(dto.parentPhone)) {
       throw new BadRequestException('Parent phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210)');
+    }
+    if (dto.parentEmail && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(dto.parentEmail.trim())) {
+      throw new BadRequestException('Please provide a valid parent email address or leave it empty.');
     }
     if (dto.emergencyPhone && !isValidMobile(dto.emergencyPhone)) {
       throw new BadRequestException('Emergency phone must be a valid 10-digit mobile number starting with 6-9');
@@ -163,10 +202,15 @@ export class StudentsService {
     installmentCount?: number;
   }) {
     const academyId = this.tenantContextService.academyId;
+    const stdNum = Number(dto.targetStandard);
+    if (isNaN(stdNum) || stdNum < -4 || stdNum > 15) {
+      throw new BadRequestException('Target standard must be between -4 (Day Care) and 15 (TY Degree).');
+    }
+
     const student = await this.studentModel.findOne({ _id: id, academyId }).exec();
     if (!student) throw new NotFoundException('Student not found');
 
-    student.standard = dto.targetStandard;
+    student.standard = stdNum;
     if (dto.classBatchId && Types.ObjectId.isValid(dto.classBatchId)) {
       student.classBatchId = new Types.ObjectId(dto.classBatchId);
     }

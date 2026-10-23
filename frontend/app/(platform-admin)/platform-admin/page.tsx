@@ -10,7 +10,13 @@ import {
   ChevronDown, RefreshCw
 } from 'lucide-react';
 import { apiClient } from '../../../lib/api';
-import { isValidMobile } from '../../../lib/validation';
+import {
+  isValidMobile,
+  isValidEmail,
+  isValidName,
+  isValidPassword,
+  formatValidationErrorMessage,
+} from '../../../lib/validation';
 import { downloadSampleExcelTemplate, parseExcelFile, ValidatedStudentRow } from '../../../lib/excel-import';
 
 export default function PlatformAdminPage() {
@@ -459,12 +465,34 @@ export default function PlatformAdminPage() {
 
   const handleOfflineRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (offlineForm.phone && !isValidMobile(offlineForm.phone)) {
-      setOfflineMessage('Invalid Mobile Number: Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+    setOfflineMessage('');
+
+    if (!isValidName(offlineForm.name)) {
+      setOfflineMessage('Academy name is required (at least 2 characters).');
       return;
     }
+    if (!offlineForm.slug || !/^[a-z0-9-]+$/.test(offlineForm.slug)) {
+      setOfflineMessage('Academy portal URL (slug) must contain only lowercase letters, numbers, and hyphens.');
+      return;
+    }
+    if (!isValidName(offlineForm.adminName)) {
+      setOfflineMessage('Director / Admin full name is required (at least 2 characters).');
+      return;
+    }
+    if (!isValidEmail(offlineForm.adminEmail)) {
+      setOfflineMessage('Please provide a valid administrator email address.');
+      return;
+    }
+    if (!isValidPassword(offlineForm.adminPassword, 6)) {
+      setOfflineMessage('Account password must be at least 6 characters long.');
+      return;
+    }
+    if (offlineForm.phone && !isValidMobile(offlineForm.phone)) {
+      setOfflineMessage('Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+
     setOfflineSubmitting(true);
-    setOfflineMessage('');
     try {
       const res = await apiClient.post('/platform/academies/register-offline', offlineForm, {
         headers: { Authorization: `Bearer ${token}` },
@@ -494,7 +522,7 @@ export default function PlatformAdminPage() {
         setOfflineStep(1);
       }, 1500);
     } catch (err: any) {
-      setOfflineMessage('Registration failed: ' + (err.response?.data?.message || err.message));
+      setOfflineMessage(formatValidationErrorMessage(err, 'Offline registration failed. Please check inputs and try again.'));
     } finally {
       setOfflineSubmitting(false);
     }

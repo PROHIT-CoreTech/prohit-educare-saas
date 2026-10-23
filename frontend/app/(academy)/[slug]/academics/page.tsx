@@ -30,6 +30,7 @@ import {
 import { apiClient } from '../../../../lib/api';
 import ExamsTab from './exams-tab';
 import { formatStandard, formatStandardFull, getStandardsForAcademicLevels } from '../../../../lib/standards';
+import { isValidName, isValidStandard, formatValidationErrorMessage } from '../../../../lib/validation';
 
 export default function AcademicsPage({ params }: { params: { slug: string } }) {
   const [activeSubTab, setActiveSubTab] = useState<'batches' | 'roster' | 'attendance' | 'exams'>('batches');
@@ -159,20 +160,33 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
-    try {
-      if (classForm.standard >= 11) {
-        if (classForm.medium !== 'english') {
-          setFormError('Standard 11 and above is locked to "english" medium');
-          return;
-        }
-        if (!classForm.section || classForm.section === 'none') {
-          setFormError('Section (science, commerce, or arts) is required for standard 11+');
-          return;
-        }
-      }
 
-      await apiClient.post('/classes', classForm);
+    if (!isValidStandard(classForm.standard)) {
+      setFormError('Please select a valid academic level / standard.');
+      return;
+    }
+    if (!isValidName(classForm.batchName)) {
+      setFormError('Batch name is required (at least 2 characters).');
+      return;
+    }
+    if (classForm.standard >= 11) {
+      if (classForm.medium !== 'english') {
+        setFormError('Standard 11 and above is locked to "english" medium');
+        return;
+      }
+      if (!classForm.section || classForm.section === 'none') {
+        setFormError('Section (science, commerce, or arts) is required for standard 11+');
+        return;
+      }
+    }
+
+    try {
+      await apiClient.post('/classes', {
+        ...classForm,
+        batchName: classForm.batchName.trim(),
+      });
       setShowClassModal(false);
+      setFormError('');
       setClassForm({
         standard: 10,
         medium: 'english',
@@ -181,10 +195,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       });
       fetchClasses();
     } catch (err: any) {
-      const resData = err.response?.data;
-      let rawMsg = resData?.message || resData?.error || err.message || 'Unknown error occurred';
-      if (Array.isArray(rawMsg)) rawMsg = rawMsg.join(' | ');
-      setFormError(rawMsg);
+      setFormError(formatValidationErrorMessage(err, 'Failed to create class batch. Please check inputs and try again.'));
     }
   };
 

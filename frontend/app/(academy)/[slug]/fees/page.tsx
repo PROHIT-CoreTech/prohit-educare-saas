@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CreditCard, CheckCircle, Share2, Download, RefreshCw, DollarSign, Smartphone, Loader2, AlertCircle, Search, X, ChevronDown, User, History, Eye, Calendar } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import { formatStandardFull } from '../../../../lib/standards';
+import { formatValidationErrorMessage } from '../../../../lib/validation';
 
 export default function FeeEnginePage() {
   const [students, setStudents] = useState<any[]>([]);
@@ -15,6 +16,7 @@ export default function FeeEnginePage() {
   const [paymentMode, setPaymentMode] = useState<string>('CASH');
   const [transactionRef, setTransactionRef] = useState<string>('');
   const [processing, setProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const [showOnlineDisabledAlert, setShowOnlineDisabledAlert] = useState(false);
 
   const [receiptData, setReceiptData] = useState<any>(null);
@@ -165,8 +167,14 @@ export default function FeeEnginePage() {
   };
 
   const handleRecordPayment = async () => {
-    if (!selectedStudentId || amountToPay <= 0) {
-      alert('Please select a student and enter a valid amount');
+    setPaymentError('');
+
+    if (!selectedStudentId) {
+      setPaymentError('Please select a student from the list first.');
+      return;
+    }
+    if (!amountToPay || isNaN(amountToPay) || amountToPay <= 0) {
+      setPaymentError('Please enter a valid payment amount greater than ₹0.');
       return;
     }
 
@@ -176,7 +184,7 @@ export default function FeeEnginePage() {
         studentId: selectedStudentId,
         amountPaid: Number(amountToPay),
         paymentMode,
-        transactionRef,
+        transactionRef: transactionRef ? transactionRef.trim() : undefined,
       });
 
       const currentRem = feeSummary?.summary?.remainingBalance || 0;
@@ -197,9 +205,10 @@ export default function FeeEnginePage() {
         allocations: res.data.allocations,
       });
 
+      setPaymentError('');
       fetchSummary(selectedStudentId);
     } catch (err: any) {
-      alert('Payment Recording Error: ' + (err.response?.data?.message || err.message));
+      setPaymentError(formatValidationErrorMessage(err, 'Failed to record fee payment. Please verify inputs and try again.'));
     } finally {
       setProcessing(false);
     }
@@ -838,6 +847,23 @@ export default function FeeEnginePage() {
                 <Smartphone className="w-5 h-5 text-orange-500" />
                 <h2 className="text-lg font-extrabold text-slate-900">Quick 2-Tap Payment</h2>
               </div>
+
+              {paymentError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{paymentError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Amount to Pay (₹)</label>

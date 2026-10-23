@@ -4,7 +4,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette, KeyRound, Lock } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
-import { isValidMobile } from '../../../../lib/validation';
+import {
+  isValidMobile,
+  isValidEmail,
+  isValidName,
+  isValidStandard,
+  isValidAmount,
+  isValidInstallmentCount,
+  formatValidationErrorMessage,
+} from '../../../../lib/validation';
 import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../../../lib/pricing-plans';
 import { ALL_STANDARDS, ALL_ACADEMIC_LEVELS, formatStandard, formatStandardFull } from '../../../../lib/standards';
 
@@ -36,6 +44,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -52,6 +61,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [feeStructures, setFeeStructures] = useState<any[]>([]);
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [editingFeeId, setEditingFeeId] = useState<string | null>(null);
+  const [feeError, setFeeError] = useState('');
   const [feeForm, setFeeForm] = useState({
     standard: 10,
     medium: 'english',
@@ -79,6 +89,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [facultyList, setFacultyList] = useState<any[]>([]);
   const [showFacultyModal, setShowFacultyModal] = useState(false);
   const [editingFacultyId, setEditingFacultyId] = useState<string | null>(null);
+  const [facultyError, setFacultyError] = useState('');
   const [facultySearch, setFacultySearch] = useState('');
   const [facultyForm, setFacultyForm] = useState({
     facultyId: '',
@@ -217,20 +228,36 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (profileForm.phone && !isValidMobile(profileForm.phone)) {
-      alert('Invalid Mobile Number: Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+    setProfileError('');
+
+    if (!isValidName(profileForm.name)) {
+      setProfileError('Academy name is required (at least 2 characters).');
       return;
     }
+    if (!isValidName(profileForm.directorName)) {
+      setProfileError('Director / Owner name is required (at least 2 characters).');
+      return;
+    }
+    if (profileForm.phone && !isValidMobile(profileForm.phone)) {
+      setProfileError('Contact phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+    if (profileForm.email && !isValidEmail(profileForm.email)) {
+      setProfileError('Please enter a valid official email address or leave it blank.');
+      return;
+    }
+
     setSavingProfile(true);
     setProfileSuccess('');
     try {
       await apiClient.patch('/academies/my-academy', profileForm);
       setProfileSuccess('Academy Profile updated successfully!');
       setShowEditProfileModal(false);
+      setProfileError('');
       setTimeout(() => setProfileSuccess(''), 4000);
       fetchAcademy();
     } catch (err: any) {
-      alert('Failed to update profile: ' + (err.response?.data?.message || err.message));
+      setProfileError(formatValidationErrorMessage(err, 'Failed to update academy profile. Please check inputs and try again.'));
     } finally {
       setSavingProfile(false);
     }
@@ -335,11 +362,13 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       totalAmount: 35000,
       installmentsCount: 1,
     });
+    setFeeError('');
     setShowFeeModal(true);
   };
 
   const handleOpenEditFeeModal = (fs: any) => {
     setEditingFeeId(fs._id);
+    setFeeError('');
     setFeeForm({
       standard: fs.standard !== undefined && fs.standard !== null ? fs.standard : 10,
       medium: fs.medium || 'english',
@@ -354,6 +383,25 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveFeeStructure = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFeeError('');
+
+    if (!isValidName(feeForm.name)) {
+      setFeeError('Fee structure name is required (at least 2 characters).');
+      return;
+    }
+    if (!isValidStandard(feeForm.standard)) {
+      setFeeError('Please select a valid standard / academic level.');
+      return;
+    }
+    if (!isValidAmount(feeForm.totalAmount, true)) {
+      setFeeError('Total annual fee amount must be a valid non-negative number.');
+      return;
+    }
+    if (!isValidInstallmentCount(feeForm.installmentsCount)) {
+      setFeeError('Number of installments must be an integer between 1 and 24.');
+      return;
+    }
+
     try {
       if (editingFeeId) {
         await apiClient.put(`/fee-engine/structures/${editingFeeId}`, feeForm);
@@ -361,9 +409,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         await apiClient.post('/fee-engine/structures', feeForm);
       }
       setShowFeeModal(false);
+      setFeeError('');
       fetchFeeStructures();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to save fee structure');
+      setFeeError(formatValidationErrorMessage(err, 'Failed to save fee structure. Please check inputs and try again.'));
     }
   };
 
@@ -379,6 +428,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleOpenNewFacultyModal = () => {
     setEditingFacultyId(null);
+    setFacultyError('');
     const nextSeq = String(facultyList.length + 1).padStart(3, '0');
     setFacultyForm({
       facultyId: `FAC-2026-${nextSeq}`,
@@ -395,6 +445,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleOpenEditFacultyModal = (f: any) => {
     setEditingFacultyId(f._id);
+    setFacultyError('');
     setFacultyForm({
       facultyId: f.facultyId || `FAC-2026-${String(f._id).slice(-3).toUpperCase()}`,
       name: f.name || '',
@@ -410,10 +461,21 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveFaculty = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValidMobile(facultyForm.phone)) {
-      alert('Invalid Mobile Number: Faculty phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210) and cannot be a dummy number like 0000000000.');
+    setFacultyError('');
+
+    if (!isValidName(facultyForm.name)) {
+      setFacultyError('Faculty member name is required (at least 2 characters).');
       return;
     }
+    if (!isValidMobile(facultyForm.phone)) {
+      setFacultyError('Faculty phone must be a valid 10-digit mobile number starting with 6-9 (e.g. 9876543210).');
+      return;
+    }
+    if (facultyForm.email && !isValidEmail(facultyForm.email)) {
+      setFacultyError('Please enter a valid faculty email address or leave it blank.');
+      return;
+    }
+
     try {
       if (editingFacultyId) {
         await apiClient.put(`/faculty/${editingFacultyId}`, facultyForm);
@@ -421,9 +483,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         await apiClient.post('/faculty', facultyForm);
       }
       setShowFacultyModal(false);
+      setFacultyError('');
       fetchFaculty();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to save faculty profile');
+      setFacultyError(formatValidationErrorMessage(err, 'Failed to save faculty profile. Please check inputs and try again.'));
     }
   };
 
@@ -704,6 +767,22 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+              {profileError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{profileError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProfileError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold text-slate-700 uppercase mb-1">Academy Name *</label>
@@ -1634,6 +1713,22 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </h2>
 
             <form onSubmit={handleSaveFeeStructure} className="space-y-4">
+              {feeError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{feeError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFeeError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard / Academic Level</label>
                 <select
@@ -1766,6 +1861,22 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
             </h2>
 
             <form onSubmit={handleSaveFaculty} className="space-y-4">
+              {facultyError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-2xl text-xs font-semibold flex items-start space-x-2.5 shadow-xs">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <strong className="font-bold block">Validation Alert</strong>
+                    <span>{facultyError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFacultyError('')}
+                    className="text-rose-400 hover:text-rose-700 font-bold px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Faculty Full Name *</label>
