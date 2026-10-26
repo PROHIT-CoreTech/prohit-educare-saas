@@ -14,7 +14,7 @@ import {
   formatValidationErrorMessage,
 } from '../../../../lib/validation';
 import { PricingPlan, DEFAULT_PLANS, fetchPublicPlans } from '../../../../lib/pricing-plans';
-import { ALL_STANDARDS, ALL_ACADEMIC_LEVELS, formatStandard, formatStandardFull } from '../../../../lib/standards';
+import { ALL_STANDARDS, ALL_ACADEMIC_LEVELS, formatStandard, formatStandardFull, getStandardsForAcademicLevels } from '../../../../lib/standards';
 
 export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'fee-structure' | 'faculty' | 'subscription' | 'security'>('profile');
@@ -104,6 +104,26 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const [selectedFeeCategory, setSelectedFeeCategory] = useState<string>('all');
 
+  const offeredStandards = useMemo(() => {
+    const types = academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0
+      ? academyInfo.institutionTypes
+      : [academyInfo?.institutionType || 'High School'];
+
+    const allowedStdNumbers = getStandardsForAcademicLevels(types);
+    const filtered = ALL_STANDARDS.filter((s) => allowedStdNumbers.includes(s.standard));
+    return filtered.length > 0 ? filtered : ALL_STANDARDS;
+  }, [academyInfo]);
+
+  const selectableStandards = useMemo(() => {
+    if (editingFeeId && !offeredStandards.some((s) => s.standard === feeForm.standard)) {
+      const legacyStd = ALL_STANDARDS.find((s) => s.standard === feeForm.standard);
+      if (legacyStd) {
+        return [...offeredStandards, legacyStd].sort((a, b) => a.standard - b.standard);
+      }
+    }
+    return offeredStandards;
+  }, [offeredStandards, editingFeeId, feeForm.standard]);
+
   const availableStandardOptions = [
     'Day Care', 'Playgroup', 'Nursery', 'Jr KG', 'Sr KG',
     '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th',
@@ -112,7 +132,25 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   ];
 
   const feeCategories = useMemo(() => {
-    return [
+    const types = academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0
+      ? academyInfo.institutionTypes
+      : [academyInfo?.institutionType || 'High School'];
+
+    const offeredCategorySet = new Set<string>();
+    types.forEach((typeStr: string) => {
+      const t = typeStr.toLowerCase();
+      if (t.includes('kindergarten') || t.includes('pre-primary') || t.includes('day care') || t.includes('nursery')) offeredCategorySet.add('kindergarten');
+      if (t.includes('primary school')) offeredCategorySet.add('primary');
+      if (t.includes('mid primary') || t.includes('middle school')) offeredCategorySet.add('middle');
+      if (t.includes('high school')) offeredCategorySet.add('secondary');
+      if (t.includes('jr. college') || t.includes('junior college') || t.includes('higher secondary')) offeredCategorySet.add('higher_secondary');
+      if (t.includes('under graduate') || t.includes('degree') || t.includes('ug')) offeredCategorySet.add('degree');
+      if (t.includes('other') || t.includes('coaching')) {
+        ['kindergarten', 'primary', 'middle', 'secondary', 'higher_secondary', 'degree'].forEach((c) => offeredCategorySet.add(c));
+      }
+    });
+
+    const all = [
       {
         id: 'kindergarten',
         title: 'Kindergarten & Pre-Primary',
@@ -168,7 +206,10 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
         items: feeStructures.filter((f) => f.standard >= 13 && f.standard <= 15),
       },
     ];
-  }, [feeStructures]);
+
+    if (offeredCategorySet.size === 0) return all;
+    return all.filter((cat) => offeredCategorySet.has(cat.id) || cat.items.length > 0);
+  }, [feeStructures, academyInfo]);
 
   const [loading, setLoading] = useState(true);
 
@@ -328,29 +369,15 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleOpenNewFeeModal = () => {
     setEditingFeeId(null);
-    const inst = academyInfo?.institutionType || '';
-    const defaultStd = inst.includes('Kindergarten') || inst.includes('Pre-Primary') || inst.includes('Day Care')
-      ? 0
-      : inst.includes('Primary School')
-      ? 5
-      : inst.includes('Mid Primary')
-      ? 8
-      : inst.includes('High School')
-      ? 10
-      : inst.includes('Jr. College')
-      ? 12
-      : inst.includes('Under Graduate')
-      ? 15
-      : 10;
+    let defaultStd = offeredStandards.length > 0 ? offeredStandards[0].standard : 10;
+    if (selectedFeeCategory && selectedFeeCategory !== 'all') {
+      const matchInCat = offeredStandards.find((s) => s.category === selectedFeeCategory);
+      if (matchInCat) {
+        defaultStd = matchInCat.standard;
+      }
+    }
 
-    const defaultStream = inst.includes('Science')
-      ? 'science'
-      : inst.includes('Commerce')
-      ? 'commerce'
-      : inst.includes('Arts')
-      ? 'arts'
-      : 'none';
-
+    const defaultStream = defaultStd >= 11 ? 'science' : 'none';
     const board = academyInfo?.educationBoard || 'SSC / State Board';
 
     setFeeForm({
@@ -1730,7 +1757,14 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard / Academic Level</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Standard / Academic Level</label>
+                  {academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0 && (
+                    <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                      Offered Levels Only
+                    </span>
+                  )}
+                </div>
                 <select
                   value={feeForm.standard}
                   onChange={(e) => {
@@ -1742,14 +1776,19 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                       stream: std >= 11 ? 'science' : 'none',
                     });
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none font-semibold text-sm"
                 >
-                  {ALL_STANDARDS.map((s) => (
+                  {selectableStandards.map((s) => (
                     <option key={s.standard} value={s.standard}>
                       {s.fullLabel}
                     </option>
                   ))}
                 </select>
+                {academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0 && (
+                  <p className="text-[11px] text-slate-400 font-medium mt-1">
+                    Showing standards offered by your academy: <strong className="text-slate-700">{academyInfo.institutionTypes.join(', ')}</strong>
+                  </p>
+                )}
               </div>
 
               {/* Dynamic Medium / Stream Field */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3, ChevronDown, ChevronUp, MoreVertical, Eye } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
@@ -13,7 +13,7 @@ import {
   isValidInstallmentCount,
   formatValidationErrorMessage,
 } from '../../../../lib/validation';
-import { ALL_STANDARDS, formatStandard, formatStandardFull } from '../../../../lib/standards';
+import { ALL_STANDARDS, formatStandard, formatStandardFull, getStandardsForAcademicLevels } from '../../../../lib/standards';
 
 const DEFAULT_BATCH_PRESETS = [
   { id: 'preset_daycare_eng', standard: -4, medium: 'english', section: 'none', batchName: 'Class Day Care (Early Years)' },
@@ -109,6 +109,15 @@ export default function StudentsPage() {
   const toggleExpandStudent = (id: string) => {
     setExpandedStudentId((prev) => (prev === id ? null : id));
   };
+
+  const offeredStandards = useMemo(() => {
+    const types = academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0
+      ? academyInfo.institutionTypes
+      : [academyInfo?.institutionType || 'High School'];
+    const allowed = getStandardsForAcademicLevels(types);
+    const filtered = ALL_STANDARDS.filter((s) => allowed.includes(s.standard));
+    return filtered.length > 0 ? filtered : ALL_STANDARDS;
+  }, [academyInfo]);
 
   const [usageStats, setUsageStats] = useState<{
     activeStudents: number;
@@ -311,6 +320,21 @@ export default function StudentsPage() {
           standard: firstStd,
           medium: firstMed,
           stream: firstStr,
+          customTotalFee: matchedFee,
+        }));
+      } else if (acadRes?.data) {
+        const types = acadRes.data.institutionTypes && acadRes.data.institutionTypes.length > 0
+          ? acadRes.data.institutionTypes
+          : [acadRes.data.institutionType || 'High School'];
+        const allowed = getStandardsForAcademicLevels(types);
+        const fallbackStd = allowed[0] ?? 1;
+        const matchedFee = getMatchingFeeAmount(fallbackStd, 'english', 'none', loadedFeeStructures);
+        setFormData((prev) => ({
+          ...prev,
+          standard: fallbackStd,
+          classBatchId: `preset_${fallbackStd}`,
+          medium: 'english',
+          stream: 'none',
           customTotalFee: matchedFee,
         }));
       }
@@ -1395,13 +1419,20 @@ export default function StudentsPage() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Target Next Standard *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Target Next Standard *</label>
+                  {academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0 && (
+                    <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                      Offered Levels
+                    </span>
+                  )}
+                </div>
                 <select
                   value={promoteFormData.targetStandard}
                   onChange={(e) => handlePromoteStandardChange(Number(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold text-sm"
                 >
-                  {ALL_STANDARDS.map((s) => (
+                  {offeredStandards.map((s) => (
                     <option key={s.standard} value={s.standard}>
                       {s.fullLabel}
                     </option>
@@ -1696,18 +1727,30 @@ export default function StudentsPage() {
 
               {/* Standard Selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Standard / Academic Level *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">Standard / Academic Level *</label>
+                  {academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0 && (
+                    <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                      Offered Levels Only
+                    </span>
+                  )}
+                </div>
                 <select
                   value={formData.standard}
                   onChange={(e) => handleStandardChange(Number(e.target.value))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
                 >
-                  {ALL_STANDARDS.map((s) => (
+                  {offeredStandards.map((s) => (
                     <option key={s.standard} value={s.standard}>
                       {s.fullLabel}
                     </option>
                   ))}
                 </select>
+                {academyInfo?.institutionTypes && academyInfo.institutionTypes.length > 0 && (
+                  <p className="text-[11px] text-slate-400 font-medium mt-1">
+                    Offered by your academy: <strong className="text-slate-700">{academyInfo.institutionTypes.join(', ')}</strong>
+                  </p>
+                )}
               </div>
 
               {/* Dynamic Medium / Stream & Batch Selector */}
