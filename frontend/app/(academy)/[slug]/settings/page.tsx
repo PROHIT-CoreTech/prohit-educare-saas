@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette, KeyRound, Lock } from 'lucide-react';
+import { Settings, ShieldCheck, CreditCard, UserCheck, Plus, Sparkles, CheckCircle2, AlertCircle, Building2, Search, Edit3, Trash2, BookOpen, Layers, Check, Upload, Image as ImageIcon, User, Phone, Mail, MapPin, Palette, KeyRound, Lock, Loader2 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import {
   isValidMobile,
@@ -62,6 +62,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [editingFeeId, setEditingFeeId] = useState<string | null>(null);
   const [feeError, setFeeError] = useState('');
+  const [savingFee, setSavingFee] = useState(false);
   const [feeForm, setFeeForm] = useState({
     standard: 10,
     medium: 'english',
@@ -91,6 +92,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
   const [editingFacultyId, setEditingFacultyId] = useState<string | null>(null);
   const [facultyError, setFacultyError] = useState('');
   const [facultySearch, setFacultySearch] = useState('');
+  const [savingFaculty, setSavingFaculty] = useState(false);
   const [facultyForm, setFacultyForm] = useState({
     facultyId: '',
     name: '',
@@ -269,6 +271,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingProfile) return;
     setProfileError('');
 
     if (!isValidName(profileForm.name)) {
@@ -306,6 +309,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingPassword) return;
     setPasswordError('');
     setPasswordSuccess('');
 
@@ -410,6 +414,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveFeeStructure = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingFee) return;
     setFeeError('');
 
     if (!isValidName(feeForm.name)) {
@@ -429,6 +434,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       return;
     }
 
+    setSavingFee(true);
     try {
       if (editingFeeId) {
         await apiClient.put(`/fee-engine/structures/${editingFeeId}`, feeForm);
@@ -440,6 +446,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       fetchFeeStructures();
     } catch (err: any) {
       setFeeError(formatValidationErrorMessage(err, 'Failed to save fee structure. Please check inputs and try again.'));
+    } finally {
+      setSavingFee(false);
     }
   };
 
@@ -488,6 +496,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
   const handleSaveFaculty = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingFaculty) return;
     setFacultyError('');
 
     if (!isValidName(facultyForm.name)) {
@@ -503,6 +512,7 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       return;
     }
 
+    setSavingFaculty(true);
     try {
       if (editingFacultyId) {
         await apiClient.put(`/faculty/${editingFacultyId}`, facultyForm);
@@ -514,6 +524,8 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
       fetchFaculty();
     } catch (err: any) {
       setFacultyError(formatValidationErrorMessage(err, 'Failed to save faculty profile. Please check inputs and try again.'));
+    } finally {
+      setSavingFaculty(false);
     }
   };
 
@@ -1099,10 +1111,19 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{savingProfile ? 'Saving Profile...' : 'Save Profile Changes'}</span>
+                {savingProfile ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving Profile Changes...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Save Profile Changes</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -1710,11 +1731,11 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
                   <button
                     type="submit"
                     disabled={savingPassword}
-                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md shadow-orange-500/20 transition disabled:opacity-50 flex items-center space-x-2"
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md shadow-orange-500/20 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
                     {savingPassword ? (
                       <>
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         <span>Updating Password...</span>
                       </>
                     ) : (
@@ -1879,9 +1900,17 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
+                disabled={savingFee}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                {editingFeeId ? 'Update Fee Structure' : 'Save Fee Structure'}
+                {savingFee ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{editingFeeId ? 'Updating Fee Structure...' : 'Saving Fee Structure...'}</span>
+                  </>
+                ) : (
+                  <span>{editingFeeId ? 'Update Fee Structure' : 'Save Fee Structure'}</span>
+                )}
               </button>
             </form>
           </div>
@@ -2044,9 +2073,17 @@ export default function SettingsPage({ params }: { params: { slug: string } }) {
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
+                disabled={savingFaculty}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                {editingFacultyId ? 'Update Faculty Profile' : 'Save Faculty Profile'}
+                {savingFaculty ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{editingFacultyId ? 'Updating Faculty Profile...' : 'Saving Faculty Profile...'}</span>
+                  </>
+                ) : (
+                  <span>{editingFacultyId ? 'Update Faculty Profile' : 'Save Faculty Profile'}</span>
+                )}
               </button>
             </form>
           </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3, ChevronDown, ChevronUp, MoreVertical, Eye } from 'lucide-react';
+import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3, ChevronDown, ChevronUp, MoreVertical, Eye, Loader2 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import {
   isValidMobile,
@@ -105,6 +105,7 @@ export default function StudentsPage() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [togglingStatusId, setTogglingStatusId] = useState<string | null>(null);
 
   const toggleExpandStudent = (id: string) => {
     setExpandedStudentId((prev) => (prev === id ? null : id));
@@ -190,6 +191,7 @@ export default function StudentsPage() {
 
   const handleSaveEditedStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUpdatingStudent) return;
     if (!editingStudent) return;
     setEditFormError('');
 
@@ -409,6 +411,7 @@ export default function StudentsPage() {
 
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setFormError('');
 
     if (!isValidName(formData.name)) {
@@ -558,12 +561,16 @@ export default function StudentsPage() {
 
   // Status Toggle (Deactivate / Re-activate)
   const handleToggleStatus = async (studentId: string, currentStatus: string) => {
+    if (togglingStatusId) return;
+    setTogglingStatusId(studentId);
     const newStatus = currentStatus === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE';
     try {
       await apiClient.patch(`/students/${studentId}`, { status: newStatus });
       fetchData();
     } catch (err: any) {
       alert('Failed to update student status: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setTogglingStatusId(null);
     }
   };
 
@@ -636,6 +643,7 @@ export default function StudentsPage() {
 
   const handlePromoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPromoting) return;
     if (!selectedStudentForPromote) return;
     setPromoteFormError('');
 
@@ -1097,10 +1105,15 @@ export default function StudentsPage() {
                                           setOpenActionMenuId(null);
                                           handleToggleStatus(stu._id, stu.status);
                                         }}
-                                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 flex items-center space-x-2.5 transition cursor-pointer"
+                                        disabled={togglingStatusId === stu._id}
+                                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 flex items-center space-x-2.5 transition cursor-pointer disabled:opacity-50"
                                       >
-                                        <UserCheck className="w-4 h-4 text-emerald-600" />
-                                        <span>Re-activate Admission</span>
+                                        {togglingStatusId === stu._id ? (
+                                          <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                                        ) : (
+                                          <UserCheck className="w-4 h-4 text-emerald-600" />
+                                        )}
+                                        <span>{togglingStatusId === stu._id ? 'Re-activating...' : 'Re-activate Admission'}</span>
                                       </button>
                                     ) : (
                                       <button
@@ -1108,10 +1121,15 @@ export default function StudentsPage() {
                                           setOpenActionMenuId(null);
                                           handleToggleStatus(stu._id, stu.status);
                                         }}
-                                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 flex items-center space-x-2.5 transition cursor-pointer"
+                                        disabled={togglingStatusId === stu._id}
+                                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 flex items-center space-x-2.5 transition cursor-pointer disabled:opacity-50"
                                       >
-                                        <UserX className="w-4 h-4 text-rose-600" />
-                                        <span>Deactivate (Left Academy)</span>
+                                        {togglingStatusId === stu._id ? (
+                                          <Loader2 className="w-4 h-4 text-rose-600 animate-spin" />
+                                        ) : (
+                                          <UserX className="w-4 h-4 text-rose-600" />
+                                        )}
+                                        <span>{togglingStatusId === stu._id ? 'Deactivating...' : 'Deactivate (Left Academy)'}</span>
                                       </button>
                                     )}
                                   </div>
@@ -1350,18 +1368,28 @@ export default function StudentsPage() {
                                   {stu.status === 'INACTIVE' ? (
                                     <button
                                       onClick={() => handleToggleStatus(stu._id, stu.status)}
-                                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                      disabled={togglingStatusId === stu._id}
+                                      className="bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
                                     >
-                                      <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span>Re-activate</span>
+                                      {togglingStatusId === stu._id ? (
+                                        <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                                      ) : (
+                                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                      )}
+                                      <span>{togglingStatusId === stu._id ? 'Re-activating...' : 'Re-activate'}</span>
                                     </button>
                                   ) : (
                                     <button
                                       onClick={() => handleToggleStatus(stu._id, stu.status)}
-                                      className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-rose-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                      disabled={togglingStatusId === stu._id}
+                                      className="bg-rose-50 hover:bg-rose-100 disabled:opacity-50 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-rose-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
                                     >
-                                      <UserX className="w-3.5 h-3.5 text-rose-600" />
-                                      <span>Deactivate</span>
+                                      {togglingStatusId === stu._id ? (
+                                        <Loader2 className="w-3.5 h-3.5 text-rose-600 animate-spin" />
+                                      ) : (
+                                        <UserX className="w-3.5 h-3.5 text-rose-600" />
+                                      )}
+                                      <span>{togglingStatusId === stu._id ? 'Deactivating...' : 'Deactivate'}</span>
                                     </button>
                                   )}
                                 </div>
@@ -1553,10 +1581,19 @@ export default function StudentsPage() {
               <button
                 type="submit"
                 disabled={isPromoting}
-                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                <GraduationCap className="w-4 h-4" />
-                <span>{isPromoting ? 'Promoting Student...' : `Confirm Promotion to Std ${promoteFormData.targetStandard}th`}</span>
+                {isPromoting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Promoting Student...</span>
+                  </>
+                ) : (
+                  <>
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Confirm Promotion to Std {promoteFormData.targetStandard}th</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -1885,9 +1922,16 @@ export default function StudentsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                {isSubmitting ? 'Enrolling Student...' : 'Save & Enroll Student'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Enrolling Student...</span>
+                  </>
+                ) : (
+                  <span>Save & Enroll Student</span>
+                )}
               </button>
             </form>
           </div>
@@ -2080,9 +2124,16 @@ export default function StudentsPage() {
               <button
                 type="submit"
                 disabled={isUpdatingStudent}
-                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                {isUpdatingStudent ? 'Saving Changes...' : 'Update Student Profile'}
+                {isUpdatingStudent ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving Changes...</span>
+                  </>
+                ) : (
+                  <span>Update Student Profile</span>
+                )}
               </button>
             </form>
           </div>

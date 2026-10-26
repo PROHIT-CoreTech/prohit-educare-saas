@@ -26,6 +26,7 @@ import {
   Sparkles,
   Download,
   Upload,
+  Loader2,
 } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import ExamsTab from './exams-tab';
@@ -66,6 +67,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
   });
   const [formError, setFormError] = useState('');
   const [authError, setAuthError] = useState(false);
+  const [isCreatingClass, setIsCreatingClass] = useState(false);
 
   // Roster & Attendance state
   const [weeklyRoster, setWeeklyRoster] = useState<any[]>([]);
@@ -159,6 +161,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCreatingClass) return;
     setFormError('');
 
     if (!isValidStandard(classForm.standard)) {
@@ -180,6 +183,7 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       }
     }
 
+    setIsCreatingClass(true);
     try {
       await apiClient.post('/classes', {
         ...classForm,
@@ -196,6 +200,8 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
       fetchClasses();
     } catch (err: any) {
       setFormError(formatValidationErrorMessage(err, 'Failed to create class batch. Please check inputs and try again.'));
+    } finally {
+      setIsCreatingClass(false);
     }
   };
 
@@ -1284,9 +1290,17 @@ export default function AcademicsPage({ params }: { params: { slug: string } }) 
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm"
+                disabled={isCreatingClass}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md shadow-orange-500/20 transition text-sm flex items-center justify-center space-x-2"
               >
-                Save Class Batch
+                {isCreatingClass ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving Class Batch...</span>
+                  </>
+                ) : (
+                  <span>Save Class Batch</span>
+                )}
               </button>
             </form>
           </div>
