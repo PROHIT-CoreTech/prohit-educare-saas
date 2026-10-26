@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3 } from 'lucide-react';
+import { Plus, Search, User, Users, Phone, Mail, Award, CheckCircle, BookOpen, Layers, Calculator, Sparkles, Calendar, AlertCircle, LogIn, GraduationCap, UserX, UserCheck, Filter, CreditCard, Printer, Download, Upload, Camera, Edit3, ChevronDown, ChevronUp, MoreVertical, Eye } from 'lucide-react';
 import { apiClient } from '../../../../lib/api';
 import {
   isValidMobile,
@@ -103,6 +103,12 @@ export default function StudentsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+
+  const toggleExpandStudent = (id: string) => {
+    setExpandedStudentId((prev) => (prev === id ? null : id));
+  };
 
   const [usageStats, setUsageStats] = useState<{
     activeStudents: number;
@@ -868,12 +874,12 @@ export default function StudentsPage() {
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
               <tr>
-                <th className="p-4">Student Name</th>
-                <th className="p-4">Student Code / Number</th>
-                <th className="p-4">Parent Details</th>
-                <th className="p-4">Standard, Medium & Stream</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="py-3.5 px-4">Student</th>
+                <th className="py-3.5 px-4">Student Code</th>
+                <th className="py-3.5 px-4">Class & Batch</th>
+                <th className="py-3.5 px-4">Parent Contact</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -893,118 +899,456 @@ export default function StudentsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((stu) => (
-                  <tr key={stu._id} className="hover:bg-slate-50 transition">
-                    <td className="p-4 font-bold text-slate-900">
-                      <div className="flex items-center space-x-3">
-                        <StudentAvatar photoUrl={stu.photoUrl} gender={stu.gender} name={stu.name} className="w-9 h-9 rounded-full" iconClassName="w-5 h-5" />
-                        <div>
-                          <div>{stu.name}</div>
-                          {stu.bloodGroup && (
-                            <span className="text-[10px] text-rose-600 font-bold block">
-                              Blood: {stu.bloodGroup}
+                filteredStudents.map((stu) => {
+                  const isExpanded = expandedStudentId === stu._id;
+                  return (
+                    <React.Fragment key={stu._id}>
+                      <tr className={`hover:bg-slate-50/80 transition ${isExpanded ? 'bg-orange-50/20' : ''}`}>
+                        {/* Student Name & Avatar */}
+                        <td className="py-3.5 px-4 font-semibold text-slate-900">
+                          <div className="flex items-center space-x-3">
+                            <StudentAvatar
+                              photoUrl={stu.photoUrl}
+                              gender={stu.gender}
+                              name={stu.name}
+                              className="w-10 h-10 rounded-full cursor-pointer hover:ring-2 hover:ring-orange-400 transition"
+                              iconClassName="w-5 h-5"
+                            />
+                            <div>
+                              <div
+                                onClick={() => toggleExpandStudent(stu._id)}
+                                className="font-bold text-slate-900 text-sm leading-snug hover:text-orange-600 transition cursor-pointer flex items-center space-x-1"
+                                title="Click to view student details"
+                              >
+                                <span>{stu.name}</span>
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-medium block">
+                                {stu.gender ? stu.gender.charAt(0).toUpperCase() + stu.gender.slice(1).toLowerCase() : 'Student'}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Student Code / Roll Number */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="font-mono text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200/80 px-2.5 py-1 rounded-lg inline-block">
+                            {stu.studentCode || stu.rollNumber || 'STU-2026-00001'}
+                          </span>
+                        </td>
+
+                        {/* Standard, Medium & Stream */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-1.5">
+                            <span className="bg-slate-100 text-slate-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-200">
+                              {formatStandardFull(stu.standard)}
+                            </span>
+                            <span className="bg-orange-50 text-orange-700 text-[11px] font-bold px-2 py-0.5 rounded-md border border-orange-200 uppercase">
+                              {stu.standard <= 10
+                                ? stu.medium === 'semi_english' ? 'Semi-Eng' : stu.medium === 'marathi' ? 'Marathi' : stu.medium === 'hindi' ? 'Hindi' : 'English'
+                                : stu.stream !== 'none' ? stu.stream : 'General'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Parent Details */}
+                        <td className="py-3.5 px-4">
+                          <div className="font-semibold text-xs text-slate-800 leading-snug">{stu.parentName}</div>
+                          <a
+                            href={`tel:${stu.parentPhone}`}
+                            className="text-[11px] text-slate-500 hover:text-orange-600 font-mono flex items-center space-x-1 mt-0.5 transition"
+                            title="Call Parent"
+                          >
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            <span>{stu.parentPhone}</span>
+                          </a>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {stu.status === 'INACTIVE' ? (
+                            <span className="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full border border-rose-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                              <span>Inactive</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              <span>Active</span>
                             </span>
                           )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 font-mono font-semibold text-orange-600">{stu.studentCode || stu.rollNumber || 'STU-2026-00001'}</td>
-                    <td className="p-4 font-medium">
-                      <div>{stu.parentName}</div>
-                      <div className="text-xs text-slate-500 font-mono">{stu.parentPhone}</div>
-                    </td>
-                    <td className="p-4 font-medium">
-                      <div className="flex items-center space-x-1.5">
-                        <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-200">
-                          {formatStandardFull(stu.standard)} - {stu.classBatchId?.batchName || 'General Batch'}
-                        </span>
-                        <span className="bg-slate-100 text-slate-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-slate-200 uppercase">
-                          {stu.standard <= 10
-                            ? stu.medium === 'semi_english' ? 'Semi-Eng' : stu.medium === 'marathi' ? 'Marathi' : stu.medium === 'hindi' ? 'Hindi' : 'English'
-                            : stu.stream !== 'none' ? stu.stream : 'General'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      {stu.status === 'INACTIVE' ? (
-                        <span className="bg-rose-50 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full border border-rose-200 uppercase">
-                          INACTIVE (LEFT)
-                        </span>
-                      ) : (
-                        <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-200 uppercase">
-                          ACTIVE
-                        </span>
+                        </td>
+
+                        {/* Simplified Actions Column */}
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1.5">
+                            {/* Toggle Detail Placeholder Button */}
+                            <button
+                              onClick={() => toggleExpandStudent(stu._id)}
+                              className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition flex items-center space-x-1 cursor-pointer ${
+                                isExpanded
+                                  ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
+                              }`}
+                              title={isExpanded ? 'Hide Details' : 'View Full Details & Placeholder'}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>{isExpanded ? 'Hide' : 'Details'}</span>
+                              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Quick Edit Profile Button */}
+                            <button
+                              onClick={() => handleOpenEditModal(stu)}
+                              className="bg-white hover:bg-slate-100 text-slate-700 p-1.5 rounded-xl border border-slate-200 transition cursor-pointer shadow-2xs"
+                              title="Edit Student Profile"
+                            >
+                              <Edit3 className="w-4 h-4 text-slate-600" />
+                            </button>
+
+                            {/* Dropdown Menu for More Actions */}
+                            <div className="relative inline-block text-left">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenActionMenuId(openActionMenuId === stu._id ? null : stu._id);
+                                }}
+                                className="bg-white hover:bg-slate-100 text-slate-700 p-1.5 rounded-xl border border-slate-200 transition cursor-pointer shadow-2xs"
+                                title="More Actions"
+                              >
+                                <MoreVertical className="w-4 h-4 text-slate-600" />
+                              </button>
+
+                              {openActionMenuId === stu._id && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-30"
+                                    onClick={() => setOpenActionMenuId(null)}
+                                  />
+                                  <div className="absolute right-0 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-40 text-left">
+                                    <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                      Student Actions
+                                    </div>
+
+                                    {/* Digital ID Card */}
+                                    <button
+                                      onClick={() => {
+                                        setOpenActionMenuId(null);
+                                        setSelectedIdCardStudent(stu);
+                                        setShowIdCardModal(true);
+                                      }}
+                                      className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-800 flex items-center space-x-2.5 transition cursor-pointer"
+                                    >
+                                      <CreditCard className="w-4 h-4 text-teal-600" />
+                                      <span>Digital Student ID Card</span>
+                                    </button>
+
+                                    {/* Test Results */}
+                                    <Link
+                                      href={`academics?tab=exams&studentId=${stu._id}`}
+                                      onClick={() => setOpenActionMenuId(null)}
+                                      className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-800 flex items-center space-x-2.5 transition cursor-pointer"
+                                    >
+                                      <Award className="w-4 h-4 text-indigo-600" />
+                                      <span>Test Results & Marks</span>
+                                    </Link>
+
+                                    {/* Promote Std */}
+                                    <button
+                                      onClick={() => {
+                                        setOpenActionMenuId(null);
+                                        handleOpenPromoteModal(stu);
+                                      }}
+                                      className="w-full text-left px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-800 flex items-center space-x-2.5 transition cursor-pointer"
+                                    >
+                                      <GraduationCap className="w-4 h-4 text-orange-600" />
+                                      <span>Promote to Next Std</span>
+                                    </button>
+
+                                    <div className="my-1 border-t border-slate-100" />
+
+                                    {/* Status Toggle */}
+                                    {stu.status === 'INACTIVE' ? (
+                                      <button
+                                        onClick={() => {
+                                          setOpenActionMenuId(null);
+                                          handleToggleStatus(stu._id, stu.status);
+                                        }}
+                                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 flex items-center space-x-2.5 transition cursor-pointer"
+                                      >
+                                        <UserCheck className="w-4 h-4 text-emerald-600" />
+                                        <span>Re-activate Admission</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => {
+                                          setOpenActionMenuId(null);
+                                          handleToggleStatus(stu._id, stu.status);
+                                        }}
+                                        className="w-full text-left px-3.5 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 flex items-center space-x-2.5 transition cursor-pointer"
+                                      >
+                                        <UserX className="w-4 h-4 text-rose-600" />
+                                        <span>Deactivate (Left Academy)</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expandable Detail Placeholder Row */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/70 border-b border-slate-200">
+                          <td colSpan={6} className="p-3 sm:p-5">
+                            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
+                              {/* Detail Placeholder Top Header */}
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                                <div className="flex items-center space-x-3.5">
+                                  <StudentAvatar
+                                    photoUrl={stu.photoUrl}
+                                    gender={stu.gender}
+                                    name={stu.name}
+                                    className="w-12 h-12 rounded-2xl shadow-xs"
+                                    iconClassName="w-7 h-7"
+                                  />
+                                  <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <h3 className="text-base font-extrabold text-slate-900">{stu.name}</h3>
+                                      <span className="font-mono text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md">
+                                        {stu.studentCode || stu.rollNumber || 'STU-2026-00001'}
+                                      </span>
+                                      {stu.status === 'INACTIVE' ? (
+                                        <span className="bg-rose-50 text-rose-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-rose-200">
+                                          Inactive (Left)
+                                        </span>
+                                      ) : (
+                                        <span className="bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                          Active Admission
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                      Complete student records, medical details, parent contacts & enrollment data
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={() => toggleExpandStudent(stu._id)}
+                                  className="text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition flex items-center space-x-1 self-start sm:self-auto cursor-pointer"
+                                >
+                                  <span>Close Details</span>
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {/* 3 Detail Information Cards */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Card 1: Personal & Medical Info */}
+                                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-3">
+                                  <div className="flex items-center space-x-2 text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                                    <User className="w-3.5 h-3.5 text-orange-500" />
+                                    <span>Personal & Medical Info</span>
+                                  </div>
+
+                                  <div className="space-y-2 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Blood Group:</span>
+                                      <span
+                                        className={`font-bold px-2 py-0.5 rounded-md text-[11px] border ${
+                                          stu.bloodGroup && stu.bloodGroup !== 'Not Available'
+                                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                            : 'bg-slate-100 text-slate-600 border-slate-200'
+                                        }`}
+                                      >
+                                        {stu.bloodGroup || 'Not Available'}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Gender:</span>
+                                      <span className="font-bold text-slate-800">
+                                        {stu.gender ? stu.gender.toUpperCase() : 'MALE'}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Roll No / ID:</span>
+                                      <span className="font-mono font-bold text-slate-800">
+                                        {stu.rollNo || stu.studentCode || 'N/A'}
+                                      </span>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-200/70">
+                                      <span className="text-slate-500 font-medium block text-[11px]">Address:</span>
+                                      <span className="text-slate-800 font-semibold block mt-0.5">
+                                        {stu.address || 'Address not registered'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Card 2: Parent & Emergency Contact */}
+                                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-3">
+                                  <div className="flex items-center space-x-2 text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                                    <Phone className="w-3.5 h-3.5 text-blue-500" />
+                                    <span>Parent & Emergency Contact</span>
+                                  </div>
+
+                                  <div className="space-y-2 text-xs">
+                                    <div>
+                                      <span className="text-slate-500 font-medium block text-[11px]">Parent / Guardian:</span>
+                                      <span className="font-bold text-slate-800 block text-xs">{stu.parentName}</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Primary Phone:</span>
+                                      <a href={`tel:${stu.parentPhone}`} className="font-mono font-bold text-blue-600 hover:underline">
+                                        {stu.parentPhone}
+                                      </a>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Email Address:</span>
+                                      <span className="font-medium text-slate-700 truncate max-w-[150px]">
+                                        {stu.parentEmail || 'Not provided'}
+                                      </span>
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-200/70 space-y-1">
+                                      <div className="flex items-center justify-between text-[11px]">
+                                        <span className="text-slate-500 font-medium">Emergency Contact:</span>
+                                        <span className="font-bold text-slate-800">{stu.emergencyContactName || stu.parentName}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between text-[11px]">
+                                        <span className="text-slate-500 font-medium">Emergency Phone:</span>
+                                        <a href={`tel:${stu.emergencyPhone || stu.parentPhone}`} className="font-mono font-bold text-rose-600 hover:underline">
+                                          {stu.emergencyPhone || stu.parentPhone}
+                                        </a>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Card 3: Academic & Batch Details */}
+                                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 space-y-3">
+                                  <div className="flex items-center space-x-2 text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                                    <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
+                                    <span>Academic & Batch Details</span>
+                                  </div>
+
+                                  <div className="space-y-2 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Standard / Level:</span>
+                                      <span className="font-bold text-slate-900">
+                                        {formatStandardFull(stu.standard)}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-slate-500 font-medium">Medium:</span>
+                                      <span className="font-bold text-slate-800 capitalize">
+                                        {stu.medium === 'semi_english' ? 'Semi-English' : stu.medium || 'English'}
+                                      </span>
+                                    </div>
+
+                                    {stu.standard >= 11 && (
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-slate-500 font-medium">Stream / Section:</span>
+                                        <span className="font-bold text-slate-800 capitalize">
+                                          {stu.stream !== 'none' ? stu.stream : 'General'}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div className="pt-2 border-t border-slate-200/70">
+                                      <span className="text-slate-500 font-medium block text-[11px]">Assigned Class Batch:</span>
+                                      <span className="font-semibold text-slate-800 block text-xs mt-0.5">
+                                        {stu.classBatchId?.batchName || `${formatStandardFull(stu.standard)} General Batch`}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[11px] pt-1">
+                                      <span className="text-slate-500 font-medium">ID Card Validity:</span>
+                                      <span className="font-mono font-bold text-slate-700">{stu.validUpto || '31-MAR-2027'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Detail Placeholder Bottom Quick Actions Toolbar */}
+                              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+                                <span className="text-xs font-bold text-slate-600">Quick Actions:</span>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {/* Edit Profile */}
+                                  <button
+                                    onClick={() => handleOpenEditModal(stu)}
+                                    className="bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-300 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                                    <span>Edit Profile</span>
+                                  </button>
+
+                                  {/* Digital ID Card */}
+                                  <button
+                                    onClick={() => {
+                                      setSelectedIdCardStudent(stu);
+                                      setShowIdCardModal(true);
+                                    }}
+                                    className="bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-teal-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                  >
+                                    <CreditCard className="w-3.5 h-3.5 text-teal-600" />
+                                    <span>Digital ID Card</span>
+                                  </button>
+
+                                  {/* Test Results */}
+                                  <Link
+                                    href={`academics?tab=exams&studentId=${stu._id}`}
+                                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                  >
+                                    <Award className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>Test Results</span>
+                                  </Link>
+
+                                  {/* Promote Std */}
+                                  <button
+                                    onClick={() => handleOpenPromoteModal(stu)}
+                                    className="bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-orange-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                  >
+                                    <GraduationCap className="w-3.5 h-3.5 text-orange-600" />
+                                    <span>Promote Std</span>
+                                  </button>
+
+                                  {/* Toggle Status */}
+                                  {stu.status === 'INACTIVE' ? (
+                                    <button
+                                      onClick={() => handleToggleStatus(stu._id, stu.status)}
+                                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span>Re-activate</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleToggleStatus(stu._id, stu.status)}
+                                      className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-rose-200 transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                                    >
+                                      <UserX className="w-3.5 h-3.5 text-rose-600" />
+                                      <span>Deactivate</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                    <td className="p-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end space-x-2">
-                        {/* Edit Student Profile Button */}
-                        <button
-                          onClick={() => handleOpenEditModal(stu)}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition flex items-center space-x-1 cursor-pointer"
-                          title="Edit Student Profile & Photo"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Edit</span>
-                        </button>
-
-                        {/* Digital ID Card Button */}
-                        <button
-                          onClick={() => {
-                            setSelectedIdCardStudent(stu);
-                            setShowIdCardModal(true);
-                          }}
-                          className="bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-teal-200 transition flex items-center space-x-1 cursor-pointer"
-                          title="View & Download Digital Student ID Card"
-                        >
-                          <CreditCard className="w-3.5 h-3.5" />
-                          <span>Digital ID Card</span>
-                        </button>
-
-                        {/* Test Results / Exam Marks Button */}
-                        <Link
-                          href={`academics?tab=exams&studentId=${stu._id}`}
-                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-200 transition flex items-center space-x-1 cursor-pointer"
-                          title="View & Add Test Results for this student"
-                        >
-                          <Award className="w-3.5 h-3.5" />
-                          <span>Test Results</span>
-                        </Link>
-
-                        {/* Promote / Continue Next Standard Button */}
-                        <button
-                          onClick={() => handleOpenPromoteModal(stu)}
-                          className="bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-orange-200 transition flex items-center space-x-1"
-                          title="Promote / Continue to Next Standard"
-                        >
-                          <GraduationCap className="w-3.5 h-3.5" />
-                          <span>Promote Std</span>
-                        </button>
-
-                        {/* Status Toggle (Deactivate / Re-activate) */}
-                        {stu.status === 'INACTIVE' ? (
-                          <button
-                            onClick={() => handleToggleStatus(stu._id, stu.status)}
-                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-200 transition flex items-center space-x-1"
-                            title="Re-activate Student Admission"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span>Re-activate</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleToggleStatus(stu._id, stu.status)}
-                            className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-xl border border-rose-200 transition flex items-center space-x-1"
-                            title="Deactivate Student (Left Academy)"
-                          >
-                            <UserX className="w-3.5 h-3.5" />
-                            <span>Deactivate</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                    </React.Fragment>
+                  );
+                })
               )}
             </tbody>
           </table>
